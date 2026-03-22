@@ -1,6 +1,6 @@
-import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { ConvexProvider, ConvexReactClient, usePaginatedQuery, useMutation } from "convex/react";
-import { Search, Filter, SortAsc, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
+import { Search, Filter, SortAsc, ChevronLeft, ChevronRight } from "lucide-react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import SermonItem from "./components/SermonItem";
@@ -39,67 +39,8 @@ const convex = (function() {
   return null;
 })();
 
-// Error Boundary for Convex Deployment Issues
-class ConvexErrorBoundary extends React.Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Convex Error caught by boundary:", error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      const isDeploymentError = this.state.error?.message?.includes("Could not find public function") || 
-                               this.state.error?.message?.includes("Server Error");
-
-      return (
-        <div className="pt-32 pb-24 px-6 text-center max-w-2xl mx-auto">
-          <div className="bg-error-container text-on-error-container p-8 rounded-2xl border border-error/20 shadow-xl">
-            <AlertTriangle className="mx-auto mb-6 text-error" size={48} />
-            <h2 className="text-2xl font-headline mb-4 font-bold">
-              {isDeploymentError ? "Backend Deployment Required" : "Something went wrong"}
-            </h2>
-            <p className="mb-6 opacity-90">
-              {isDeploymentError 
-                ? "The application is connected to Convex, but the backend functions haven't been deployed yet." 
-                : (this.state.error?.message || "An unexpected error occurred while connecting to the database.")}
-            </p>
-            
-            {isDeploymentError && (
-              <div className="bg-surface-container-lowest p-4 rounded font-mono text-sm text-left mb-6 overflow-x-auto border border-outline-variant/20">
-                <p className="text-xs text-outline mb-2 uppercase tracking-widest font-bold">Run this in your terminal:</p>
-                <code className="text-primary font-bold">npx convex deploy</code>
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={() => window.location.reload()}
-                className="bg-primary text-on-primary px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-primary/20"
-              >
-                Retry
-              </button>
-              <button 
-                onClick={() => this.setState({ hasError: false, error: null })}
-                className="bg-surface-container-highest text-on-surface px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm hover:bg-surface-bright transition-colors"
-              >
-                Dismiss
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
+function ConvexErrorBoundary({ children }: { children: ReactNode }) {
+  return <>{children}</>;
 }
 
 function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void }) {
@@ -231,7 +172,9 @@ function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void 
 
       <section className="space-y-4">
         {results.map((sermon) => (
-          <SermonItem key={sermon._id} sermon={sermon as any} onReadText={onOpenReader} />
+          <div key={sermon._id}>
+            <SermonItem sermon={sermon as any} onReadText={onOpenReader} />
+          </div>
         ))}
 
         {status === "LoadingMore" && (

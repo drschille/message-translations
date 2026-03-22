@@ -22,6 +22,7 @@ import type { ParagraphId, ParagraphStatus, SermonId } from "@/src/types/editori
 interface ProofreadingWorkflowProps {
   sermon?: any;
   onBack: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 interface UiSegment {
@@ -91,7 +92,7 @@ function statusClasses(status: ParagraphStatus) {
   return "bg-surface-container-highest text-on-surface-variant border border-outline/20";
 }
 
-export default function ProofreadingWorkflow({ sermon, onBack }: ProofreadingWorkflowProps) {
+export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: ProofreadingWorkflowProps) {
   const sermonId = sermon?._id as SermonId | undefined;
   const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
   const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
@@ -214,6 +215,19 @@ export default function ProofreadingWorkflow({ sermon, onBack }: ProofreadingWor
       reason: "Approved in proofreading workflow",
     });
   };
+
+  const isDirty = useMemo(() => {
+    if (!activeSegment || activeSegment.status !== "drafting") return false;
+    return draftText.trim() !== activeSegment.translatedText.trim();
+  }, [activeSegment, draftText]);
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
+
+  useEffect(() => {
+    return () => onDirtyChange?.(false);
+  }, [onDirtyChange]);
 
   return (
     <>
