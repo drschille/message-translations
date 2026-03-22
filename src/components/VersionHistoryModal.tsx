@@ -113,15 +113,15 @@ export default function VersionHistoryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4 backdrop-blur-md md:p-8">
-      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-outline/25 bg-surface-container shadow-2xl">
-        <div className="flex items-center justify-between border-b border-outline/20 bg-surface-container-low px-6 py-5">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md md:p-6">
+      <div className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-outline/20 bg-surface-container shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center justify-between border-b border-outline/20 bg-surface-container-low px-8 py-6">
           <div>
             <h3 className="inline-flex items-center gap-2 font-headline text-2xl text-on-surface">
               <History size={20} />
               Version History
             </h3>
-            <p className="mt-1 text-xs uppercase tracking-[0.14em] text-secondary">
+            <p className="mt-1 text-xs uppercase tracking-widest text-secondary">
               Compare and restore paragraph revisions
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function VersionHistoryModal({
           </button>
         </div>
 
-        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-6">
+        <div className="flex-1 space-y-6 overflow-y-auto px-8 py-8">
           {revisions.length === 0 ? (
             <div className="rounded-lg border border-dashed border-outline/30 p-10 text-center text-on-surface-variant">
               No revisions available.
@@ -144,11 +144,11 @@ export default function VersionHistoryModal({
               const isComparing = compareRevisionId === revision._id;
               const tokens = isComparing ? diffWords(revision.snapshotText, currentText) : [];
               return (
-                <div key={revision._id} className="rounded-lg border border-outline/20 bg-surface-container-low p-4">
+                <div key={revision._id} className="rounded-lg border border-outline/20 bg-surface-container-low p-5">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">
+                        <span className="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">
                           {revision.kind === "restore" ? "Restore" : "Edit"}
                         </span>
                         <span className="text-sm font-semibold text-on-surface">{statusLabel(revision.status)}</span>
@@ -160,7 +160,7 @@ export default function VersionHistoryModal({
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setCompareRevisionId((prev) => (prev === revision._id ? null : revision._id))}
-                        className="rounded border border-outline/30 px-3 py-1.5 text-xs uppercase tracking-[0.12em] text-on-surface-variant transition hover:text-on-surface"
+                        className="rounded border border-outline/30 px-3 py-1.5 text-xs uppercase tracking-[0.12em] text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
                       >
                         {isComparing ? "Hide Compare" : "Compare"}
                       </button>
@@ -175,12 +175,12 @@ export default function VersionHistoryModal({
                     </div>
                   </div>
 
-                  <p className="rounded border border-outline/10 bg-surface-container p-3 font-headline leading-relaxed text-on-surface">
+                  <p className="rounded border border-outline/10 bg-surface-container p-4 font-headline leading-relaxed text-on-surface">
                     {revision.snapshotText}
                   </p>
 
                   {isComparing && (
-                    <div className="mt-3 rounded border border-outline/10 bg-surface-container p-3">
+                    <div className="mt-3 rounded border border-outline/10 bg-surface-container p-4">
                       <div className="mb-2 inline-flex items-center gap-2 text-xs uppercase tracking-[0.1em] text-secondary">
                         <CheckCircle2 size={12} />
                         Diff vs current
