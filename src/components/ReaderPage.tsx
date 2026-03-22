@@ -3,7 +3,6 @@ import {
   Bookmark,
   CalendarDays,
   ChevronLeft,
-  ChevronRight,
   Download,
   History,
   LocateFixed,
@@ -14,6 +13,8 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useTranslation } from "react-i18next";
+import { statusLabel } from "@/src/lib/ui-labels";
 import ParagraphCommentsModal from "@/src/components/ParagraphCommentsModal";
 import VersionHistoryModal from "@/src/components/VersionHistoryModal";
 import homePillarOfFire from "@/src/assets/home_pillar_of_fire.jpg";
@@ -34,14 +35,8 @@ const fallbackParagraphs = [
   "I denne siste tid har Gud igjen sendt oss et budskap for aa kalle oss ut av systemene og inn i det sanne hvilestedet. Det hvilestedet er i Kristus, som er Ordet. Naar du tar imot Ordet for din dag, da tar du imot Gud Selv, for Ordet og Gud er ett.",
 ];
 
-function statusLabel(status: string) {
-  if (status === "approved") return "Approved";
-  if (status === "needs_review") return "Needs Review";
-  if (status === "drafting") return "Drafting";
-  return "Draft";
-}
-
 export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
+  const { t, i18n } = useTranslation();
   const [mode, setMode] = useState<"read" | "compare">("read");
   const [fontScale, setFontScale] = useState(1);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -114,7 +109,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
   );
 
   const sermonTitle = sermon?.title ?? "Det Valgte Hvilested";
-  const sermonDate = sermon?.date ? formatDate(sermon.date) : "13. MAI 1965";
+  const sermonDate = sermon?.date ? formatDate(sermon.date, i18n.language) : "13. MAI 1965";
   const sermonSeries = sermon?.series ?? "De syv segl";
 
   const increaseText = () => setFontScale((prev) => Math.min(1.3, Number((prev + 0.05).toFixed(2))));
@@ -137,12 +132,12 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
               className="mb-7 inline-flex items-center gap-2 rounded-md border border-outline/30 bg-surface-container-low/70 px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
             >
               <ChevronLeft size={14} />
-              Tilbake
+              {t('common.back')}
             </button>
 
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">Sermon Archive</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">{t('reader.sermonArchive')}</span>
                 <span className="h-px w-12 bg-outline/35" />
               </div>
               <h1 className="max-w-4xl font-headline text-4xl font-bold leading-[1.1] tracking-tight text-on-surface md:text-6xl lg:text-7xl">
@@ -165,7 +160,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
         <div className="mx-auto grid w-full max-w-screen-xl gap-12 px-6 py-12 md:px-8 md:py-16 lg:grid-cols-[1fr_minmax(auto,720px)_1fr]">
           <aside className="hidden h-fit space-y-12 lg:sticky lg:top-24 lg:block">
             <div className="space-y-4">
-              <div className="text-[10px] uppercase tracking-widest text-outline">Lese-fremgang</div>
+              <div className="text-[10px] uppercase tracking-widest text-outline">{t('reader.readProgress')}</div>
               <div className="h-1 w-full overflow-hidden rounded-full bg-surface-container-high">
                 <div className="h-full bg-primary transition-all duration-300" style={{ width: `${scrollProgress}%` }} />
               </div>
@@ -184,7 +179,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                         : "text-on-surface-variant hover:text-on-surface"
                     }`}
                   >
-                    Lese-modus
+                    {t('reader.readMode')}
                   </button>
                   <button
                     onClick={() => setMode("compare")}
@@ -194,7 +189,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                         : "text-on-surface-variant hover:text-on-surface"
                     }`}
                   >
-                    Sammenligning
+                    {t('reader.comparison')}
                   </button>
                 </div>
                 <div className="hidden h-6 w-px bg-outline/30 sm:block" />
@@ -202,7 +197,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                   <button
                     onClick={decreaseText}
                     className="rounded-full p-1 text-on-surface-variant transition hover:text-primary"
-                    aria-label="Decrease font size"
+                    aria-label={t('reader.decreaseFont')}
                   >
                     <Minus size={16} />
                   </button>
@@ -210,7 +205,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                   <button
                     onClick={increaseText}
                     className="rounded-full p-1 text-on-surface-variant transition hover:text-primary"
-                    aria-label="Increase font size"
+                    aria-label={t('reader.increaseFont')}
                   >
                     <Plus size={16} />
                   </button>
@@ -225,12 +220,12 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                   className="inline-flex items-center gap-2 rounded-md bg-surface-container px-4 py-2 text-sm font-medium transition hover:bg-surface-container-high"
                 >
                   <Download size={16} />
-                  Last ned PDF
+                  {t('reader.downloadPdf')}
                 </a>
                 <button
                   onClick={() => setBookmarked((prev) => !prev)}
                   className="rounded-md p-2 text-on-surface-variant transition hover:text-primary"
-                  aria-label="Bookmark sermon"
+                  aria-label={t('reader.bookmarkSermon')}
                 >
                   <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
                 </button>
@@ -284,7 +279,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
               <div className="space-y-0" style={{ fontSize: `${fontScale}rem` }}>
                 {paragraphs.length === 0 ? (
                   <div className="rounded-lg border border-outline/20 bg-surface-container-low p-8 text-center text-on-surface-variant">
-                    Loading comparison view...
+                    {t('reader.loadingComparison')}
                   </div>
                 ) : (
                   paragraphs.map((paragraph) => {
@@ -301,7 +296,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                             className="border-b border-outline/10 px-4 pb-8 text-left lg:border-b-0 lg:border-r lg:border-outline/10 lg:px-0 lg:pb-0 lg:pr-10"
                           >
                             <div className="mb-4 text-[10px] font-bold uppercase tracking-[0.18em] text-secondary/90">
-                              ORIGINAL [{String(paragraph.order).padStart(3, "0")}]
+                              {t('reader.original')} [{String(paragraph.order).padStart(3, "0")}]
                             </div>
                             <p className="font-headline text-lg italic leading-[1.9] text-on-surface-variant/95">
                               {paragraph.sourceText}
@@ -311,7 +306,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                           <div className="px-4 lg:px-0 lg:pl-1">
                             <div className="mb-4 flex items-start justify-between gap-3">
                               <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-                                OVERSETTELSE
+                                {t('reader.translation')}
                               </span>
                               <div className="flex items-center gap-2">
                                 <span
@@ -321,19 +316,19 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                                       : "bg-surface-container-highest/70 text-on-surface-variant"
                                   }`}
                                 >
-                                  {statusLabel(paragraph.status)}
+                                  {statusLabel(paragraph.status, t)}
                                 </span>
                                 <button
                                   onClick={() => setHistoryParagraphId(paragraph._id as ParagraphId)}
                                   className="rounded p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
-                                  aria-label="Open version history"
+                                  aria-label={t('editorial.versionHistory')}
                                 >
                                   <History size={15} />
                                 </button>
                                 <button
                                   onClick={() => setCommentsParagraphId(paragraph._id as ParagraphId)}
                                   className="rounded p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
-                                  aria-label="Open comments"
+                                  aria-label={t('editorial.paragraphComments')}
                                 >
                                   <MessageSquare size={15} />
                                 </button>
@@ -354,18 +349,18 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
 
           <aside className="hidden h-fit lg:sticky lg:top-24 lg:block">
             <div className="rounded-lg border border-outline/15 bg-surface-container-low p-6">
-              <h3 className="mb-4 font-headline text-lg text-secondary">Detaljer</h3>
+              <h3 className="mb-4 font-headline text-lg text-secondary">{t('reader.details')}</h3>
               <dl className="space-y-4 text-sm">
                 <div>
-                  <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">Serien</dt>
+                  <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">{t('reader.series')}</dt>
                   <dd className="text-on-surface">{sermonSeries}</dd>
                 </div>
                 <div>
-                  <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">Oversettelse</dt>
-                  <dd className="text-on-surface">Norsk (Bokmal)</dd>
+                  <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">{t('reader.series')}</dt>
+                  <dd className="text-on-surface">{t('reader.translationLanguage')}</dd>
                 </div>
                 <div>
-                  <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">Lydfil</dt>
+                  <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">{t('reader.audioFile')}</dt>
                   <dd>
                     <a
                       href={sermon?.audioUrl || "#"}
@@ -387,14 +382,14 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
           <div className="flex flex-col items-center justify-between gap-8 sm:flex-row">
             <button onClick={onBack} className="group flex flex-col items-center gap-2 text-center sm:items-start sm:text-left">
               <span className="text-xs uppercase tracking-[0.16em] text-outline transition group-hover:text-primary">
-                Forrige tale
+                {t('reader.previousSermon')}
               </span>
               <span className="font-headline text-lg text-on-surface md:text-xl">Det ellevte bud</span>
             </button>
 
             <button onClick={onBack} className="group flex flex-col items-center gap-2 text-center sm:items-end sm:text-right">
               <span className="text-xs uppercase tracking-[0.16em] text-outline transition group-hover:text-primary">
-                Neste tale
+                {t('reader.nextSermon')}
               </span>
               <span className="font-headline text-lg text-on-surface md:text-xl">Kraften av forvandling</span>
             </button>
@@ -404,18 +399,18 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
         <footer className="border-t border-[#e5e2e1]/10 bg-surface-container-lowest py-12">
           <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-8 px-6 md:grid-cols-2 md:px-12">
             <div className="space-y-2 text-center md:text-left">
-              <div className="text-lg font-headline italic text-secondary">The Digital Archive</div>
-              <p className="text-[10px] uppercase tracking-[0.05em] text-outline">© 2024 The Digital Archive. Med enerett.</p>
+              <div className="text-lg font-headline italic text-secondary">{t('footer.digitalArchive')}</div>
+              <p className="text-[10px] uppercase tracking-[0.05em] text-outline">{t('footer.copyright')}</p>
             </div>
             <div className="flex flex-wrap justify-center gap-6 md:justify-end">
               <a className="text-[10px] uppercase tracking-[0.05em] text-outline transition hover:text-on-surface" href="#">
-                Retningslinjer
+                {t('footer.archiveGuidelines')}
               </a>
               <a className="text-[10px] uppercase tracking-[0.05em] text-outline transition hover:text-on-surface" href="#">
-                Personvern
+                {t('footer.privacyPolicy')}
               </a>
               <a className="text-[10px] uppercase tracking-[0.05em] text-outline transition hover:text-on-surface" href="#">
-                Brukervilkar
+                {t('footer.termsOfService')}
               </a>
             </div>
           </div>

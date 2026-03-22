@@ -1,4 +1,7 @@
+import { useTranslation } from "react-i18next";
+
 export default function UpdatesSection() {
+  const { t } = useTranslation();
   const updates = [
     {
       tag: "ARKIV NYTT",
@@ -13,7 +16,7 @@ export default function UpdatesSection() {
       img: "https://lh3.googleusercontent.com/aida-public/AB6AXuA4805kp6cJwaj_F8scDkH9ZosnHiXPvuZZj_7v8btOM-M2LerWKMpdGCjsNJZc3aOHOnTkYLb-TS5GjZMHYmnWJxAcazK5Ei8HweK6dKxRSKiGzQIfr97TCleotk4dOPnOt49n12Wxgz3IeDbOTsKVC1PzuzvnjlgCReYeQfBhdGsb8ETVmv23n5bij3COT0cpqCbKSAj3y3D21rgzSOkS4iqpU1vzl15td62-4n6TGcJlhkp-7KnvWvsT6ozZ2Mu65xqTRcrB9VTS"
     },
     {
-      tag: "EVENTS",
+      tag: t('common.events'),
       title: "Oversettelsesmøte i Oslo",
       desc: "Bli med oss for en gjennomgang av oversettelsesarbeidet og fellesskap rundt ordet.",
       img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAV4vhsVCaWwZUHe4OMLT5Wb4oPmMLHOUUFqeiL3lMepnpgxn2XP1-3OVALqtMDH6qaH9jWjTdwdVPjoIjPSlWGobVtQWEIgs8fHZsv9EmawHA9sFmyyPTXe8if5mNWj3Fuv2IxpNoRUdsw5K-WJrDHEFu89Zt8zehPBDVoEBBgge3thfsLInPtuwQSBDR2logndg0cM7gS7dGzEXqd6nqf7Beejbuc74uc2wjV3F4FIedIyo0me1SnpWT_uJ7YVjhaX6alPMJWX9S5"

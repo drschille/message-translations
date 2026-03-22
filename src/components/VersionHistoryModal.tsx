@@ -2,8 +2,10 @@ import { useMemo, useState } from "react";
 import { CheckCircle2, History, RotateCcw, X } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useTranslation } from "react-i18next";
+import { statusLabel, formatRelativeTime } from "@/src/lib/ui-labels";
 import type { Id } from "@/convex/_generated/dataModel";
-import type { ParagraphId, ParagraphRevision } from "@/src/types/editorial";
+import type { ParagraphId } from "@/src/types/editorial";
 
 interface VersionHistoryModalProps {
   paragraphId: ParagraphId | null;
@@ -15,16 +17,6 @@ interface VersionHistoryModalProps {
 interface DiffToken {
   text: string;
   type: "same" | "add" | "remove";
-}
-
-function formatRelativeTime(timestamp: number): string {
-  const deltaMs = Date.now() - timestamp;
-  const minutes = Math.floor(deltaMs / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
 }
 
 function tokenize(text: string): string[] {
@@ -74,19 +66,13 @@ function diffWords(previous: string, current: string): DiffToken[] {
   return tokens;
 }
 
-function statusLabel(status: ParagraphRevision["status"]): string {
-  if (status === "approved") return "Approved";
-  if (status === "needs_review") return "Needs Review";
-  if (status === "drafting") return "Drafting";
-  return "Draft";
-}
-
 export default function VersionHistoryModal({
   paragraphId,
   currentText,
   open,
   onClose,
 }: VersionHistoryModalProps) {
+  const { t } = useTranslation();
   const revisionsResult = useQuery(
     api.editorial.listRevisions,
     paragraphId ? { paragraphId, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
@@ -100,7 +86,7 @@ export default function VersionHistoryModal({
   if (!open || !paragraphId) return null;
 
   const onRestore = async (revisionId: Id<"paragraphRevisions">) => {
-    if (!window.confirm("Restore this revision as current text?")) return;
+    if (!window.confirm(t('editorial.confirmRestore'))) return;
     setRestoring(true);
     try {
       await restoreRevision({
@@ -119,16 +105,16 @@ export default function VersionHistoryModal({
           <div>
             <h3 className="inline-flex items-center gap-2 font-headline text-2xl text-on-surface">
               <History size={20} />
-              Version History
+              {t('editorial.versionHistory')}
             </h3>
             <p className="mt-1 text-xs uppercase tracking-widest text-secondary">
-              Compare and restore paragraph revisions
+              {t('editorial.compareAndRestore')}
             </p>
           </div>
           <button
             onClick={onClose}
             className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
-            aria-label="Close version history modal"
+            aria-label={t('editorial.versionHistory')}
           >
             <X size={18} />
           </button>
@@ -137,7 +123,7 @@ export default function VersionHistoryModal({
         <div className="flex-1 space-y-6 overflow-y-auto px-8 py-8">
           {revisions.length === 0 ? (
             <div className="rounded-lg border border-dashed border-outline/30 p-10 text-center text-on-surface-variant">
-              No revisions available.
+              {t('editorial.noRevisions')}
             </div>
           ) : (
             revisions.map((revision) => {
@@ -149,12 +135,12 @@ export default function VersionHistoryModal({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">
-                          {revision.kind === "restore" ? "Restore" : "Edit"}
+                          {revision.kind === "restore" ? t('editorial.restore') : t('editorial.edit')}
                         </span>
-                        <span className="text-sm font-semibold text-on-surface">{statusLabel(revision.status)}</span>
+                        <span className="text-sm font-semibold text-on-surface">{statusLabel(revision.status, t)}</span>
                       </div>
                       <div className="mt-1 text-xs text-on-surface-variant">
-                        {revision.authorName} • {formatRelativeTime(revision.createdAt)}
+                        {revision.authorName} • {formatRelativeTime(revision.createdAt, t)}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -162,7 +148,7 @@ export default function VersionHistoryModal({
                         onClick={() => setCompareRevisionId((prev) => (prev === revision._id ? null : revision._id))}
                         className="rounded border border-outline/30 px-3 py-1.5 text-xs uppercase tracking-[0.12em] text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
                       >
-                        {isComparing ? "Hide Compare" : "Compare"}
+                        {isComparing ? t('editorial.hideCompare') : t('editorial.compare')}
                       </button>
                       <button
                         disabled={restoring}
@@ -170,7 +156,7 @@ export default function VersionHistoryModal({
                         className="inline-flex items-center gap-1 rounded bg-surface-container-highest px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-primary transition hover:bg-primary hover:text-on-primary disabled:opacity-50"
                       >
                         <RotateCcw size={12} />
-                        Restore
+                        {t('editorial.restore')}
                       </button>
                     </div>
                   </div>
@@ -183,7 +169,7 @@ export default function VersionHistoryModal({
                     <div className="mt-3 rounded border border-outline/10 bg-surface-container p-4">
                       <div className="mb-2 inline-flex items-center gap-2 text-xs uppercase tracking-[0.1em] text-secondary">
                         <CheckCircle2 size={12} />
-                        Diff vs current
+                        {t('editorial.diffVsCurrent')}
                       </div>
                       <p className="leading-relaxed text-on-surface">
                         {tokens.map((token, index) => (

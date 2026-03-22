@@ -3,13 +3,13 @@ import {
   Bookmark,
   CalendarDays,
   ChevronLeft,
-  ChevronRight,
   Download,
   LocateFixed,
   Minus,
   PlayCircle,
   Plus,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { formatDate } from "@/src/lib/utils";
 import homePillarOfFire from "@/src/assets/home_pillar_of_fire.jpg";
 
@@ -30,6 +30,7 @@ const fallbackParagraphs = [
 ];
 
 export default function FullReadMode({ sermon, onBack, mode, onModeChange }: FullReadModeProps) {
+  const { t, i18n } = useTranslation();
   const [fontScale, setFontScale] = useState(1);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [bookmarked, setBookmarked] = useState(false);
@@ -73,7 +74,7 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
   const decreaseText = () => setFontScale((prev) => Math.max(0.85, Number((prev - 0.05).toFixed(2))));
 
   const sermonTitle = sermon?.title ?? "Det Valgte Hvilested";
-  const sermonDate = sermon?.date ? formatDate(sermon.date) : "13. MAI 1965";
+  const sermonDate = sermon?.date ? formatDate(sermon.date, i18n.language) : "13. MAI 1965";
   const sermonSeries = sermon?.series ?? "De syv segl";
 
   return (
@@ -92,12 +93,12 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
             className="mb-7 inline-flex items-center gap-2 rounded-md border border-outline/30 bg-surface-container-low/70 px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
           >
             <ChevronLeft size={14} />
-            Tilbake
+            {t('common.back')}
           </button>
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">Sermon Archive</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">{t('reader.sermonArchive')}</span>
               <span className="h-px w-12 bg-outline/35" />
             </div>
             <h1 className="max-w-4xl font-headline text-4xl font-bold leading-[1.1] tracking-tight text-on-surface md:text-6xl lg:text-7xl">
@@ -120,7 +121,7 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
       <div className="mx-auto grid w-full max-w-screen-xl gap-12 px-6 py-12 md:px-8 md:py-16 lg:grid-cols-[1fr_minmax(auto,720px)_1fr]">
         <aside className="hidden h-fit space-y-12 lg:sticky lg:top-24 lg:block">
           <div className="space-y-4">
-            <div className="text-[10px] uppercase tracking-widest text-outline">Lese-fremgang</div>
+            <div className="text-[10px] uppercase tracking-widest text-outline">{t('reader.readProgress')}</div>
             <div className="h-1 w-full overflow-hidden rounded-full bg-surface-container-high">
               <div className="h-full bg-primary transition-all duration-300" style={{ width: `${scrollProgress}%` }} />
             </div>
@@ -139,7 +140,7 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
                       : "text-on-surface-variant hover:text-on-surface"
                   }`}
                 >
-                  Lese-modus
+                  {t('reader.readMode')}
                 </button>
                 <button
                   onClick={() => onModeChange("compare")}
@@ -149,7 +150,7 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
                       : "text-on-surface-variant hover:text-on-surface"
                   }`}
                 >
-                  Sammenligning
+                  {t('reader.comparison')}
                 </button>
               </div>
               <div className="hidden h-6 w-px bg-outline/30 sm:block" />
@@ -157,7 +158,7 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
                 <button
                   onClick={decreaseText}
                   className="rounded-full p-1 text-on-surface-variant transition hover:text-primary"
-                  aria-label="Decrease font size"
+                  aria-label={t('reader.decreaseFont')}
                 >
                   <Minus size={16} />
                 </button>
@@ -165,7 +166,7 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
                 <button
                   onClick={increaseText}
                   className="rounded-full p-1 text-on-surface-variant transition hover:text-primary"
-                  aria-label="Increase font size"
+                  aria-label={t('reader.increaseFont')}
                 >
                   <Plus size={16} />
                 </button>
@@ -180,12 +181,12 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
                 className="inline-flex items-center gap-2 rounded-md bg-surface-container px-4 py-2 text-sm font-medium transition hover:bg-surface-container-high"
               >
                 <Download size={16} />
-                Last ned PDF
+                {t('reader.downloadPdf')}
               </a>
               <button
                 onClick={() => setBookmarked((prev) => !prev)}
                 className="rounded-md p-2 text-on-surface-variant transition hover:text-primary"
-                aria-label="Bookmark sermon"
+                aria-label={t('reader.bookmarkSermon')}
               >
                 <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
               </button>
@@ -227,18 +228,18 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
 
         <aside className="hidden h-fit lg:sticky lg:top-24 lg:block">
           <div className="rounded-lg border border-outline/15 bg-surface-container-low p-6">
-            <h3 className="mb-4 font-headline text-lg text-secondary">Detaljer</h3>
+            <h3 className="mb-4 font-headline text-lg text-secondary">{t('reader.details')}</h3>
             <dl className="space-y-4 text-sm">
               <div>
-                <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">Serien</dt>
+                <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">{t('reader.series')}</dt>
                 <dd className="text-on-surface">{sermonSeries}</dd>
               </div>
               <div>
-                <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">Oversettelse</dt>
-                <dd className="text-on-surface">Norsk (Bokmal)</dd>
+                <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">{t('reader.series')}</dt>
+                <dd className="text-on-surface">{t('reader.translationLanguage')}</dd>
               </div>
               <div>
-                <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">Lydfil</dt>
+                <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">{t('reader.audioFile')}</dt>
                 <dd>
                   <a
                     href={sermon?.audioUrl || "#"}
@@ -259,12 +260,12 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
       <div className="mx-auto mt-2 w-full max-w-4xl border-t border-outline/20 px-6 py-12 md:px-8">
         <div className="flex flex-col items-center justify-between gap-8 sm:flex-row">
           <button onClick={onBack} className="group flex flex-col items-center gap-2 text-center sm:items-start sm:text-left">
-            <span className="text-xs uppercase tracking-[0.16em] text-outline transition group-hover:text-primary">Forrige tale</span>
+            <span className="text-xs uppercase tracking-[0.16em] text-outline transition group-hover:text-primary">{t('reader.previousSermon')}</span>
             <span className="font-headline text-lg text-on-surface md:text-xl">Det ellevte bud</span>
           </button>
 
           <button onClick={onBack} className="group flex flex-col items-center gap-2 text-center sm:items-end sm:text-right">
-            <span className="text-xs uppercase tracking-[0.16em] text-outline transition group-hover:text-primary">Neste tale</span>
+            <span className="text-xs uppercase tracking-[0.16em] text-outline transition group-hover:text-primary">{t('reader.nextSermon')}</span>
             <span className="font-headline text-lg text-on-surface md:text-xl">Kraften av forvandling</span>
           </button>
         </div>
@@ -273,18 +274,18 @@ export default function FullReadMode({ sermon, onBack, mode, onModeChange }: Ful
       <footer className="border-t border-[#e5e2e1]/10 bg-surface-container-lowest py-12">
         <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-8 px-6 md:grid-cols-2 md:px-12">
           <div className="space-y-2 text-center md:text-left">
-            <div className="text-lg font-headline italic text-secondary">The Digital Archive</div>
-            <p className="text-[10px] uppercase tracking-[0.05em] text-outline">© 2024 The Digital Archive. Med enerett.</p>
+            <div className="text-lg font-headline italic text-secondary">{t('footer.digitalArchive')}</div>
+            <p className="text-[10px] uppercase tracking-[0.05em] text-outline">{t('footer.copyright')}</p>
           </div>
           <div className="flex flex-wrap justify-center gap-6 md:justify-end">
             <a className="text-[10px] uppercase tracking-[0.05em] text-outline transition hover:text-on-surface" href="#">
-              Retningslinjer
+              {t('footer.archiveGuidelines')}
             </a>
             <a className="text-[10px] uppercase tracking-[0.05em] text-outline transition hover:text-on-surface" href="#">
-              Personvern
+              {t('footer.privacyPolicy')}
             </a>
             <a className="text-[10px] uppercase tracking-[0.05em] text-outline transition hover:text-on-surface" href="#">
-              Brukervilkar
+              {t('footer.termsOfService')}
             </a>
           </div>
         </div>

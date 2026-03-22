@@ -1,6 +1,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { ConvexProvider, ConvexReactClient, usePaginatedQuery, useMutation } from "convex/react";
 import { Search, Filter, SortAsc, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import SermonItem from "./components/SermonItem";
@@ -19,8 +20,8 @@ const isValidConvexUrl = (url: string | undefined): boolean => {
   if (!url) return false;
   try {
     const parsed = new URL(url);
-    return (parsed.hostname.endsWith(".convex.cloud") || parsed.hostname.endsWith(".convex.site")) && 
-           !parsed.hostname.includes("mock-url") && 
+    return (parsed.hostname.endsWith(".convex.cloud") || parsed.hostname.endsWith(".convex.site")) &&
+           !parsed.hostname.includes("mock-url") &&
            !parsed.hostname.includes("your-deployment");
   } catch {
     return false;
@@ -44,16 +45,16 @@ function ConvexErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void }) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  // These hooks will now only be called if ArchiveContent is rendered inside a ConvexProvider
+
   const paginatedResults = usePaginatedQuery(
     api.sermons.list as any,
-    { 
+    {
       search: debouncedSearchQuery || undefined,
       year: selectedYear || undefined,
       series: selectedSeries || undefined
@@ -72,39 +73,37 @@ function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void 
       seed().catch((err: any) => {
         console.error("Seed failed:", err);
         if (err.message?.includes("Could not find public function")) {
-          setError("Deployment Required: Please run 'npx convex deploy' in your terminal to activate the backend functions.");
+          setError(t('errors.deploymentMessage'));
         }
       });
     }
-  }, [seed]);
+  }, [seed, t]);
 
-  // Catch errors from usePaginatedQuery if possible (though it usually just returns undefined on error)
   useEffect(() => {
     if (status === "LoadingFirstPage" && !paginatedResults && !error) {
-      // This is a heuristic for a potential server error if it stays loading forever
       const timer = setTimeout(() => {
         if (status === "LoadingFirstPage" && !paginatedResults) {
-          setError("Still loading... If this persists, ensure you have run 'npx convex deploy' to push your functions to the cloud.");
+          setError(t('errors.timeoutMessage'));
         }
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [status, paginatedResults, error]);
+  }, [status, paginatedResults, error, t]);
 
   if (error) {
     return (
       <div className="pt-32 pb-24 px-6 text-center max-w-2xl mx-auto">
         <div className="bg-error-container text-on-error-container p-8 rounded-2xl border border-error/20">
-          <h2 className="text-2xl font-headline mb-4 font-bold">Backend Deployment Required</h2>
+          <h2 className="text-2xl font-headline mb-4 font-bold">{t('errors.deploymentRequired')}</h2>
           <p className="mb-6 opacity-90">{error}</p>
           <div className="bg-surface-container-lowest p-4 rounded font-mono text-sm text-left mb-6 overflow-x-auto">
             <code>npx convex deploy</code>
           </div>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="bg-primary text-on-primary px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform"
           >
-            Retry After Deploying
+            {t('errors.retryAfterDeploying')}
           </button>
         </div>
       </div>
@@ -112,50 +111,50 @@ function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void 
   }
 
   const years = ["1963", "1964", "1965"];
-  const series = ["The Seven Seals", "Church Ages"];
+  const series = [t('archive.sevenSeals'), t('archive.churchAges')];
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       className="pt-32 pb-24 px-6 md:px-12 max-w-5xl mx-auto"
     >
       <header className="mb-16">
-        <h1 className="text-5xl md:text-6xl font-headline font-bold text-on-surface mb-8 tracking-tighter">Sermons Archive</h1>
+        <h1 className="text-5xl md:text-6xl font-headline font-bold text-on-surface mb-8 tracking-tighter">{t('archive.title')}</h1>
       </header>
 
       <section className="mb-12 sticky top-[64px] z-40">
         <div className="bg-surface-container-low p-2 rounded-xl flex flex-col md:flex-row gap-2 md:gap-4 items-center shadow-2xl border border-outline-variant/10 w-full max-w-full overflow-hidden">
           <div className="relative w-full flex-grow group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface/40 group-focus-within:text-primary transition-colors" size={20} />
-            <input 
-              className="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-secondary py-4 pl-12 pr-4 rounded text-on-surface placeholder:text-on-surface/30 font-body transition-all text-sm md:text-base" 
-              placeholder="Search by title, date, or scripture..." 
+            <input
+              className="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-secondary py-4 pl-12 pr-4 rounded text-on-surface placeholder:text-on-surface/30 font-body transition-all text-sm md:text-base"
+              placeholder={t('archive.searchPlaceholder')}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar shrink-0">
-            <select 
+            <select
               className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-[100px]"
               value={selectedYear || ""}
               onChange={(e) => setSelectedYear(e.target.value || null)}
             >
-              <option value="">Year</option>
+              <option value="">{t('common.year')}</option>
               {years.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
-            <select 
+            <select
               className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-[120px]"
               value={selectedSeries || ""}
               onChange={(e) => setSelectedSeries(e.target.value || null)}
             >
-              <option value="">Series</option>
+              <option value="">{t('common.series')}</option>
               {series.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             {(searchQuery || selectedYear || selectedSeries) && (
-              <button 
+              <button
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedYear(null);
@@ -163,7 +162,7 @@ function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void 
                 }}
                 className="px-4 md:px-6 py-4 bg-primary text-on-primary rounded transition-colors text-xs md:text-sm font-bold shadow-lg shadow-primary/10 whitespace-nowrap"
               >
-                Reset
+                {t('common.reset')}
               </button>
             )}
           </div>
@@ -185,9 +184,9 @@ function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void 
 
         <div className="py-12 flex justify-end">
           <div className="w-full md:w-3/4 relative aspect-video overflow-hidden rounded-lg group">
-            <img 
-              alt="Historical archival texture" 
-              className="object-cover w-full h-full grayscale opacity-40 group-hover:scale-105 transition-transform duration-700" 
+            <img
+              alt="Historical archival texture"
+              className="object-cover w-full h-full grayscale opacity-40 group-hover:scale-105 transition-transform duration-700"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3i9IumzXLjtwX8Je5v3SiQVwNLWKhMRofXdrN0R-5ah0peSwKu_g2eGo0QjiinbwvAqHl_Bae1fCxSkj-Pf7NC8VTm805rt4_xl6HHUJdBXa6UiyYa-ZnOWrVhpKDX9rp4ks3OQclNp18cEBiFnZK22P0vevW7UrqAut3bRXdcm-yn5a16IvJxIHSDwz3ZffPhsYovoG4DOhExBFAUxjPwj60pnT3oxk7DGeKj2DRTRVd57PuHhB095jS2mUQdewW9FeaCVbWbRF8"
               referrerPolicy="no-referrer"
             />
@@ -203,12 +202,12 @@ function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void 
 
       {status !== "LoadingFirstPage" && results.length > 0 && (
         <div className="mt-20 flex justify-center">
-          <button 
+          <button
             disabled={status === "LoadingMore"}
             onClick={() => loadMore(10)}
             className="px-8 py-4 bg-surface-container-high hover:bg-surface-bright text-on-surface rounded-lg transition-all text-sm font-bold disabled:opacity-50 uppercase tracking-widest"
           >
-            {status === "LoadingMore" ? "Loading..." : "Load More Sermons"}
+            {status === "LoadingMore" ? t('common.loadingMore') : t('common.loadMore')}
           </button>
         </div>
       )}
@@ -217,11 +216,12 @@ function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void 
 }
 
 function ArchivePage({ onOpenReader }: { onOpenReader: (sermon: any) => void }) {
+  const { t } = useTranslation();
   if (!convex) {
     return (
       <div className="pt-32 pb-24 px-6 text-center">
-        <h2 className="text-2xl font-headline text-on-surface mb-4">Database Not Configured</h2>
-        <p className="text-on-surface-variant">Please set VITE_CONVEX_URL in your environment variables to enable the archive.</p>
+        <h2 className="text-2xl font-headline text-on-surface mb-4">{t('errors.databaseNotConfigured')}</h2>
+        <p className="text-on-surface-variant">{t('errors.configureEnvVar')}</p>
       </div>
     );
   }
@@ -236,11 +236,12 @@ function ArchivePage({ onOpenReader }: { onOpenReader: (sermon: any) => void }) 
 }
 
 function TranslationsWrapper({ onOpenReader }: { onOpenReader: (sermon: any) => void }) {
+  const { t } = useTranslation();
   if (!convex) {
     return (
       <div className="pt-32 pb-24 px-6 text-center">
-        <h2 className="text-2xl font-headline text-on-surface mb-4">Database Not Configured</h2>
-        <p className="text-on-surface-variant">Please set VITE_CONVEX_URL in your environment variables to enable translations.</p>
+        <h2 className="text-2xl font-headline text-on-surface mb-4">{t('errors.databaseNotConfigured')}</h2>
+        <p className="text-on-surface-variant">{t('errors.configureEnvVar')}</p>
       </div>
     );
   }

@@ -1,0 +1,126 @@
+{
+  "common": {
+    "loading": "Laster...",
+    "loadMore": "Last inn flere taler",
+    "loadingMore": "Laster mer...",
+    "reset": "Nullstill",
+    "cancel": "Avbryt",
+    "save": "Lagre endringer",
+    "discard": "Forkast",
+    "post": "Publiser",
+    "reply": "Svar",
+    "search": "Søk",
+    "year": "Alle År",
+    "series": "Alle Serier",
+    "back": "Tilbake",
+    "events": "ARRANGEMENTER"
+  },
+  "status": {
+    "approved": "Godkjent",
+    "needsReview": "Trenger gjennomgang",
+    "drafting": "Under arbeid",
+    "draft": "Utkast"
+  },
+  "time": {
+    "justNow": "akkurat nå",
+    "minutesAgo": "{{count}} min siden",
+    "hoursAgo": "{{count}}t siden",
+    "daysAgo": "{{count}}d siden"
+  },
+  "nav": {
+    "home": "Hjem",
+    "sermons": "Taler",
+    "translations": "Oversettelser",
+    "about": "Om oss",
+    "contact": "Kontakt"
+  },
+  "archive": {
+    "title": "Talearkiv",
+    "searchPlaceholder": "Søk etter tittel, dato eller skriftsted...",
+    "noResults": "Ingen taler funnet for dette søket.",
+    "loadingMore": "Laster...",
+    "sevenSeals": "De syv segl",
+    "churchAges": "Menighetstidene"
+  },
+  "reader": {
+    "sermonArchive": "Talearkiv",
+    "readMode": "Lese-modus",
+    "comparison": "Sammenligning",
+    "original": "ORIGINAL",
+    "translation": "OVERSETTELSE",
+    "downloadPdf": "Last ned PDF",
+    "bookmarkSermon": "Bokmerk tale",
+    "decreaseFont": "Reduser skriftstørrelse",
+    "increaseFont": "Øk skriftstørrelse",
+    "loadingComparison": "Laster sammenligningsvisning...",
+    "details": "Detaljer",
+    "series": "Serien",
+    "translationLanguage": "Norsk (Bokmål)",
+    "audioFile": "Lydfil",
+    "previousSermon": "Forrige tale",
+    "nextSermon": "Neste tale",
+    "readProgress": "Lese-fremgang"
+  },
+  "editorial": {
+    "paragraphComments": "Paragrafkommentarer",
+    "collaborativeReview": "Samarbeidsgjennomgang",
+    "noComments": "Ingen kommentarer ennå.",
+    "addCommentPlaceholder": "Legg til en kommentar...",
+    "replyingToComment": "Svarer på kommentar",
+    "versionHistory": "Versjonshistorikk",
+    "compareAndRestore": "Sammenlign og gjenopprett paragrafrevisjoner",
+    "noRevisions": "Ingen revisjoner tilgjengelig.",
+    "restore": "Gjenopprett",
+    "edit": "Rediger",
+    "compare": "Sammenlign",
+    "hideCompare": "Skjul sammenligning",
+    "diffVsCurrent": "Diff mot gjeldende",
+    "confirmRestore": "Gjenopprett denne revisjonen som gjeldende tekst?"
+  },
+  "proofreading": {
+    "backToArchive": "Tilbake til arkiv",
+    "project": "Prosjekt: Taleoversettelse",
+    "archiveName": "Branham Arkiv",
+    "completion": "Fullføring",
+    "lastSync": "Siste synk",
+    "resumeEditing": "Fortsett redigering",
+    "previousPage": "Forrige side",
+    "nextPage": "Neste side",
+    "searchArchives": "Søk i arkiv",
+    "metadataSettings": "Metadata og innstillinger",
+    "saveActiveChanges": "Lagre aktive endringer",
+    "exportDraft": "Eksporter utkast",
+    "approveSegment": "Godkjenn segment {{key}}",
+    "editSegment": "Rediger segment {{key}}",
+    "historyForSegment": "Historikk for segment {{key}}",
+    "commentOnSegment": "Kommenter på segment {{key}}"
+  },
+  "footer": {
+    "copyright": "© 2024 branham.no. Med enerett.",
+    "privacyPolicy": "Personvern",
+    "termsOfService": "Brukervilkår",
+    "archiveGuidelines": "Retningslinjer",
+    "digitalArchive": "Det Digitale Arkiv"
+  },
+  "errors": {
+    "deploymentRequired": "Backend-utrulling kreves",
+    "retryAfterDeploying": "Prøv igjen etter utrulling",
+    "databaseNotConfigured": "Database ikke konfigurert",
+    "configureEnvVar": "Vennligst sett VITE_CONVEX_URL i miljøvariablene dine for å aktivere arkivet.",
+    "deploymentMessage": "Utrulling kreves: Kjør 'npx convex deploy' i terminalen for å aktivere backend-funksjonene.",
+    "timeoutMessage": "Laster fortsatt... Hvis dette vedvarer, sørg for at du har kjørt 'npx convex deploy' for å pushe funksjonene til skyen."
+  },
+  "translations": {
+    "title": "Taler oversatt til",
+    "titleHighlight": "norsk",
+    "subtitle": "Utforsk det voksende arkivet av William Marrion Branhams prekener, nøye oversatt for å bevare det opprinnelige budskapet.",
+    "digitalArchive": "Digitalt Arkiv",
+    "searchPlaceholder": "Søk i titler, datoer eller temaer...",
+    "listenNow": "Lytt Nå",
+    "readText": "Les Tekst",
+    "loadingSermons": "Laster inn taler...",
+    "noResults": "Ingen taler funnet for dette søket.",
+    "loadMore": "Last inn flere taler",
+    "loadingMore": "Laster mer..."
+  }
+}

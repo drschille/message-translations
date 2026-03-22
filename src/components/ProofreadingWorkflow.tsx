@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useTranslation } from "react-i18next";
+import { statusLabel, formatRelativeTime } from "@/src/lib/ui-labels";
 import { formatDate } from "@/src/lib/utils";
 import ParagraphCommentsModal from "@/src/components/ParagraphCommentsModal";
 import VersionHistoryModal from "@/src/components/VersionHistoryModal";
@@ -78,13 +80,6 @@ const fallbackSegments: UiSegment[] = [
   },
 ];
 
-function statusLabel(status: ParagraphStatus) {
-  if (status === "approved") return "Approved";
-  if (status === "needs_review") return "Needs Review";
-  if (status === "drafting") return "Drafting";
-  return "Draft";
-}
-
 function statusClasses(status: ParagraphStatus) {
   if (status === "approved") return "bg-green-900/30 text-green-400 border border-green-500/20";
   if (status === "needs_review") return "bg-secondary/10 text-secondary border border-secondary/20";
@@ -93,6 +88,7 @@ function statusClasses(status: ParagraphStatus) {
 }
 
 export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: ProofreadingWorkflowProps) {
+  const { t, i18n } = useTranslation();
   const sermonId = sermon?._id as SermonId | undefined;
   const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
   const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
@@ -124,7 +120,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   const [historyParagraphId, setHistoryParagraphId] = useState<ParagraphId | null>(null);
 
   const sermonTitle = sermon?.title ?? "Det Valgte Hvilested";
-  const sermonDate = sermon?.date ? formatDate(sermon.date) : "13. MAI 1965";
+  const sermonDate = sermon?.date ? formatDate(sermon.date, i18n.language) : "13. MAI 1965";
   const sermonCode = sermon?._id ?? "65-0221E";
 
   useEffect(() => {
@@ -166,12 +162,8 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   }, [segments]);
 
   const lastSyncText = useMemo(() => {
-    const elapsedMs = Date.now() - lastSyncAt;
-    const elapsedMinutes = Math.floor(elapsedMs / 60000);
-    if (elapsedMinutes <= 1) return "just now";
-    if (elapsedMinutes < 60) return `${elapsedMinutes} min ago`;
-    return `${Math.floor(elapsedMinutes / 60)}h ago`;
-  }, [lastSyncAt]);
+    return formatRelativeTime(lastSyncAt, t);
+  }, [lastSyncAt, t]);
 
   const historySegment = useMemo(
     () => segments.find((segment) => segment.paragraphId === historyParagraphId) ?? null,
@@ -238,17 +230,17 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
             className="mb-8 inline-flex items-center gap-2 rounded-md border border-outline/30 bg-surface-container-low px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
           >
             <ChevronLeft size={14} />
-            Back To Archive
+            {t('proofreading.backToArchive')}
           </button>
 
           <section className="mb-10 flex flex-col gap-6 border-b border-outline/20 pb-8 md:flex-row md:items-end md:justify-between">
             <div className="flex-1">
               <div className="mb-3 flex items-center gap-3">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">
-                  Project: Sermon Translation
+                  {t('proofreading.project')}
                 </span>
                 <span className="h-1 w-1 rounded-full bg-outline" />
-                <span className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant">Branham Archive</span>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant">{t('proofreading.archiveName')}</span>
               </div>
               <h1 className="mb-2 font-headline text-4xl font-bold tracking-tight md:text-5xl">{sermonTitle}</h1>
               <p className="font-medium tracking-wide text-on-surface-variant">
@@ -261,13 +253,13 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                 <div className="mb-3 flex items-end justify-between">
                   <div>
                     <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">
-                      Completion
+                      {t('proofreading.completion')}
                     </span>
                     <span className="font-headline text-2xl font-bold text-primary">{completion}%</span>
                   </div>
                   <div className="text-right">
                     <span className="mb-1 block text-[10px] uppercase tracking-[0.2em] text-on-surface-variant">
-                      Last Sync
+                      {t('proofreading.lastSync')}
                     </span>
                     <span className="text-xs font-mono text-primary/90">{lastSyncText}</span>
                   </div>
@@ -319,7 +311,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                       <span
                         className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] ${statusClasses(segment.status)}`}
                       >
-                        {statusLabel(segment.status)}
+                        {statusLabel(segment.status, t)}
                       </span>
 
                       {!isActive && (
@@ -328,7 +320,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                             <button
                               onClick={() => approveSegment(segment.paragraphId!)}
                               className="rounded p-1.5 text-primary transition-colors hover:bg-surface-container-highest"
-                              aria-label={`Approve segment ${segment.key}`}
+                              aria-label={t('proofreading.approveSegment', { key: segment.key })}
                             >
                               <CheckCircle2 size={16} />
                             </button>
@@ -336,7 +328,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                           <button
                             onClick={() => startEditing(segment)}
                             className="rounded p-1.5 transition-colors hover:bg-surface-container-highest"
-                            aria-label={`Edit segment ${segment.key}`}
+                            aria-label={t('proofreading.editSegment', { key: segment.key })}
                           >
                             <Pencil size={16} />
                           </button>
@@ -345,14 +337,14 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                               <button
                                 onClick={() => setHistoryParagraphId(segment.paragraphId)}
                                 className="rounded p-1.5 transition-colors hover:bg-surface-container-highest"
-                                aria-label={`History for segment ${segment.key}`}
+                                aria-label={t('proofreading.historyForSegment', { key: segment.key })}
                               >
                                 <History size={16} />
                               </button>
                               <button
                                 onClick={() => setCommentsParagraphId(segment.paragraphId)}
                                 className="rounded p-1.5 transition-colors hover:bg-surface-container-highest"
-                                aria-label={`Comment on segment ${segment.key}`}
+                                aria-label={t('proofreading.commentOnSegment', { key: segment.key })}
                               >
                                 <MessageSquare size={16} />
                               </button>
@@ -375,14 +367,14 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                             onClick={discardDraft}
                             className="px-4 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant transition-colors hover:text-on-surface"
                           >
-                            Discard
+                            {t('common.discard')}
                           </button>
                           <button
                             disabled={saving}
                             onClick={saveDraft}
                             className="rounded bg-gradient-to-br from-primary to-[#44658b] px-6 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-primary shadow-lg disabled:opacity-50"
                           >
-                            Save Changes
+                            {t('common.save')}
                           </button>
                         </div>
                       </>
@@ -402,7 +394,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                               className="inline-flex items-center gap-2 rounded-full border border-outline/30 bg-surface-container-highest px-6 py-2 text-xs font-bold uppercase tracking-[0.16em] shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
                             >
                               <Pencil size={14} />
-                              Resume Editing
+                              {t('proofreading.resumeEditing')}
                             </button>
                           </div>
                         )}
@@ -421,7 +413,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
               className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant transition-colors hover:text-primary"
             >
               <ArrowLeft size={14} />
-              Previous Page
+              {t('proofreading.previousPage')}
             </button>
             <div className="flex gap-2">
               <span className="h-2 w-2 rounded-full bg-primary" />
@@ -430,7 +422,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
               <span className="h-2 w-2 rounded-full bg-surface-container-highest" />
             </div>
             <button className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant transition-colors hover:text-primary">
-              Next Page
+              {t('proofreading.nextPage')}
               <ArrowRight size={14} />
             </button>
           </section>
@@ -439,26 +431,26 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
         <div className="fixed bottom-8 right-4 z-50 flex flex-col gap-3 md:right-8">
           <button
             className="flex h-14 w-14 items-center justify-center rounded-full border border-secondary/20 bg-surface-container-highest text-secondary shadow-xl transition-transform hover:scale-105"
-            title="Search Archives"
+            title={t('proofreading.searchArchives')}
           >
             <Search size={20} />
           </button>
           <button
             className="flex h-14 w-14 items-center justify-center rounded-full border border-primary/20 bg-surface-container-highest text-primary shadow-xl transition-transform hover:scale-105"
-            title="Metadata and Settings"
+            title={t('proofreading.metadataSettings')}
           >
             <Info size={20} />
           </button>
           <button
             onClick={saveDraft}
             className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-xl transition-transform hover:scale-105"
-            title="Save Active Changes"
+            title={t('proofreading.saveActiveChanges')}
           >
             <Save size={20} />
           </button>
           <button className="mt-2 inline-flex h-14 items-center gap-2 rounded-full bg-gradient-to-br from-secondary to-[#584633] px-6 text-xs font-bold uppercase tracking-[0.16em] text-on-secondary shadow-xl transition-transform hover:scale-105">
             <FileOutput size={18} />
-            Export Draft
+            {t('proofreading.exportDraft')}
           </button>
         </div>
       </main>

@@ -1,0 +1,126 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "loadMore": "Load More Sermons",
+    "loadingMore": "Loading...",
+    "reset": "Reset",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "discard": "Discard",
+    "post": "Post",
+    "reply": "Reply",
+    "search": "Search",
+    "year": "Year",
+    "series": "Series",
+    "back": "Back",
+    "events": "EVENTS"
+  },
+  "status": {
+    "approved": "Approved",
+    "needsReview": "Needs Review",
+    "drafting": "Drafting",
+    "draft": "Draft"
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago"
+  },
+  "nav": {
+    "home": "Home",
+    "sermons": "Sermons",
+    "translations": "Translations",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "archive": {
+    "title": "Sermons Archive",
+    "searchPlaceholder": "Search by title, date, or scripture...",
+    "noResults": "No sermons found for this search.",
+    "loadingMore": "Loading...",
+    "sevenSeals": "The Seven Seals",
+    "churchAges": "Church Ages"
+  },
+  "reader": {
+    "sermonArchive": "Sermon Archive",
+    "readMode": "Read Mode",
+    "comparison": "Comparison",
+    "original": "ORIGINAL",
+    "translation": "TRANSLATION",
+    "downloadPdf": "Download PDF",
+    "bookmarkSermon": "Bookmark sermon",
+    "decreaseFont": "Decrease font size",
+    "increaseFont": "Increase font size",
+    "loadingComparison": "Loading comparison view...",
+    "details": "Details",
+    "series": "Series",
+    "translationLanguage": "Norwegian (Bokmål)",
+    "audioFile": "Audio File",
+    "previousSermon": "Previous Sermon",
+    "nextSermon": "Next Sermon",
+    "readProgress": "Reading Progress"
+  },
+  "editorial": {
+    "paragraphComments": "Paragraph Comments",
+    "collaborativeReview": "Collaborative review thread",
+    "noComments": "No comments yet.",
+    "addCommentPlaceholder": "Add a comment...",
+    "replyingToComment": "Replying to comment",
+    "versionHistory": "Version History",
+    "compareAndRestore": "Compare and restore paragraph revisions",
+    "noRevisions": "No revisions available.",
+    "restore": "Restore",
+    "edit": "Edit",
+    "compare": "Compare",
+    "hideCompare": "Hide Compare",
+    "diffVsCurrent": "Diff vs current",
+    "confirmRestore": "Restore this revision as current text?"
+  },
+  "proofreading": {
+    "backToArchive": "Back To Archive",
+    "project": "Project: Sermon Translation",
+    "archiveName": "Branham Archive",
+    "completion": "Completion",
+    "lastSync": "Last Sync",
+    "resumeEditing": "Resume Editing",
+    "previousPage": "Previous Page",
+    "nextPage": "Next Page",
+    "searchArchives": "Search Archives",
+    "metadataSettings": "Metadata and Settings",
+    "saveActiveChanges": "Save Active Changes",
+    "exportDraft": "Export Draft",
+    "approveSegment": "Approve segment {{key}}",
+    "editSegment": "Edit segment {{key}}",
+    "historyForSegment": "History for segment {{key}}",
+    "commentOnSegment": "Comment on segment {{key}}"
+  },
+  "footer": {
+    "copyright": "© 2024 branham.no. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "archiveGuidelines": "Archive Guidelines",
+    "digitalArchive": "The Digital Archive"
+  },
+  "errors": {
+    "deploymentRequired": "Backend Deployment Required",
+    "retryAfterDeploying": "Retry After Deploying",
+    "databaseNotConfigured": "Database Not Configured",
+    "configureEnvVar": "Please set VITE_CONVEX_URL in your environment variables to enable the archive.",
+    "deploymentMessage": "Deployment Required: Please run 'npx convex deploy' in your terminal to activate the backend functions.",
+    "timeoutMessage": "Still loading... If this persists, ensure you have run 'npx convex deploy' to push your functions to the cloud."
+  },
+  "translations": {
+    "title": "Sermons translated into",
+    "titleHighlight": "Norwegian",
+    "subtitle": "Explore the growing archive of William Marrion Branham's sermons, carefully translated to preserve the original message.",
+    "digitalArchive": "Digital Archive",
+    "searchPlaceholder": "Search by titles, dates, or topics...",
+    "listenNow": "Listen Now",
+    "readText": "Read Text",
+    "loadingSermons": "Loading sermons...",
+    "noResults": "No sermons found for this search.",
+    "loadMore": "Load More Sermons",
+    "loadingMore": "Loading more..."
+  }
+}

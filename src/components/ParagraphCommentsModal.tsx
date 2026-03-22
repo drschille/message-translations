@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { MessageSquare, Reply, Send, X } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useTranslation } from "react-i18next";
+import { formatRelativeTime } from "@/src/lib/ui-labels";
 import type { Id } from "@/convex/_generated/dataModel";
 import type { ParagraphComment, ParagraphId } from "@/src/types/editorial";
 
@@ -11,17 +13,8 @@ interface ParagraphCommentsModalProps {
   onClose: () => void;
 }
 
-function formatRelativeTime(timestamp: number): string {
-  const deltaMs = Date.now() - timestamp;
-  const minutes = Math.floor(deltaMs / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
-}
-
 export default function ParagraphCommentsModal({ paragraphId, open, onClose }: ParagraphCommentsModalProps) {
+  const { t } = useTranslation();
   const commentsResult = useQuery(
     api.editorial.listComments,
     paragraphId ? { paragraphId, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
@@ -73,13 +66,13 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
       <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-outline/20 bg-surface-container shadow-[0_0_50px_rgba(0,0,0,0.5)]">
         <div className="flex items-center justify-between border-b border-outline/20 bg-surface-container-low px-8 py-6">
           <div>
-            <h3 className="font-headline text-2xl text-on-surface">Paragraph Comments</h3>
-            <p className="mt-1 text-xs uppercase tracking-widest text-secondary">Collaborative review thread</p>
+            <h3 className="font-headline text-2xl text-on-surface">{t('editorial.paragraphComments')}</h3>
+            <p className="mt-1 text-xs uppercase tracking-widest text-secondary">{t('editorial.collaborativeReview')}</p>
           </div>
           <button
             onClick={onClose}
             className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface"
-            aria-label="Close comments modal"
+            aria-label={t('editorial.paragraphComments')}
           >
             <X size={18} />
           </button>
@@ -89,7 +82,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
           {rootComments.length === 0 ? (
             <div className="rounded-lg border border-dashed border-outline/30 p-10 text-center text-on-surface-variant">
               <MessageSquare className="mx-auto mb-3" size={24} />
-              No comments yet.
+              {t('editorial.noComments')}
             </div>
           ) : (
             rootComments.map((comment) => (
@@ -102,7 +95,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
                     <div className="flex items-center justify-between">
                       <span className="font-semibold tracking-tight text-on-surface">{comment.authorName}</span>
                       <span className="text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
-                        {formatRelativeTime(comment.createdAt)}
+                        {formatRelativeTime(comment.createdAt, t)}
                       </span>
                     </div>
                     <p className="font-headline text-lg leading-relaxed text-on-surface-variant">{comment.body}</p>
@@ -111,7 +104,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
                       className="mt-1 inline-flex items-center gap-1 text-xs uppercase tracking-[0.1em] text-on-surface-variant transition-colors hover:text-primary"
                     >
                       <Reply size={13} />
-                      Reply
+                      {t('common.reply')}
                     </button>
                   </div>
                 </div>
@@ -125,7 +118,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
                       <div className="mb-2 flex items-center justify-between">
                         <span className="font-semibold text-sm text-on-surface">{reply.authorName}</span>
                         <span className="text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
-                          {formatRelativeTime(reply.createdAt)}
+                          {formatRelativeTime(reply.createdAt, t)}
                         </span>
                       </div>
                       <p className="leading-relaxed text-on-surface-variant">{reply.body}</p>
@@ -140,9 +133,9 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
         <div className="border-t border-outline/20 bg-surface-container-low px-8 py-8">
           {replyParentId && (
             <div className="mb-3 flex items-center justify-between rounded bg-primary/10 px-3 py-2 text-xs text-primary">
-              <span>Replying to comment</span>
+              <span>{t('editorial.replyingToComment')}</span>
               <button onClick={() => setReplyParentId(null)} className="underline">
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           )}
@@ -151,7 +144,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
               rows={3}
               value={draftComment}
               onChange={(event) => setDraftComment(event.target.value)}
-              placeholder="Add a comment..."
+              placeholder={t('editorial.addCommentPlaceholder')}
               className="w-full resize-none rounded-lg border border-outline/30 bg-surface-container-lowest p-4 pr-28 text-on-surface placeholder:text-on-surface-variant focus:border-secondary focus:outline-none"
             />
             <button
@@ -160,7 +153,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
               className="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded bg-gradient-to-br from-primary to-[#44658b] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-on-primary shadow-lg disabled:opacity-50"
             >
               <Send size={14} />
-              Post
+              {t('common.post')}
             </button>
           </div>
         </div>
