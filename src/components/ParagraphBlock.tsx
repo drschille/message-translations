@@ -106,13 +106,18 @@ export default function ParagraphBlock({
         <div
           className={
             isProofread
-              ? `relative bg-surface-container p-8`
+              ? `relative bg-surface-container p-8 ${!isActiveEditing && segment.status !== "approved" && onStartEditing ? "cursor-pointer" : ""}`
               : `py-8 md:py-10`
+          }
+          onClick={
+            isProofread && !isActiveEditing && segment.status !== "approved" && onStartEditing
+              ? onStartEditing
+              : undefined
           }
         >
           {/* Status bar + editorial actions (proofread) */}
           {isProofread && (
-            <div className="mb-4 flex items-start justify-between gap-4">
+            <div className="mb-4 flex items-start justify-between gap-4" onClick={(e) => e.stopPropagation()}>
               <span
                 className={`inline-flex items-center rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] ${statusClasses(segment.status)}`}
               >
@@ -120,7 +125,7 @@ export default function ParagraphBlock({
               </span>
 
               {!isActiveEditing && (
-                <div className="flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="flex gap-2">
                   {segment.status === "needs_review" && segment.paragraphId && onApprove && (
                     <button
                       onClick={onApprove}
@@ -130,10 +135,10 @@ export default function ParagraphBlock({
                       <CheckCircle2 size={16} />
                     </button>
                   )}
-                  {onStartEditing && (
+                  {segment.status !== "approved" && onStartEditing && (
                     <button
                       onClick={onStartEditing}
-                      className="rounded p-1.5 transition-colors hover:bg-surface-container-highest"
+                      className="rounded p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-primary"
                       aria-label={t("proofreading.editSegment", { key: segment.key })}
                     >
                       <Pencil size={16} />
@@ -144,7 +149,7 @@ export default function ParagraphBlock({
                       {onOpenHistory && (
                         <button
                           onClick={onOpenHistory}
-                          className="rounded p-1.5 transition-colors hover:bg-surface-container-highest"
+                          className="rounded p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
                           aria-label={t("editorial.versionHistory")}
                         >
                           <History size={16} />
@@ -153,7 +158,7 @@ export default function ParagraphBlock({
                       {onOpenComments && (
                         <button
                           onClick={onOpenComments}
-                          className="rounded p-1.5 transition-colors hover:bg-surface-container-highest"
+                          className="rounded p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-highest"
                           aria-label={t("editorial.paragraphComments")}
                         >
                           <MessageSquare size={16} />
