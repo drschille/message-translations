@@ -75,31 +75,34 @@ export default function FullReadMode({ sermon, onBack }: FullReadModeProps) {
 
   return (
     <main className="min-h-screen bg-background text-on-surface">
-      <header className="relative flex h-[614px] w-full items-end overflow-hidden">
+      <header className="relative flex h-[560px] w-full items-end overflow-hidden border-b border-outline/15">
         <img
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWpVrZzbMaXJYasclAnCxqggnKRK39BNr3-h9cTmwV4rV59pIxRcy5iZySIP_jOklAoxTgplLwm7AZ0LVb3TcZyq-J5xjgk-njURigngaPdNAR-u6piKTtL8WLDXibbXzyk0j10F4tDWAZBR1VLOsCFg2tTWHMfSt3rUNa7M4vf_q4zYgIdCzUh6sUIqHuV00kocJJ4zmLw5tT35EjikrBoPd8Oycj_72BNsist6FXtGmXey1659mZ5aT54aIZ-0BqGX2VLt5Cla5M"
-          alt="Peaceful landscape"
-          className="absolute inset-0 h-full w-full object-cover opacity-60"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWpVrZzbMaXJYasclAnCxqggnKRK39BNr3-h9cTmwV4rV59pIxRcy5iZySIP_jOklAoxTgplLwm7AZ0LVb3TcZyq-J5xjgk-njURigngaPdNAR-u6piKTtL8WLDXibbXzyk0j10F4tDWAZBR1VLOsCFg2tTWHMfSt3rUNa7M4vf_q4zYgIdCzUh6sUIqHuV00kocJJ4zmLw5tT35EjikrBoPd8Oycj_72BNsist6FXtGmXey1659mZ5aT54aIZ-0BqGX2VLt5M"
+          alt="Sermon atmosphere"
+          className="absolute inset-0 h-full w-full object-cover opacity-45"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/25" />
 
-        <div className="relative z-10 mx-auto w-full max-w-4xl px-8 pb-16">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-14 md:px-8">
           <button
             onClick={onBack}
-            className="mb-7 inline-flex items-center gap-2 rounded-md border border-outline/30 bg-surface-container-low/70 px-3 py-2 text-xs uppercase tracking-[0.18em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
+            className="mb-7 inline-flex items-center gap-2 rounded-md border border-outline/30 bg-surface-container-low/70 px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
           >
             <ChevronLeft size={14} />
             Tilbake
           </button>
 
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="flex items-center gap-4">
-              <span className="text-[11px] uppercase tracking-[0.22em] text-secondary">Sermon Archive</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-secondary">Project: Full Read</span>
               <span className="h-px w-12 bg-outline/35" />
             </div>
-            <h1 className="max-w-3xl font-headline text-5xl font-bold tracking-tight text-on-surface md:text-7xl">{sermonTitle}</h1>
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-2 text-sm font-medium text-on-surface-variant">
+            <h1 className="max-w-4xl font-headline text-4xl font-bold tracking-tight text-on-surface md:text-6xl">{sermonTitle}</h1>
+            <p className="max-w-3xl text-sm tracking-wide text-on-surface-variant">
+              The Chosen Place of Rest - Jeffersonville, IN - {sermon?._id ?? "65-0221E"}
+            </p>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-on-surface-variant">
               <span className="inline-flex items-center gap-2">
                 <LocateFixed size={16} className="text-primary" />
                 Jeffersonville, IN
@@ -113,118 +116,138 @@ export default function FullReadMode({ sermon, onBack }: FullReadModeProps) {
         </div>
       </header>
 
-      <div className="mx-auto grid w-full max-w-screen-xl gap-12 px-8 py-16 lg:grid-cols-[1fr_minmax(auto,720px)_1fr]">
-        <aside className="hidden h-fit space-y-12 lg:sticky lg:top-24 lg:block">
-          <div className="space-y-4">
-            <div className="text-[10px] uppercase tracking-widest text-outline">Lese-fremgang</div>
-            <div className="h-1 w-full overflow-hidden rounded-full bg-surface-container-high">
-              <div className="h-full bg-primary transition-all duration-300" style={{ width: `${scrollProgress}%` }} />
+      <div className="mx-auto grid w-full max-w-[1280px] gap-8 px-5 py-12 md:px-8 lg:grid-cols-[220px_minmax(0,760px)_260px] lg:py-14">
+        <aside className="hidden h-fit space-y-6 rounded-xl border border-outline/20 bg-surface-container-low p-5 lg:sticky lg:top-24 lg:block">
+          <div className="space-y-3">
+            <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-outline">Reading Progress</div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-high">
+              <div
+                className="h-full bg-primary shadow-[0_0_8px_rgba(168,201,244,0.35)] transition-all duration-300"
+                style={{ width: `${scrollProgress}%` }}
+              />
             </div>
             <div className="text-xs text-outline">{Math.round(scrollProgress)}%</div>
+          </div>
+          <div className="border-t border-outline/15 pt-4">
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-outline">View</div>
+            <div className="space-y-1 text-sm text-on-surface-variant">
+              <p className="text-on-surface">Full Read</p>
+              <p className="text-xs uppercase tracking-[0.12em] text-outline">Continuous narrative flow</p>
+            </div>
           </div>
         </aside>
 
         <article className="text-on-surface">
-          <div className="sticky top-[72px] z-40 mb-16 flex items-center justify-between border-y border-outline/20 bg-background/95 py-4 backdrop-blur-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center rounded-lg bg-surface-container p-1">
+          <div className="sticky top-[72px] z-40 mb-10 rounded-xl border border-outline/20 bg-surface-container-low/90 p-3 backdrop-blur-md">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center rounded-lg bg-surface-container p-1">
+                  <button className="rounded-md bg-surface-container-high px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-on-surface shadow-sm">
+                    Read
+                  </button>
+                  <button className="rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-on-surface-variant hover:text-on-surface">
+                    Compare
+                  </button>
+                  <button className="rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-on-surface-variant hover:text-on-surface">
+                    Proofread
+                  </button>
+                </div>
+                <div className="hidden h-6 w-px bg-outline/30 sm:block" />
+                <div className="inline-flex items-center gap-2 rounded-full bg-surface-container px-2 py-1.5">
+                  <button
+                    onClick={decreaseText}
+                    className="rounded-full p-2 text-on-surface-variant transition hover:bg-surface-container-high hover:text-primary"
+                    aria-label="Decrease font size"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <span className="px-1 text-xs font-bold uppercase tracking-[0.2em] text-outline">AA</span>
+                  <button
+                    onClick={increaseText}
+                    className="rounded-full p-2 text-on-surface-variant transition hover:bg-surface-container-high hover:text-primary"
+                    aria-label="Increase font size"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={sermon?.pdfUrl || "#"}
+                  target={sermon?.pdfUrl ? "_blank" : undefined}
+                  rel={sermon?.pdfUrl ? "noopener noreferrer" : undefined}
+                  className="inline-flex items-center gap-2 rounded-md bg-surface-container px-4 py-2 text-sm font-medium transition hover:bg-surface-container-high"
+                >
+                  <Download size={16} />
+                  PDF
+                </a>
                 <button className="rounded-md bg-surface-container-high px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-on-surface shadow-sm">
-                  Lese-modus
+                  Audio
                 </button>
-                <button className="rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-[0.1em] text-on-surface-variant hover:text-on-surface">
-                  Sammenligning
+                <button
+                  onClick={() => setBookmarked((prev) => !prev)}
+                  className="rounded-md p-2 text-on-surface-variant transition hover:bg-surface-container-high hover:text-primary"
+                  aria-label="Bookmark sermon"
+                >
+                  <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
                 </button>
               </div>
-              <div className="hidden h-6 w-px bg-outline/30 sm:block" />
-              <div className="inline-flex items-center gap-2 rounded-full bg-surface-container px-2 py-1.5">
-                <button
-                  onClick={decreaseText}
-                  className="rounded-full p-2 text-on-surface-variant transition hover:bg-surface-container-high hover:text-primary"
-                  aria-label="Decrease font size"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="px-1 text-xs font-bold uppercase tracking-[0.2em] text-outline">AA</span>
-                <button
-                  onClick={increaseText}
-                  className="rounded-full p-2 text-on-surface-variant transition hover:bg-surface-container-high hover:text-primary"
-                  aria-label="Increase font size"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <a
-                href={sermon?.pdfUrl || "#"}
-                target={sermon?.pdfUrl ? "_blank" : undefined}
-                rel={sermon?.pdfUrl ? "noopener noreferrer" : undefined}
-                className="inline-flex items-center gap-2 rounded-md bg-surface-container px-4 py-2 text-sm font-medium transition hover:bg-surface-container-high"
-              >
-                <Download size={16} />
-                Last ned PDF
-              </a>
-              <button
-                onClick={() => setBookmarked((prev) => !prev)}
-                className="rounded-md p-2 text-on-surface-variant transition hover:bg-surface-container-high hover:text-primary"
-                aria-label="Bookmark sermon"
-              >
-                <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
-              </button>
             </div>
           </div>
 
-          <div className="space-y-8" style={{ fontSize: `${fontScale}rem` }}>
-            {paragraphs.map((paragraph, index) => {
-              if (index === 2) {
-                return (
-                  <div key={`quote-${index}`} className="group relative my-16 overflow-hidden bg-surface-container-low px-8 py-12">
-                    <div className="absolute left-0 top-0 h-full w-1 bg-secondary" />
-                    <blockquote className="relative z-10 font-headline text-3xl italic leading-snug text-[#c7c6c6] md:text-4xl">
-                      "Gud hviler ikke i bygninger av stein og tre, men i et hjerte som har gjort rom for Hans Ord."
-                    </blockquote>
-                    <cite className="mt-6 block text-xs uppercase tracking-[0.16em] text-outline">— William Marrion Branham</cite>
-                  </div>
-                );
-              }
+          <div className="rounded-xl border border-outline/15 bg-surface-container-low px-5 py-8 md:px-9 md:py-10">
+            <div className="mb-8 flex items-center justify-between border-b border-outline/15 pb-5">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">Translated Reading</span>
+              <span className="text-xs text-outline">Synchronized with editorial draft</span>
+            </div>
 
-              return (
-                <p
-                  key={`${paragraph.slice(0, 25)}-${index}`}
-                  className="leading-[1.9] text-on-surface/90"
-                  style={{ marginBottom: "2rem" }}
-                >
-                  {index === 0 ? (
-                    <>
-                      <span className="float-left mr-3 font-headline text-6xl font-bold leading-[0.9] text-primary md:text-7xl">
-                        {paragraph[0]}
-                      </span>
-                      {paragraph.slice(1)}
-                    </>
-                  ) : (
-                    paragraph
-                  )}
-                </p>
-              );
-            })}
+            <div className="space-y-8" style={{ fontSize: `${fontScale}rem` }}>
+              {paragraphs.map((paragraph, index) => {
+                if (index === 2) {
+                  return (
+                    <div key={`quote-${index}`} className="group relative my-16 overflow-hidden rounded-lg bg-surface-container px-8 py-12">
+                      <div className="absolute left-0 top-0 h-full w-1 bg-secondary" />
+                      <blockquote className="relative z-10 font-headline text-3xl italic leading-snug text-[#c7c6c6] md:text-4xl">
+                        "Gud hviler ikke i bygninger av stein og tre, men i et hjerte som har gjort rom for Hans Ord."
+                      </blockquote>
+                      <cite className="mt-6 block text-xs uppercase tracking-[0.16em] text-outline">- William Marrion Branham</cite>
+                    </div>
+                  );
+                }
+
+                return (
+                  <p key={`${paragraph.slice(0, 25)}-${index}`} className="leading-[1.95] text-on-surface/90" style={{ marginBottom: "2rem" }}>
+                    {index === 0 ? (
+                      <>
+                        <span className="float-left mr-3 font-headline text-6xl font-bold leading-[0.9] text-primary md:text-7xl">
+                          {paragraph[0]}
+                        </span>
+                        {paragraph.slice(1)}
+                      </>
+                    ) : (
+                      paragraph
+                    )}
+                  </p>
+                );
+              })}
+            </div>
           </div>
         </article>
 
-        <aside className="hidden h-fit lg:sticky lg:top-24 lg:block">
-          <div className="rounded-lg border border-outline/20 bg-surface-container-low p-6">
-            <h3 className="mb-4 font-headline text-lg text-secondary">Detaljer</h3>
+        <aside className="hidden h-fit space-y-6 lg:sticky lg:top-24 lg:block">
+          <div className="rounded-xl border border-outline/20 bg-surface-container-low p-6">
+            <h3 className="mb-4 font-headline text-lg text-secondary">Metadata</h3>
             <dl className="space-y-4 text-sm">
               <div>
-                <dt className="mb-1 text-[10px] uppercase tracking-[0.16em] text-outline">Serien</dt>
+                <dt className="mb-1 text-[10px] uppercase tracking-[0.16em] text-outline">Series</dt>
                 <dd className="text-on-surface">{sermonSeries}</dd>
               </div>
               <div>
-                <dt className="mb-1 text-[10px] uppercase tracking-[0.16em] text-outline">Oversettelse</dt>
+                <dt className="mb-1 text-[10px] uppercase tracking-[0.16em] text-outline">Translation</dt>
                 <dd className="text-on-surface">Norsk (Bokmal)</dd>
               </div>
               <div>
-                <dt className="mb-1 text-[10px] uppercase tracking-[0.16em] text-outline">Lydfil</dt>
+                <dt className="mb-1 text-[10px] uppercase tracking-[0.16em] text-outline">Audio Id</dt>
                 <dd>
                   <a
                     href={sermon?.audioUrl || "#"}
@@ -239,10 +262,19 @@ export default function FullReadMode({ sermon, onBack }: FullReadModeProps) {
               </div>
             </dl>
           </div>
+
+          <div className="rounded-xl border border-outline/20 bg-surface-container-low p-6">
+            <h3 className="mb-4 font-headline text-lg text-secondary">Shortcuts</h3>
+            <div className="space-y-2 text-sm text-on-surface-variant">
+              <p>J / K for paragraph scroll</p>
+              <p>+ / - for text size</p>
+              <p>B to bookmark this sermon</p>
+            </div>
+          </div>
         </aside>
       </div>
 
-      <div className="mx-auto mt-2 w-full max-w-4xl border-t border-outline/20 px-8 py-12">
+      <div className="mx-auto mt-2 w-full max-w-[1280px] border-t border-outline/20 px-5 py-12 md:px-8">
         <div className="flex items-center justify-between gap-8">
           <button onClick={onBack} className="group flex flex-col items-start gap-2 text-left">
             <span className="text-xs uppercase tracking-[0.16em] text-outline transition group-hover:text-primary">Forrige tale</span>

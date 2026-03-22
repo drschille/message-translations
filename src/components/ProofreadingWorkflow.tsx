@@ -232,10 +232,10 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   return (
     <>
       <main className="min-h-screen bg-background px-4 pb-16 pt-24 text-on-surface md:px-8">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-[1280px]">
           <button
             onClick={onBack}
-            className="mb-8 inline-flex items-center gap-2 rounded border border-outline/30 bg-surface-container-low px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
+            className="mb-8 inline-flex items-center gap-2 rounded-md border border-outline/30 bg-surface-container-low px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
           >
             <ChevronLeft size={14} />
             Back To Archive
@@ -257,7 +257,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
             </div>
 
             <div className="w-full md:w-64">
-              <div className="rounded-xl border border-outline/20 bg-surface-container-low p-5">
+              <div className="rounded-xl border border-outline/20 bg-surface-container-low p-5 shadow-[0_14px_34px_rgba(0,0,0,0.22)]">
                 <div className="mb-3 flex items-end justify-between">
                   <div>
                     <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.2em] text-secondary">
@@ -273,7 +273,10 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                   </div>
                 </div>
                 <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
-                  <div className="h-full bg-primary transition-all duration-300" style={{ width: `${completion}%` }} />
+                  <div
+                    className="h-full bg-primary shadow-[0_0_8px_rgba(168,201,244,0.4)] transition-all duration-300"
+                    style={{ width: `${completion}%` }}
+                  />
                 </div>
               </div>
             </div>
@@ -287,8 +290,8 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                   key={segment.key}
                   className={`group relative grid overflow-hidden rounded-xl border transition-all duration-300 lg:grid-cols-2 ${
                     isActive
-                      ? "border-secondary/30 bg-surface-container-high shadow-2xl"
-                      : "border-transparent bg-surface-container-low hover:border-outline/30"
+                      ? "border-secondary/35 bg-surface-container-high shadow-2xl"
+                      : "border-outline/15 bg-surface-container-low hover:border-outline/35"
                   }`}
                 >
                   <div
@@ -362,7 +365,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                     {isActive ? (
                       <>
                         <textarea
-                          className="h-32 w-full resize-none border-none bg-transparent p-0 font-headline text-xl leading-relaxed text-on-surface focus:ring-0"
+                          className="h-36 w-full resize-none border-none bg-transparent p-0 font-headline text-xl leading-relaxed text-on-surface focus:ring-0"
                           spellCheck={false}
                           value={draftText}
                           onChange={(event) => setDraftText(event.target.value)}
@@ -396,7 +399,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                           <div className="absolute inset-0 flex items-center justify-center bg-surface-container/40 opacity-0 transition-opacity group-hover:opacity-100">
                             <button
                               onClick={() => startEditing(segment)}
-                              className="inline-flex items-center gap-2 rounded-full border border-outline/30 bg-surface-container-highest px-6 py-2 text-xs font-bold uppercase tracking-[0.16em]"
+                              className="inline-flex items-center gap-2 rounded-full border border-outline/30 bg-surface-container-highest px-6 py-2 text-xs font-bold uppercase tracking-[0.16em] shadow-[0_10px_24px_rgba(0,0,0,0.35)]"
                             >
                               <Pencil size={14} />
                               Resume Editing
