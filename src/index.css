@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-headline: "Noto Serif", serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+
+  --color-background: #131313;
+  --color-surface: #131313;
+  --color-on-surface: #e5e2e1;
+  --color-primary: #a8c9f4;
+  --color-on-primary: #093255;
+  --color-secondary: #dcc2a9;
+  --color-on-secondary: #3d2d1c;
+  --color-surface-container: #201f1f;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353534;
+  --color-on-surface-variant: #c3c6cf;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-on-surface font-body selection:bg-primary/30;
+  }
+}
+
+.glass-nav {
+  background: rgba(19, 19, 19, 0.7);
+  backdrop-filter: blur(20px);
+}
+
+.hero-gradient {
+  background: linear-gradient(to right, #131313 30%, transparent 100%);
+}
+
+.button-metallic {
+  background: linear-gradient(135deg, #a8c9f4 0%, #44658b 100%);
+}
+
+@media (max-width: 768px) {
+  .hero-gradient {
+    background: linear-gradient(to top, #131313 40%, transparent 100%);
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
