@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Component, ErrorInfo, ReactNode } from "react";
 import { ConvexProvider, ConvexReactClient, usePaginatedQuery, useMutation } from "convex/react";
-import { Search, Filter, SortAsc, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Filter, SortAsc, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import SermonItem from "./components/SermonItem";
@@ -10,6 +10,7 @@ import BottomNav from "./components/BottomNav";
 import HomeContent from "./components/HomeContent";
 import { api } from "@/convex/_generated/api";
 import { motion, AnimatePresence } from "motion/react";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 // Initialize Convex client
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
@@ -37,16 +38,81 @@ const convex = (function() {
   return null;
 })();
 
+// Error Boundary for Convex Deployment Issues
+class ConvexErrorBoundary extends React.Component<{ children: ReactNode }, { hasError: boolean, error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Convex Error caught by boundary:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      const isDeploymentError = this.state.error?.message?.includes("Could not find public function") || 
+                               this.state.error?.message?.includes("Server Error");
+
+      return (
+        <div className="pt-32 pb-24 px-6 text-center max-w-2xl mx-auto">
+          <div className="bg-error-container text-on-error-container p-8 rounded-2xl border border-error/20 shadow-xl">
+            <AlertTriangle className="mx-auto mb-6 text-error" size={48} />
+            <h2 className="text-2xl font-headline mb-4 font-bold">
+              {isDeploymentError ? "Backend Deployment Required" : "Something went wrong"}
+            </h2>
+            <p className="mb-6 opacity-90">
+              {isDeploymentError 
+                ? "The application is connected to Convex, but the backend functions haven't been deployed yet." 
+                : (this.state.error?.message || "An unexpected error occurred while connecting to the database.")}
+            </p>
+            
+            {isDeploymentError && (
+              <div className="bg-surface-container-lowest p-4 rounded font-mono text-sm text-left mb-6 overflow-x-auto border border-outline-variant/20">
+                <p className="text-xs text-outline mb-2 uppercase tracking-widest font-bold">Run this in your terminal:</p>
+                <code className="text-primary font-bold">npx convex deploy</code>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={() => window.location.reload()}
+                className="bg-primary text-on-primary px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-lg shadow-primary/20"
+              >
+                Retry
+              </button>
+              <button 
+                onClick={() => this.setState({ hasError: false, error: null })}
+                className="bg-surface-container-highest text-on-surface px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm hover:bg-surface-bright transition-colors"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 function ArchiveContent() {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   // These hooks will now only be called if ArchiveContent is rendered inside a ConvexProvider
   const paginatedResults = usePaginatedQuery(
     api.sermons.list as any,
     { 
-      search: searchQuery || undefined,
+      search: debouncedSearchQuery || undefined,
       year: selectedYear || undefined,
       series: selectedSeries || undefined
     },
@@ -61,9 +127,47 @@ function ArchiveContent() {
 
   useEffect(() => {
     if (seed) {
-      seed();
+      seed().catch((err: any) => {
+        console.error("Seed failed:", err);
+        if (err.message?.includes("Could not find public function")) {
+          setError("Deployment Required: Please run 'npx convex deploy' in your terminal to activate the backend functions.");
+        }
+      });
     }
   }, [seed]);
+
+  // Catch errors from usePaginatedQuery if possible (though it usually just returns undefined on error)
+  useEffect(() => {
+    if (status === "LoadingFirstPage" && !paginatedResults && !error) {
+      // This is a heuristic for a potential server error if it stays loading forever
+      const timer = setTimeout(() => {
+        if (status === "LoadingFirstPage" && !paginatedResults) {
+          setError("Still loading... If this persists, ensure you have run 'npx convex deploy' to push your functions to the cloud.");
+        }
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, paginatedResults, error]);
+
+  if (error) {
+    return (
+      <div className="pt-32 pb-24 px-6 text-center max-w-2xl mx-auto">
+        <div className="bg-error-container text-on-error-container p-8 rounded-2xl border border-error/20">
+          <h2 className="text-2xl font-headline mb-4 font-bold">Backend Deployment Required</h2>
+          <p className="mb-6 opacity-90">{error}</p>
+          <div className="bg-surface-container-lowest p-4 rounded font-mono text-sm text-left mb-6 overflow-x-auto">
+            <code>npx convex deploy</code>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-primary text-on-primary px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform"
+          >
+            Retry After Deploying
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const years = ["1963", "1964", "1965"];
   const series = ["The Seven Seals", "Church Ages"];
@@ -77,20 +181,23 @@ function ArchiveContent() {
     >
       <header className="mb-16">
         <h1 className="text-5xl md:text-6xl font-headline font-bold text-on-surface mb-8 tracking-tighter">Sermons Archive</h1>
-        <div className="flex flex-col md:flex-row gap-4 items-center">
-          <div className="relative w-full group">
+      </header>
+
+      <section className="mb-12 sticky top-[64px] z-40">
+        <div className="bg-surface-container-low p-2 rounded-xl flex flex-col md:flex-row gap-2 md:gap-4 items-center shadow-2xl border border-outline-variant/10 w-full max-w-full overflow-hidden">
+          <div className="relative w-full flex-grow group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface/40 group-focus-within:text-primary transition-colors" size={20} />
             <input 
-              className="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-secondary py-4 pl-12 pr-4 rounded text-on-surface placeholder:text-on-surface/30 font-body transition-all" 
+              className="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-secondary py-4 pl-12 pr-4 rounded text-on-surface placeholder:text-on-surface/30 font-body transition-all text-sm md:text-base" 
               placeholder="Search by title, date, or scripture..." 
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex gap-2 w-full md:w-auto">
+          <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar shrink-0">
             <select 
-              className="bg-surface-container-high hover:bg-surface-container-highest px-6 py-4 rounded transition-colors text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none"
+              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-[100px]"
               value={selectedYear || ""}
               onChange={(e) => setSelectedYear(e.target.value || null)}
             >
@@ -98,7 +205,7 @@ function ArchiveContent() {
               {years.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
             <select 
-              className="bg-surface-container-high hover:bg-surface-container-highest px-6 py-4 rounded transition-colors text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none"
+              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-[120px]"
               value={selectedSeries || ""}
               onChange={(e) => setSelectedSeries(e.target.value || null)}
             >
@@ -112,14 +219,14 @@ function ArchiveContent() {
                   setSelectedYear(null);
                   setSelectedSeries(null);
                 }}
-                className="bg-primary text-on-primary px-6 py-4 rounded font-bold text-sm uppercase tracking-widest"
+                className="px-4 md:px-6 py-4 bg-primary text-on-primary rounded transition-colors text-xs md:text-sm font-bold shadow-lg shadow-primary/10 whitespace-nowrap"
               >
                 Reset
               </button>
             )}
           </div>
         </div>
-      </header>
+      </section>
 
       <section className="space-y-4">
         {results.map((sermon) => (
@@ -177,7 +284,9 @@ function ArchivePage() {
 
   return (
     <ConvexProvider client={convex}>
-      <ArchiveContent />
+      <ConvexErrorBoundary>
+        <ArchiveContent />
+      </ConvexErrorBoundary>
     </ConvexProvider>
   );
 }
@@ -194,7 +303,9 @@ function TranslationsWrapper() {
 
   return (
     <ConvexProvider client={convex}>
-      <TranslationsPage />
+      <ConvexErrorBoundary>
+        <TranslationsPage />
+      </ConvexErrorBoundary>
     </ConvexProvider>
   );
 }

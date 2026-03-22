@@ -1,9 +1,10 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 
 export const list = query({
   args: {
-    paginationOpts: v.any(),
+    paginationOpts: paginationOptsValidator,
     search: v.optional(v.string()),
     year: v.optional(v.string()),
     series: v.optional(v.string()),
@@ -11,10 +12,6 @@ export const list = query({
   handler: async (ctx, args) => {
     let sermonsQuery = ctx.db.query("sermons").order("desc");
 
-    // If we have a year or series filter, we might need to filter manually if we don't have indexes
-    // For now, let's just use the basic query and filter the results if needed
-    // In a production app, you'd add indexes for these fields.
-    
     if (args.search || args.year || args.series) {
       const all = await sermonsQuery.collect();
       let filtered = all;
@@ -36,7 +33,16 @@ export const list = query({
         filtered = filtered.filter(s => s.series === args.series);
       }
 
-      return { page: filtered, isDone: true, continueCursor: "" };
+      // Manual pagination for filtered results
+      const numItems = args.paginationOpts.numItems;
+      const page = filtered.slice(0, numItems);
+      const isDone = filtered.length <= numItems;
+
+      return { 
+        page, 
+        isDone, 
+        continueCursor: isDone ? "" : "manual_cursor" 
+      };
     }
 
     return await sermonsQuery.paginate(args.paginationOpts);

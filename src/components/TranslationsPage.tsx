@@ -1,18 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Calendar, Filter, Headphones, FileText, Play, ExternalLink, Quote as QuoteIcon, BookOpen } from "lucide-react";
-import { usePaginatedQuery } from "convex/react";
+import { usePaginatedQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { formatDate } from "@/src/lib/utils";
+import { useDebounce } from "@/src/hooks/useDebounce";
 
 export default function TranslationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedSeries, setSelectedSeries] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const paginatedResults = usePaginatedQuery(
     api.sermons.list as any,
     { 
-      search: searchQuery || undefined,
+      search: debouncedSearchQuery || undefined,
       year: selectedYear || undefined,
       series: selectedSeries || undefined
     },
@@ -21,6 +24,51 @@ export default function TranslationsPage() {
 
   const results = paginatedResults?.results || [];
   const status = paginatedResults?.status || "LoadingFirstPage";
+
+  const seed = useMutation(api.sermons.seed as any);
+
+  useEffect(() => {
+    if (seed) {
+      seed().catch((err: any) => {
+        console.error("Seed failed:", err);
+        if (err.message?.includes("Could not find public function")) {
+          setError("Deployment Required: Please run 'npx convex deploy' in your terminal to activate the backend functions.");
+        }
+      });
+    }
+  }, [seed]);
+
+  // Heuristic for deployment error if usePaginatedQuery stays loading
+  useEffect(() => {
+    if (status === "LoadingFirstPage" && !paginatedResults && !error) {
+      const timer = setTimeout(() => {
+        if (status === "LoadingFirstPage" && !paginatedResults) {
+          setError("Still loading... If this persists, ensure you have run 'npx convex deploy' to push your functions to the cloud.");
+        }
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [status, paginatedResults, error]);
+
+  if (error) {
+    return (
+      <div className="pt-32 pb-24 px-6 text-center max-w-2xl mx-auto">
+        <div className="bg-error-container text-on-error-container p-8 rounded-2xl border border-error/20">
+          <h2 className="text-2xl font-headline mb-4 font-bold">Backend Deployment Required</h2>
+          <p className="mb-6 opacity-90">{error}</p>
+          <div className="bg-surface-container-lowest p-4 rounded font-mono text-sm text-left mb-6 overflow-x-auto">
+            <code>npx convex deploy</code>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-primary text-on-primary px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform"
+          >
+            Retry After Deploying
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const featuredSermon = results[0];
   const otherSermons = results.slice(1);
@@ -44,21 +92,21 @@ export default function TranslationsPage() {
       </header>
 
       {/* Search & Filter Bar */}
-      <section className="mb-12 sticky top-24 z-40">
-        <div className="bg-surface-container-low p-2 rounded-xl flex flex-col md:flex-row gap-4 items-center shadow-2xl">
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-outline" size={20} />
+      <section className="mb-12 sticky top-[64px] z-40">
+        <div className="bg-surface-container-low p-2 rounded-xl flex flex-col md:flex-row gap-2 md:gap-4 items-center shadow-2xl border border-outline-variant/10 w-full max-w-full overflow-hidden">
+          <div className="relative w-full flex-grow group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface/40 group-focus-within:text-primary transition-colors" size={20} />
             <input 
-              className="w-full bg-surface-container border-none focus:ring-1 focus:ring-secondary rounded-lg pl-12 py-4 text-on-surface placeholder:text-outline-variant" 
+              className="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-secondary py-4 pl-12 pr-4 rounded text-on-surface placeholder:text-on-surface/30 font-body transition-all text-sm md:text-base" 
               placeholder="Søk i titler, datoer eller temaer..." 
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+          <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar shrink-0">
             <select 
-              className="whitespace-nowrap px-6 py-4 bg-surface-container-high hover:bg-surface-bright text-on-surface rounded-lg transition-colors text-sm font-medium flex items-center gap-2 appearance-none border-none focus:ring-0"
+              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-[100px]"
               value={selectedYear || ""}
               onChange={(e) => setSelectedYear(e.target.value || null)}
             >
@@ -66,7 +114,7 @@ export default function TranslationsPage() {
               {years.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
             <select 
-              className="whitespace-nowrap px-6 py-4 bg-surface-container-high hover:bg-surface-bright text-on-surface rounded-lg transition-colors text-sm font-medium flex items-center gap-2 appearance-none border-none focus:ring-0"
+              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-[120px]"
               value={selectedSeries || ""}
               onChange={(e) => setSelectedSeries(e.target.value || null)}
             >
@@ -80,7 +128,7 @@ export default function TranslationsPage() {
                   setSelectedYear(null);
                   setSelectedSeries(null);
                 }}
-                className="whitespace-nowrap px-6 py-4 bg-primary text-on-primary rounded-lg transition-colors text-sm font-bold shadow-lg shadow-primary/10"
+                className="px-4 md:px-6 py-4 bg-primary text-on-primary rounded transition-colors text-xs md:text-sm font-bold shadow-lg shadow-primary/10 whitespace-nowrap"
               >
                 Nullstill
               </button>

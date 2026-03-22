@@ -6,9 +6,9 @@ export default function Hero() {
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
         <img 
-          className="w-full h-full object-cover object-center md:object-right opacity-60 grayscale" 
-          alt="Monochromatic portrait of William Marrion Branham" 
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuD25zDVXAZ_A1O0HUJHWHuHo4hQpvoT08glKj5GCjjbmSVRgwZhDQeV8FCCHNxvcWLSba-stWWOGyZRj4HJiNHSj1BnWpGi-HnpLsUL61Q6gaNTwCk-2x9OYcXMRidZEjxZFIFcPh8QFNPd76vskskOUr-QpOIi5PgjpaFwqZpmce9avXjTtuRF_1PSgHcAvevlbM-iX0Eg62exV9qDFZItaUNYl0l9s9cCuS1-HSL4xCLF2_J8qUBJ_3A_bpQqRBRlhAbB6bKTJyaR"
+          className="w-full h-full object-cover object-center md:object-right opacity-80" 
+          alt="Test portrait" 
+          src="https://picsum.photos/seed/branham/1920/1080"
           referrerPolicy="no-referrer"
         />
         <div className="absolute inset-0 hero-gradient"></div>
