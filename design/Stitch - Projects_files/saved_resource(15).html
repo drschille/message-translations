@@ -116,7 +116,7 @@
   }
 </style><script data-stitch-injected="">(function lUe(){window.addEventListener(`message`,async function(e){let t=e.data;if(!t||t.type!==`capture_screenshot`||e.source!==window.parent)return;let n=t.requestId,r=t.captureEngineSource,i=t.options||{},a=window.innerWidth,o=window.innerHeight,s=window.scrollX,c=window.scrollY,l=document.documentElement,u=l.style.width,d=l.style.height,f=l.style.overflow,p=l.style.position;try{if(!window.snapdom&&r){let e=document.createElement(`script`);e.setAttribute(`data-stitch-injected`,``),e.textContent=r,document.head.appendChild(e)}let e=window.snapdom;if(!e){window.parent.postMessage({type:`screenshot_error`,requestId:n,errorCode:`CAPTURE_ENGINE_UNAVAILABLE`,error:`Capture engine not available. Ensure source is sent with the capture request.`},`*`);return}let t=i.exclude||[`[data-stitch-injected]`];window.scrollTo(0,0),l.style.width=a+`px`,l.style.height=o+`px`,l.style.overflow=`hidden`,l.style.position=`relative`;let u=(await(await e(document.documentElement,{exclude:t,embedFonts:!0,scale:i.scale||1,quality:i.quality||1,plugins:[{name:`stitch-viewport-clip`,afterClone:function(e){let t=e.clone;if(!(t instanceof HTMLElement))return;t.style.position=`relative`,t.style.width=a+`px`,t.style.height=o+`px`,t.style.overflow=`hidden`;let n=[],r=t.querySelectorAll(`*`);for(let e=0;e<r.length;e++){let t=r[e];t instanceof HTMLElement&&(t.style.position||(t.__snapdomComputedStyle||window.getComputedStyle(t)).position)===`fixed`&&n.push(t)}if(s!==0||c!==0){let e=t.querySelector(`body`);e&&(e.style.marginTop=-c+`px`,e.style.marginLeft=-s+`px`)}for(let e=0;e<n.length;e++)n[e].style.position=`absolute`,t.appendChild(n[e])}}]})).toCanvas({width:a,height:o})).toDataURL(`image/png`);window.parent.postMessage({type:`screenshot_captured`,requestId:n,dataUrl:u,width:a,height:o},`*`)}catch(e){window.parent.postMessage({type:`screenshot_error`,requestId:n,error:e instanceof Error?e.message:String(e)},`*`)}finally{l.style.width=u,l.style.height=d,l.style.overflow=f,l.style.position=p,window.scrollTo(s,c)}})})();</script><script data-stitch-injected="">(function fUe(){let e=`__stitch-highlight-css`,t=`stitch-highlight-element`,n=null;function r(){if(document.getElementById(e))return;let n=document.createElement(`style`);n.id=e,n.textContent=[`@keyframes stitch-highlight-pulse {`,`  0%, 100% { box-shadow: 0 0 0 3px rgba(113,105,237,0.8), 0 0 12px 4px rgba(113,105,237,0.3); }`,`  50%      { box-shadow: 0 0 0 3px rgba(113,105,237,0.4), 0 0 6px 2px rgba(113,105,237,0.15); }`,`}`,`.`+t+` {`,`  outline: 3px solid rgba(113,105,237,0.8) !important;`,`  outline-offset: 2px !important;`,`  animation: stitch-highlight-pulse 1.5s ease-in-out infinite !important;`,`  border-radius: inherit;`,`}`].join(`
 `),document.head.appendChild(n)}function i(e){let t=e.toLowerCase().trim(),n=document.createTreeWalker(document.body,NodeFilter.SHOW_ELEMENT,null),r=null,i=-1,a=n.nextNode();for(;a;){if((a.textContent||``).trim().toLowerCase().includes(t)){let e=0,t=a.parentElement;for(;t;)e++,t=t.parentElement;e>i&&(i=e,r=a)}a=n.nextNode()}return r}function a(e){setTimeout(function(){let t=e.getBoundingClientRect(),n=window.innerWidth||1,r=window.innerHeight||1;window.parent.postMessage({type:`stitch:highlight-element-rect`,normalizedX:(t.left+t.width/2)/n,normalizedY:(t.top+t.height/2)/r,normalizedWidth:t.width/n,normalizedHeight:t.height/r},`*`)},400)}window.addEventListener(`message`,function(e){if(!e.data||e.data.type!==`stitch:highlight-element`)return;n&&=(n.classList.remove(t),null);let{text:o,selector:s}=e.data;if(!o&&!s)return;r();let c=null;if(o&&(c=i(o)),!c&&s)try{c=document.querySelector(s)}catch{}c&&(c.classList.add(t),c.scrollIntoView({behavior:`smooth`,block:`center`}),n=c,a(c))})})();</script><script data-stitch-injected="">
-      window.__PROTOTYPE_LINKS__ = [{"xpath":"//a[contains(text(), 'Sermons')]","targetScreenId":"1d112c4af96d4b1cbb19fdd4b50af4a8","state":"1","transition":"none"},{"xpath":"//button[span[text()='close']]","targetScreenId":"71f056970135461b9d3342b9f96794b5","state":"1","transition":"push_back"},{"xpath":"//button[contains(., 'Dismiss')]","targetScreenId":"71f056970135461b9d3342b9f96794b5","state":"1","transition":"push_back"}];
+      window.__PROTOTYPE_LINKS__ = [{"xpath":"//button[contains(., 'Dismiss')]","targetScreenId":"1349832de8384436909fc01873ee7383","state":"1","transition":"push_back"},{"xpath":"//button[span[contains(text(), 'close')]]","targetScreenId":"1349832de8384436909fc01873ee7383","state":"1","transition":"push_back"}];
       window.__PROTOTYPE_INITIAL_STATE__ = "1";
       
   (function() {
@@ -1012,12 +1012,12 @@
           color: white;
         }
       </style></head>
-<body class="bg-background text-on-background font-body selection:bg-primary/30">
+<body class="bg-background text-on-background font-body selection:bg-primary/30" data-mode="connect">
 <!-- Top Navigation Bar (Shared Component Anchor) -->
 <header class="fixed top-0 w-full z-50 bg-stone-950/70 backdrop-blur-xl text-blue-200 dark:text-blue-300 font-noto-serif tracking-tight shadow-2xl shadow-black/20 flex justify-between items-center px-8 h-20">
 <div class="text-xl font-serif text-stone-100 italic">The Digital Archive</div>
 <nav class="hidden md:flex items-center gap-8">
-<a class="text-stone-400 hover:text-stone-200 transition-colors prototype-link-hover prototype-hotspot" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Sermons</a>
+<a class="text-stone-400 hover:text-stone-200 transition-colors" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Sermons</a>
 <a class="text-stone-400 hover:text-stone-200 transition-colors" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Translations</a>
 <a class="text-stone-400 hover:text-stone-200 transition-colors" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">History</a>
 <a class="text-blue-300 border-b-2 border-blue-400 pb-1" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Archive</a>
@@ -1071,7 +1071,7 @@
 <div class="bg-surface-container-low w-full max-w-4xl max-h-[921px] rounded-xl flex flex-col shadow-2xl border border-outline-variant/20 overflow-hidden">
 <!-- Modal Header -->
 <div class="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-start bg-surface-container">
-<div>
+<div class="">
 <div class="flex items-center gap-2 mb-1">
 <span class="material-symbols-outlined text-secondary text-sm" data-icon="history">history</span>
 <span class="text-[10px] font-label font-bold uppercase tracking-widest text-secondary">Paragraph ID: #884-A</span>
@@ -1079,7 +1079,7 @@
 <h3 class="text-2xl font-headline text-on-surface">Version History</h3>
 <p class="text-on-surface-variant text-sm mt-1">Comparing changes across the editorial pipeline.</p>
 </div>
-<button class="p-2 hover:bg-surface-container-highest rounded-full transition-colors text-on-surface-variant prototype-link-hover prototype-hotspot">
+<button class="p-2 hover:bg-surface-container-highest rounded-full transition-colors text-on-surface-variant prototype-hotspot interactive-connected" data-interactive-label="Connected">
 <span class="material-symbols-outlined" data-icon="close">close</span>
 </button>
 </div>
@@ -1105,7 +1105,7 @@
 <span class="material-symbols-outlined text-[14px]" data-icon="person">person</span>
 <span>Senior Editor: Elias Thorne</span>
 <span class="opacity-30">•</span>
-<span>Oct 24, 2023, 14:30</span>
+<span class="">Oct 24, 2023, 14:30</span>
 </div>
 </div>
 <button class="text-xs text-primary font-bold tracking-wide uppercase hover:underline">View Snapshot</button>
@@ -1132,7 +1132,7 @@
 <span class="material-symbols-outlined text-[14px]" data-icon="person">person</span>
 <span>Reviewer: Sarah Gundersen</span>
 <span class="opacity-30">•</span>
-<span>Oct 22, 2023, 09:15</span>
+<span class="">Oct 22, 2023, 09:15</span>
 </div>
 </div>
 <button class="text-xs text-on-surface-variant font-bold tracking-wide uppercase hover:text-on-surface">Compare with v3.0</button>
@@ -1141,7 +1141,7 @@
 <p class="font-headline text-lg leading-relaxed text-on-surface/70">
                                         "Nå tenker vi denne formiddagen på emnet Guds Ord, og hvordan Ordet er et <span class="diff-removed">frø</span> <span class="diff-added">Sædekorn</span> som en såmann gikk ut for å så. Og vi vet at <span class="diff-removed">frøet</span> må falle i den rette slags jord for å frembringe sitt slag."
                                     </p>
-<div class="mt-4 pt-4 border-t border-outline-variant/10 flex items-start gap-3">
+<div class="mt-4 pt-4 border-t border-outline-variant/10 flex items-start gap-3 interactive-hover" data-interactive-label="Select">
 <span class="material-symbols-outlined text-secondary text-sm" data-icon="comment">comment</span>
 <p class="text-xs italic text-on-secondary-container">"Updated 'frø' to 'Sædekorn' to maintain the archaic/biblical tone consistent with the 1950s vocabulary."</p>
 </div>
@@ -1190,7 +1190,7 @@
 <button class="flex-1 md:flex-none px-6 py-2.5 rounded-lg border border-outline-variant/30 text-on-surface font-medium text-sm hover:bg-surface-container-highest transition-colors">
                             Restore v2.1
                         </button>
-<button class="flex-1 md:flex-none px-6 py-2.5 rounded-lg bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold text-sm shadow-lg shadow-primary/10 prototype-link-hover prototype-hotspot">
+<button class="flex-1 md:flex-none px-6 py-2.5 rounded-lg bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold text-sm shadow-lg shadow-primary/10 prototype-hotspot interactive-connected" data-interactive-label="Connected">
                             Dismiss
                         </button>
 </div>
