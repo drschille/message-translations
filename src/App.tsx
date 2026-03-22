@@ -268,11 +268,9 @@ export default function App() {
     setCurrentPage('archive');
   };
 
-  const shouldRenderShell = currentPage !== 'reader';
-
   return (
     <div className="min-h-screen flex flex-col">
-      {shouldRenderShell && <Navbar currentPage={currentPage} onPageChange={setCurrentPage} />}
+      <Navbar currentPage={currentPage} onPageChange={setCurrentPage} />
       <AnimatePresence mode="wait">
         {currentPage === 'home' && (
           <HomeContent key="home" />
@@ -287,17 +285,7 @@ export default function App() {
             <TranslationsWrapper onOpenReader={openReader} />
           </motion.div>
         )}
-        {currentPage === 'translations' && (
-          <motion.div
-            key="translations"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-          >
-            <TranslationsWrapper onOpenReader={openReader} />
-          </motion.div>
-        )}
-        {currentPage === 'about' && (
+{currentPage === 'about' && (
           <motion.div
             key="about"
             initial={{ opacity: 0, x: 20 }}
@@ -326,8 +314,8 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-      {shouldRenderShell && <Footer currentPage={currentPage} />}
-      {shouldRenderShell && <BottomNav currentPage={currentPage} onPageChange={setCurrentPage} />}
+      <Footer currentPage={currentPage} />
+      <BottomNav currentPage={currentPage} onPageChange={setCurrentPage} />
     </div>
   );
 }

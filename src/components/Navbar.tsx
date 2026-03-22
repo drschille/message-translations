@@ -43,15 +43,6 @@ export default function Navbar({ currentPage, onPageChange }: NavbarProps) {
           <button
             className={cn(
               "font-headline tracking-tight transition-colors duration-300",
-              currentPage === 'translations' ? "text-[#A8C9F4] font-bold border-b-2 border-[#A8C9F4] pb-1" : "text-[#E5E2E1]/70 hover:text-[#E5E2E1]"
-            )}
-            onClick={() => onPageChange('translations')}
-          >
-            {t('nav.translations')}
-          </button>
-          <button
-            className={cn(
-              "font-headline tracking-tight transition-colors duration-300",
               currentPage === 'about' ? "text-[#A8C9F4] font-bold border-b-2 border-[#A8C9F4] pb-1" : "text-[#E5E2E1]/70 hover:text-[#E5E2E1]"
             )}
             onClick={() => onPageChange('about')}
