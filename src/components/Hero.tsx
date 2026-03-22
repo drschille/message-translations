@@ -1,14 +1,15 @@
 import { ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
+import homePillarOfFire from "@/src/assets/home_pillar_of_fire.jpg";
 
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
         <img 
-          className="w-full h-full object-cover object-center md:object-right opacity-80" 
-          alt="Test portrait" 
-          src="https://picsum.photos/seed/branham/1920/1080"
+          className="w-full h-full object-cover object-[58%_18%] md:object-[60%_16%] opacity-80" 
+          alt="William Branham under the pillar of fire" 
+          src={homePillarOfFire}
           referrerPolicy="no-referrer"
         />
         <div className="absolute inset-0 hero-gradient"></div>
