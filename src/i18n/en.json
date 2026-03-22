@@ -89,6 +89,8 @@
     "searchArchives": "Search Archives",
     "metadataSettings": "Metadata and Settings",
     "saveActiveChanges": "Save Active Changes",
+    "saveDraft": "Save Draft",
+    "submitForReview": "Submit for Review",
     "exportDraft": "Export Draft",
     "approveSegment": "Approve segment {{key}}",
     "editSegment": "Edit segment {{key}}",

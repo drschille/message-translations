@@ -89,6 +89,8 @@
     "searchArchives": "Søk i arkiv",
     "metadataSettings": "Metadata og innstillinger",
     "saveActiveChanges": "Lagre aktive endringer",
+    "saveDraft": "Lagre utkast",
+    "submitForReview": "Send til godkjenning",
     "exportDraft": "Eksporter utkast",
     "approveSegment": "Godkjenn segment {{key}}",
     "editSegment": "Rediger segment {{key}}",

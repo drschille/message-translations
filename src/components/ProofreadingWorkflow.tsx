@@ -18,6 +18,7 @@ import type { ParagraphBlockSegment } from "@/src/components/ParagraphBlock";
 import ParagraphCommentsModal from "@/src/components/ParagraphCommentsModal";
 import VersionHistoryModal from "@/src/components/VersionHistoryModal";
 import type { ParagraphId, SermonId } from "@/src/types/editorial";
+import hillsideBg from "@/src/assets/hillside.png";
 
 interface ProofreadingWorkflowProps {
   sermon?: any;
@@ -160,21 +161,25 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   );
 
   const startEditing = async (segment: UiSegment) => {
+    if (segment.status === "approved") return;
     setActiveSegmentId(segment.key);
-    if (!segment.paragraphId || segment.status === "approved") return;
+    if (!segment.paragraphId) return;
     if (segment.status !== "drafting") {
       await updateParagraphStatus({ paragraphId: segment.paragraphId, status: "drafting" });
     }
   };
 
-  const saveDraft = async () => {
+  const saveDraft = async (submitForReview = false) => {
     if (!activeSegment?.paragraphId) return;
     setSaving(true);
     try {
       await updateParagraphDraft({
         paragraphId: activeSegment.paragraphId,
         translatedText: draftText,
-        reason: "Saved from proofreading workflow",
+        reason: submitForReview
+          ? "Submitted for review from proofreading workflow"
+          : "Draft saved from proofreading workflow",
+        submitForReview,
       });
     } finally {
       setSaving(false);
@@ -195,7 +200,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   };
 
   const isDirty = useMemo(() => {
-    if (!activeSegment || activeSegment.status !== "drafting") return false;
+    if (!activeSegment || activeSegment.status === "approved") return false;
     return draftText.trim() !== activeSegment.translatedText.trim();
   }, [activeSegment, draftText]);
 
@@ -204,8 +209,13 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
 
   return (
     <>
-      <main className="min-h-screen bg-background px-4 pb-16 pt-24 text-on-surface md:px-8">
-        <div className="mx-auto max-w-[1280px]">
+      <main className="relative min-h-screen bg-background px-4 pb-16 pt-24 text-on-surface md:px-8">
+        {/* Background image */}
+        <div
+          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-[0.04]"
+          style={{ backgroundImage: `url(${hillsideBg})` }}
+        />
+        <div className="relative z-10 mx-auto max-w-[1280px]">
           <button
             onClick={onBack}
             className="mb-8 inline-flex items-center gap-2 rounded-md border border-outline/30 bg-surface-container-low px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
@@ -263,7 +273,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
           {/* Paragraph segments — using shared ParagraphBlock */}
           <section className="space-y-6">
             {segments.map((segment, index) => {
-              const isActive = segment.key === activeSegmentId && segment.status === "drafting";
+              const isActive = segment.key === activeSegmentId && segment.status !== "approved";
 
               return (
                 <ParagraphBlock
@@ -307,10 +317,17 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                         </button>
                         <button
                           disabled={saving}
-                          onClick={saveDraft}
+                          onClick={() => saveDraft(false)}
+                          className="rounded border border-outline/30 bg-surface-container-highest px-5 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-surface shadow disabled:opacity-50 transition-colors hover:bg-surface-container-high"
+                        >
+                          {t("proofreading.saveDraft")}
+                        </button>
+                        <button
+                          disabled={saving}
+                          onClick={() => saveDraft(true)}
                           className="rounded bg-gradient-to-br from-primary to-[#44658b] px-6 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-primary shadow-lg disabled:opacity-50"
                         >
-                          {t("common.save")}
+                          {t("proofreading.submitForReview")}
                         </button>
                       </div>
                     </>
@@ -357,7 +374,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
             <Info size={20} />
           </button>
           <button
-            onClick={saveDraft}
+            onClick={() => saveDraft(false)}
             className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-xl transition-transform hover:scale-105"
             title={t("proofreading.saveActiveChanges")}
           >

@@ -145,6 +145,7 @@ export const updateParagraphDraft = mutation({
     paragraphId: v.id("sermonParagraphs"),
     translatedText: v.string(),
     reason: v.optional(v.string()),
+    submitForReview: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const paragraph = await ctx.db.get(args.paragraphId);
@@ -156,17 +157,18 @@ export const updateParagraphDraft = mutation({
     const now = Date.now();
     const normalized = args.translatedText.trim();
     const nextText = normalized.length > 0 ? normalized : paragraph.translatedText;
+    const nextStatus = args.submitForReview ? "needs_review" : "drafting";
 
     await ctx.db.patch(args.paragraphId, {
       translatedText: nextText,
-      status: "needs_review",
+      status: nextStatus,
       updatedAt: now,
     });
 
     await ctx.db.insert("paragraphRevisions", {
       paragraphId: args.paragraphId,
       snapshotText: nextText,
-      status: "needs_review",
+      status: nextStatus,
       kind: "edit",
       reason: args.reason,
       authorName: identity?.name ?? identity?.email ?? "Anonymous editor",
