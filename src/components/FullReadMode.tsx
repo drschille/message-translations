@@ -16,6 +16,8 @@ import homePillarOfFire from "@/src/assets/home_pillar_of_fire.jpg";
 interface FullReadModeProps {
   sermon?: any;
   onBack: () => void;
+  mode: "read" | "compare";
+  onModeChange: (mode: "read" | "compare") => void;
 }
 
 const fallbackParagraphs = [
@@ -27,7 +29,7 @@ const fallbackParagraphs = [
   "I denne siste tid har Gud igjen sendt oss et budskap for å kalle oss ut av systemene og inn i det sanne hvilestedet. Det hvilestedet er i Kristus, som er Ordet. Når du tar imot Ordet for din dag, da tar du imot Gud Selv, for Ordet og Gud er ett.",
 ];
 
-export default function FullReadMode({ sermon, onBack }: FullReadModeProps) {
+export default function FullReadMode({ sermon, onBack, mode, onModeChange }: FullReadModeProps) {
   const [fontScale, setFontScale] = useState(1);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [bookmarked, setBookmarked] = useState(false);
@@ -129,10 +131,24 @@ export default function FullReadMode({ sermon, onBack }: FullReadModeProps) {
           <div className="sticky top-[72px] z-40 mb-12 flex flex-wrap items-center justify-between gap-4 border-y border-outline/20 bg-background/95 py-4 backdrop-blur-sm md:mb-16">
             <div className="flex items-center gap-4">
               <div className="flex items-center rounded-lg bg-surface-container p-1">
-                <button className="rounded-md bg-surface-container-high px-3 py-1.5 text-xs font-bold tracking-[0.1em] text-on-surface shadow-sm">
+                <button
+                  onClick={() => onModeChange("read")}
+                  className={`rounded-md px-3 py-1.5 text-xs font-bold tracking-[0.1em] ${
+                    mode === "read"
+                      ? "bg-surface-container-high text-on-surface shadow-sm"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
                   Lese-modus
                 </button>
-                <button className="rounded-md px-3 py-1.5 text-xs font-bold tracking-[0.1em] text-on-surface-variant hover:text-on-surface">
+                <button
+                  onClick={() => onModeChange("compare")}
+                  className={`rounded-md px-3 py-1.5 text-xs font-bold tracking-[0.1em] ${
+                    mode === "compare"
+                      ? "bg-surface-container-high text-on-surface shadow-sm"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  }`}
+                >
                   Sammenligning
                 </button>
               </div>
