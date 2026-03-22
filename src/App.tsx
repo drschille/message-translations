@@ -334,7 +334,14 @@ export default function App() {
           <HomeContent key="home" />
         )}
         {currentPage === 'archive' && (
-          <ArchivePage key="archive" onOpenReader={openReader} />
+          <motion.div
+            key="archive"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+          >
+            <TranslationsWrapper onOpenReader={openReader} />
+          </motion.div>
         )}
         {currentPage === 'translations' && (
           <motion.div
@@ -363,7 +370,15 @@ export default function App() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <ReaderPage sermon={selectedSermon} onBack={closeReader} />
+            {convex ? (
+              <ConvexProvider client={convex}>
+                <ConvexErrorBoundary>
+                  <ReaderPage sermon={selectedSermon} onBack={closeReader} />
+                </ConvexErrorBoundary>
+              </ConvexProvider>
+            ) : (
+              <ReaderPage sermon={selectedSermon} onBack={closeReader} />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

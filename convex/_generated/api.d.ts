@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as editorial from "../editorial.js";
 import type * as sermons from "../sermons.js";
 
 import type {
@@ -17,6 +18,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  editorial: typeof editorial;
   sermons: typeof sermons;
 }>;
 

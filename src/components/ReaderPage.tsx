@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ComparisonPanel from "./ComparisonPanel";
 import FullReadMode from "./FullReadMode";
 import ProofreadingWorkflow from "./ProofreadingWorkflow";
 
@@ -8,7 +9,7 @@ interface ReaderPageProps {
 }
 
 export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
-  const [mode, setMode] = useState<"read" | "proofread">("read");
+  const [mode, setMode] = useState<"read" | "compare" | "proofread">("read");
 
   return (
     <>
@@ -23,6 +24,14 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
             Full Read
           </button>
           <button
+            onClick={() => setMode("compare")}
+            className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
+              mode === "compare" ? "bg-surface-container-highest text-on-surface" : "text-on-surface-variant hover:text-on-surface"
+            }`}
+          >
+            Compare
+          </button>
+          <button
             onClick={() => setMode("proofread")}
             className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition ${
               mode === "proofread" ? "bg-secondary text-on-secondary" : "text-on-surface-variant hover:text-on-surface"
@@ -35,6 +44,8 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
 
       {mode === "read" ? (
         <FullReadMode sermon={sermon} onBack={onBack} />
+      ) : mode === "compare" ? (
+        <ComparisonPanel sermon={sermon} onBack={onBack} />
       ) : (
         <ProofreadingWorkflow sermon={sermon} onBack={onBack} />
       )}
