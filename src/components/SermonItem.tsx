@@ -3,7 +3,12 @@ import { ChevronDown, BookOpen, Download, Play } from "lucide-react";
 import { cn, formatDate } from "@/src/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 
-export default function SermonItem({ sermon }: any) {
+interface SermonItemProps {
+  sermon: any;
+  onReadText?: (sermon: any) => void;
+}
+
+export default function SermonItem({ sermon, onReadText }: SermonItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -43,7 +48,13 @@ export default function SermonItem({ sermon }: any) {
                 {sermon.description}
               </p>
               <div className="flex flex-wrap gap-3">
-                <button className="bg-gradient-to-tr from-primary to-[#44658b] text-on-primary px-6 py-2.5 rounded-md font-label text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onReadText?.(sermon);
+                  }}
+                  className="bg-gradient-to-tr from-primary to-[#44658b] text-on-primary px-6 py-2.5 rounded-md font-label text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity"
+                >
                   <BookOpen size={16} />
                   Les Tekst
                 </button>

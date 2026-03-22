@@ -8,6 +8,7 @@ import AboutPage from "./components/AboutPage";
 import TranslationsPage from "./components/TranslationsPage";
 import BottomNav from "./components/BottomNav";
 import HomeContent from "./components/HomeContent";
+import ReaderPage from "./components/ReaderPage";
 import { api } from "@/convex/_generated/api";
 import { motion, AnimatePresence } from "motion/react";
 import { useDebounce } from "@/src/hooks/useDebounce";
@@ -101,7 +102,7 @@ class ConvexErrorBoundary extends React.Component<{ children: ReactNode }, { has
   }
 }
 
-function ArchiveContent() {
+function ArchiveContent({ onOpenReader }: { onOpenReader: (sermon: any) => void }) {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
@@ -230,7 +231,7 @@ function ArchiveContent() {
 
       <section className="space-y-4">
         {results.map((sermon) => (
-          <SermonItem key={sermon._id} sermon={sermon as any} />
+          <SermonItem key={sermon._id} sermon={sermon as any} onReadText={onOpenReader} />
         ))}
 
         {status === "LoadingMore" && (
@@ -272,7 +273,7 @@ function ArchiveContent() {
   );
 }
 
-function ArchivePage() {
+function ArchivePage({ onOpenReader }: { onOpenReader: (sermon: any) => void }) {
   if (!convex) {
     return (
       <div className="pt-32 pb-24 px-6 text-center">
@@ -285,13 +286,13 @@ function ArchivePage() {
   return (
     <ConvexProvider client={convex}>
       <ConvexErrorBoundary>
-        <ArchiveContent />
+        <ArchiveContent onOpenReader={onOpenReader} />
       </ConvexErrorBoundary>
     </ConvexProvider>
   );
 }
 
-function TranslationsWrapper() {
+function TranslationsWrapper({ onOpenReader }: { onOpenReader: (sermon: any) => void }) {
   if (!convex) {
     return (
       <div className="pt-32 pb-24 px-6 text-center">
@@ -304,7 +305,7 @@ function TranslationsWrapper() {
   return (
     <ConvexProvider client={convex}>
       <ConvexErrorBoundary>
-        <TranslationsPage />
+        <TranslationsPage onOpenReader={onOpenReader} />
       </ConvexErrorBoundary>
     </ConvexProvider>
   );
@@ -312,16 +313,28 @@ function TranslationsWrapper() {
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
+  const [selectedSermon, setSelectedSermon] = useState<any>(null);
+
+  const openReader = (sermon: any) => {
+    setSelectedSermon(sermon);
+    setCurrentPage('reader');
+  };
+
+  const closeReader = () => {
+    setCurrentPage('archive');
+  };
+
+  const shouldRenderShell = currentPage !== 'reader';
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar currentPage={currentPage} onPageChange={setCurrentPage} />
+      {shouldRenderShell && <Navbar currentPage={currentPage} onPageChange={setCurrentPage} />}
       <AnimatePresence mode="wait">
         {currentPage === 'home' && (
           <HomeContent key="home" />
         )}
         {currentPage === 'archive' && (
-          <ArchivePage key="archive" />
+          <ArchivePage key="archive" onOpenReader={openReader} />
         )}
         {currentPage === 'translations' && (
           <motion.div
@@ -330,7 +343,7 @@ export default function App() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
           >
-            <TranslationsWrapper />
+            <TranslationsWrapper onOpenReader={openReader} />
           </motion.div>
         )}
         {currentPage === 'about' && (
@@ -343,9 +356,19 @@ export default function App() {
             <AboutPage />
           </motion.div>
         )}
+        {currentPage === 'reader' && (
+          <motion.div
+            key="reader"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <ReaderPage sermon={selectedSermon} onBack={closeReader} />
+          </motion.div>
+        )}
       </AnimatePresence>
-      <Footer currentPage={currentPage} />
-      <BottomNav currentPage={currentPage} onPageChange={setCurrentPage} />
+      {shouldRenderShell && <Footer currentPage={currentPage} />}
+      {shouldRenderShell && <BottomNav currentPage={currentPage} onPageChange={setCurrentPage} />}
     </div>
   );
 }

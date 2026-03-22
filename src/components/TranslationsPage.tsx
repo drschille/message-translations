@@ -5,7 +5,11 @@ import { api } from "@/convex/_generated/api";
 import { formatDate } from "@/src/lib/utils";
 import { useDebounce } from "@/src/hooks/useDebounce";
 
-export default function TranslationsPage() {
+interface TranslationsPageProps {
+  onOpenReader?: (sermon: any) => void;
+}
+
+export default function TranslationsPage({ onOpenReader }: TranslationsPageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
@@ -174,7 +178,10 @@ export default function TranslationsPage() {
                     <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-tr from-primary to-[#44658b] text-on-primary rounded-md font-bold text-sm hover:opacity-90 transition-opacity">
                       <Headphones size={18} /> Lytt Nå
                     </button>
-                    <button className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest text-on-surface rounded-md font-bold text-sm hover:bg-surface-bright transition-colors">
+                    <button
+                      onClick={() => onOpenReader?.(featuredSermon)}
+                      className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest text-on-surface rounded-md font-bold text-sm hover:bg-surface-bright transition-colors"
+                    >
                       <FileText size={18} /> Les Tekst
                     </button>
                   </div>
@@ -203,8 +210,11 @@ export default function TranslationsPage() {
                       <button className="p-2 bg-surface-container-highest hover:bg-primary hover:text-on-primary rounded-md transition-all">
                         <Play size={14} fill="currentColor" />
                       </button>
-                      <button className="p-2 bg-surface-container-highest hover:bg-secondary hover:text-on-secondary rounded-md transition-all">
-                        <ExternalLink size={14} />
+                      <button
+                        onClick={() => onOpenReader?.(sermon)}
+                        className="p-2 bg-surface-container-highest hover:bg-secondary hover:text-on-secondary rounded-md transition-all"
+                      >
+                        <FileText size={14} />
                       </button>
                     </div>
                   </div>
