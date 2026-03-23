@@ -23,8 +23,8 @@ export default function AboutPage() {
               referrerPolicy="no-referrer"
             />
           </div>
-          <div className="absolute -bottom-6 -left-6 bg-[#584633] p-8 rounded-lg hidden lg:block">
-            <BookOpen className="text-4xl text-[#cdb49c]" size={48} />
+          <div className="absolute -bottom-6 -left-6 bg-secondary/30 p-8 rounded-lg hidden lg:block">
+            <BookOpen className="text-4xl text-secondary" size={48} />
           </div>
         </div>
       </header>
@@ -48,7 +48,7 @@ export default function AboutPage() {
       <section className="max-w-7xl mx-auto px-8 mb-32">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
           <div className="md:col-span-4">
-            <h2 className="font-headline text-4xl sticky top-40">Milenæle <br /> <span className="text-[#44658b]">Øyeblikk</span></h2>
+            <h2 className="font-headline text-4xl sticky top-40">Milepæler <br /> <span className="text-primary-container">Øyeblikk</span></h2>
           </div>
           <div className="md:col-span-8 space-y-24">
             {/* Event 1 */}
@@ -104,11 +104,11 @@ export default function AboutPage() {
               </p>
             </div>
           </div>
-          <div className="bg-[#584633] p-12 rounded-xl flex flex-col justify-between">
-            <BookOpen className="text-5xl text-[#cdb49c]" size={48} />
+          <div className="bg-secondary/30 p-12 rounded-xl flex flex-col justify-between">
+            <BookOpen className="text-5xl text-secondary" size={48} />
             <div className="space-y-4">
-              <h3 className="font-headline text-2xl text-[#cdb49c]">Arkivet</h3>
-              <p className="text-sm text-[#cdb49c]/80 leading-relaxed">
+              <h3 className="font-headline text-2xl text-secondary">Arkivet</h3>
+              <p className="text-sm text-secondary/80 leading-relaxed">
                 Over 1100 taler er tatt opp på bånd, og danner grunnlaget for det vi i dag oversetter og formidler.
               </p>
             </div>

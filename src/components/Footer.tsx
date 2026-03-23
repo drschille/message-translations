@@ -5,7 +5,7 @@ interface FooterProps {
   currentPage?: string;
 }
 
-export default function Footer({ currentPage }: FooterProps) {
+export default function Footer(_props: FooterProps) {
   const { t } = useTranslation();
   return (
     <footer className="w-full py-12 px-8 mt-20 bg-surface-container-lowest border-t border-outline-variant/10">
