@@ -1,275 +1,294 @@
 <!DOCTYPE html>
 <!-- saved from url=(0012)about:srcdoc -->
-<html class="dark" lang="no"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<html class="dark" lang="no">
 
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<link href="https://fonts.googleapis.com/" rel="preconnect">
-<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com/?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "error-container": "#93000a",
-                        "tertiary-container": "#626363",
-                        "tertiary-fixed": "#e3e2e2",
-                        tertiary: "#c7c6c6",
-                        "surface-container-lowest": "#0e0e0e",
-                        "on-secondary-container": "#cdb49c",
-                        "on-secondary": "#3d2d1c",
-                        "on-secondary-fixed": "#261909",
-                        "on-surface-variant": "#c3c6cf",
-                        "surface-container-low": "#1c1b1b",
-                        "secondary-container": "#584633",
-                        "on-primary-fixed-variant": "#26496d",
-                        background: "#131313",
-                        "secondary-fixed": "#f9dec4",
-                        "on-error-container": "#ffdad6",
-                        "surface-variant": "#353534",
-                        "surface-tint": "#a8c9f4",
-                        "tertiary-fixed-dim": "#c7c6c6",
-                        "secondary-fixed-dim": "#dcc2a9",
-                        "primary-fixed": "#d1e4ff",
-                        primary: "#a8c9f4",
-                        outline: "#8d9199",
-                        "outline-variant": "#43474e",
-                        "on-primary-container": "#cde1ff",
-                        secondary: "#dcc2a9",
-                        "inverse-on-surface": "#313030",
-                        "on-tertiary": "#2f3131",
-                        "surface-bright": "#393939",
-                        "inverse-surface": "#e5e2e1",
-                        "surface-container": "#201f1f",
-                        "inverse-primary": "#3f6086",
-                        "surface-dim": "#131313",
-                        "on-secondary-fixed-variant": "#554431",
-                        "on-error": "#690005",
-                        "on-tertiary-fixed": "#1a1c1c",
-                        "surface-container-highest": "#353534",
-                        "on-tertiary-fixed-variant": "#464747",
-                        "primary-fixed-dim": "#a8c9f4",
-                        "on-primary": "#093255",
-                        "surface-container-high": "#2a2a2a",
-                        "on-surface": "#e5e2e1",
-                        surface: "#131313",
-                        "primary-container": "#44658b",
-                        "on-primary-fixed": "#001d36",
-                        "on-background": "#e5e2e1",
-                        "on-tertiary-container": "#e0dfdf",
-                        error: "#ffb4ab"
-                    },
-                    fontFamily: {
-                        headline: ["Noto Serif"],
-                        body: ["Inter"],
-                        label: ["Inter"],
-                        display: "Noto Serif"
-                    },
-                    borderRadius: {
-                        DEFAULT: "0.25rem",
-                        lg: "0.5rem",
-                        xl: "0.75rem",
-                        full: "9999px"
-                    }
-                }
-            }
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <link href="https://fonts.googleapis.com/" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Noto+Serif:ital,wght@0,400;0,700;1,400&amp;display=swap"
+    rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com/?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "error-container": "#93000a",
+            "tertiary-container": "#626363",
+            "tertiary-fixed": "#e3e2e2",
+            tertiary: "#c7c6c6",
+            "surface-container-lowest": "#0e0e0e",
+            "on-secondary-container": "#cdb49c",
+            "on-secondary": "#3d2d1c",
+            "on-secondary-fixed": "#261909",
+            "on-surface-variant": "#c3c6cf",
+            "surface-container-low": "#1c1b1b",
+            "secondary-container": "#584633",
+            "on-primary-fixed-variant": "#26496d",
+            background: "#131313",
+            "secondary-fixed": "#f9dec4",
+            "on-error-container": "#ffdad6",
+            "surface-variant": "#353534",
+            "surface-tint": "#a8c9f4",
+            "tertiary-fixed-dim": "#c7c6c6",
+            "secondary-fixed-dim": "#dcc2a9",
+            "primary-fixed": "#d1e4ff",
+            primary: "#a8c9f4",
+            outline: "#8d9199",
+            "outline-variant": "#43474e",
+            "on-primary-container": "#cde1ff",
+            secondary: "#dcc2a9",
+            "inverse-on-surface": "#313030",
+            "on-tertiary": "#2f3131",
+            "surface-bright": "#393939",
+            "inverse-surface": "#e5e2e1",
+            "surface-container": "#201f1f",
+            "inverse-primary": "#3f6086",
+            "surface-dim": "#131313",
+            "on-secondary-fixed-variant": "#554431",
+            "on-error": "#690005",
+            "on-tertiary-fixed": "#1a1c1c",
+            "surface-container-highest": "#353534",
+            "on-tertiary-fixed-variant": "#464747",
+            "primary-fixed-dim": "#a8c9f4",
+            "on-primary": "#093255",
+            "surface-container-high": "#2a2a2a",
+            "on-surface": "#e5e2e1",
+            surface: "#131313",
+            "primary-container": "#44658b",
+            "on-primary-fixed": "#001d36",
+            "on-background": "#e5e2e1",
+            "on-tertiary-container": "#e0dfdf",
+            error: "#ffb4ab"
+          },
+          fontFamily: {
+            headline: ["Noto Serif"],
+            body: ["Inter"],
+            label: ["Inter"],
+            display: "Noto Serif"
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .prose-custom p {
+      margin-bottom: 2rem;
+      line-height: 1.85;
+      font-size: 1.125rem;
+      color: #e5e2e1;
+      opacity: 0.9;
+    }
+  </style>
+  <style>
+    .glass-nav {
+      background: rgba(19, 19, 19, 0.7);
+      backdrop-filter: blur(20px);
+    }
+
+    .hero-gradient {
+      background: linear-gradient(to right, #131313 30%, transparent 100%);
+    }
+  </style>
+  <style data-stitch-injected="">
+    /* For Webkit Browsers (Chrome, Safari, Edge) */
+    body::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* For Firefox */
+    html {
+      scrollbar-width: none;
+    }
+
+    /* For IE/Edge */
+    body {
+      -ms-overflow-style: none;
+      min-height: auto !important;
+    }
+  </style>
+  <script
+    data-stitch-injected="">(function lUe() { window.addEventListener(`message`, async function (e) { let t = e.data; if (!t || t.type !== `capture_screenshot` || e.source !== window.parent) return; let n = t.requestId, r = t.captureEngineSource, i = t.options || {}, a = window.innerWidth, o = window.innerHeight, s = window.scrollX, c = window.scrollY, l = document.documentElement, u = l.style.width, d = l.style.height, f = l.style.overflow, p = l.style.position; try { if (!window.snapdom && r) { let e = document.createElement(`script`); e.setAttribute(`data-stitch-injected`, ``), e.textContent = r, document.head.appendChild(e) } let e = window.snapdom; if (!e) { window.parent.postMessage({ type: `screenshot_error`, requestId: n, errorCode: `CAPTURE_ENGINE_UNAVAILABLE`, error: `Capture engine not available. Ensure source is sent with the capture request.` }, `*`); return } let t = i.exclude || [`[data-stitch-injected]`]; window.scrollTo(0, 0), l.style.width = a + `px`, l.style.height = o + `px`, l.style.overflow = `hidden`, l.style.position = `relative`; let u = (await (await e(document.documentElement, { exclude: t, embedFonts: !0, scale: i.scale || 1, quality: i.quality || 1, plugins: [{ name: `stitch-viewport-clip`, afterClone: function (e) { let t = e.clone; if (!(t instanceof HTMLElement)) return; t.style.position = `relative`, t.style.width = a + `px`, t.style.height = o + `px`, t.style.overflow = `hidden`; let n = [], r = t.querySelectorAll(`*`); for (let e = 0; e < r.length; e++) { let t = r[e]; t instanceof HTMLElement && (t.style.position || (t.__snapdomComputedStyle || window.getComputedStyle(t)).position) === `fixed` && n.push(t) } if (s !== 0 || c !== 0) { let e = t.querySelector(`body`); e && (e.style.marginTop = -c + `px`, e.style.marginLeft = -s + `px`) } for (let e = 0; e < n.length; e++)n[e].style.position = `absolute`, t.appendChild(n[e]) } }] })).toCanvas({ width: a, height: o })).toDataURL(`image/png`); window.parent.postMessage({ type: `screenshot_captured`, requestId: n, dataUrl: u, width: a, height: o }, `*`) } catch (e) { window.parent.postMessage({ type: `screenshot_error`, requestId: n, error: e instanceof Error ? e.message : String(e) }, `*`) } finally { l.style.width = u, l.style.height = d, l.style.overflow = f, l.style.position = p, window.scrollTo(s, c) } }) })();</script>
+  <script
+    data-stitch-injected="">(function fUe() {
+        let e = `__stitch-highlight-css`, t = `stitch-highlight-element`, n = null; function r() {
+          if (document.getElementById(e)) return; let n = document.createElement(`style`); n.id = e, n.textContent = [`@keyframes stitch-highlight-pulse {`, `  0%, 100% { box-shadow: 0 0 0 3px rgba(113,105,237,0.8), 0 0 12px 4px rgba(113,105,237,0.3); }`, `  50%      { box-shadow: 0 0 0 3px rgba(113,105,237,0.4), 0 0 6px 2px rgba(113,105,237,0.15); }`, `}`, `.` + t + ` {`, `  outline: 3px solid rgba(113,105,237,0.8) !important;`, `  outline-offset: 2px !important;`, `  animation: stitch-highlight-pulse 1.5s ease-in-out infinite !important;`, `  border-radius: inherit;`, `}`].join(`
+`), document.head.appendChild(n)
+        } function i(e) { let t = e.toLowerCase().trim(), n = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT, null), r = null, i = -1, a = n.nextNode(); for (; a;) { if ((a.textContent || ``).trim().toLowerCase().includes(t)) { let e = 0, t = a.parentElement; for (; t;)e++, t = t.parentElement; e > i && (i = e, r = a) } a = n.nextNode() } return r } function a(e) { setTimeout(function () { let t = e.getBoundingClientRect(), n = window.innerWidth || 1, r = window.innerHeight || 1; window.parent.postMessage({ type: `stitch:highlight-element-rect`, normalizedX: (t.left + t.width / 2) / n, normalizedY: (t.top + t.height / 2) / r, normalizedWidth: t.width / n, normalizedHeight: t.height / r }, `*`) }, 400) } window.addEventListener(`message`, function (e) { if (!e.data || e.data.type !== `stitch:highlight-element`) return; n &&= (n.classList.remove(t), null); let { text: o, selector: s } = e.data; if (!o && !s) return; r(); let c = null; if (o && (c = i(o)), !c && s) try { c = document.querySelector(s) } catch { } c && (c.classList.add(t), c.scrollIntoView({ behavior: `smooth`, block: `center` }), n = c, a(c)) })
+      })();</script>
+  <script data-stitch-injected="">
+    window.__PROTOTYPE_LINKS__ = [{ "xpath": "//a[contains(text(), 'Hjem')]", "targetScreenId": "eddf0485405c497cb32d6e3792ce2e6b", "state": "1", "transition": "none" }, { "xpath": "//a[contains(text(), 'Taler')]", "targetScreenId": "1d112c4af96d4b1cbb19fdd4b50af4a8", "state": "1", "transition": "none" }, { "xpath": "//a[contains(text(), 'Om oss')]", "targetScreenId": "54d530e1c21e4a658e3c83ac145aff23", "state": "1", "transition": "none" }, { "xpath": "//a[contains(text(), 'Kontakt')]", "targetScreenId": "bf01c37fee254053ab30b6e246bbd493", "state": "1", "transition": "none" }, { "xpath": "//button[contains(., 'Sammenligning')]", "targetScreenId": "1349832de8384436909fc01873ee7383", "state": "1", "transition": "none" }, { "xpath": "//span[text()='Forrige tale']/parent::a", "targetScreenId": "1d112c4af96d4b1cbb19fdd4b50af4a8", "state": "1", "transition": "push_back" }, { "xpath": "//span[text()='Neste tale']/parent::a", "targetScreenId": "1d112c4af96d4b1cbb19fdd4b50af4a8", "state": "1", "transition": "push" }];
+    window.__PROTOTYPE_INITIAL_STATE__ = "1";
+
+    (function () {
+      const SCRIPT_VERSION = '2.0.0 - Unified Run/Connect';
+
+      // --- Cleanup Previous Instance ---
+      if (window.__PROTOTYPE_V2_CLEANUP__ && typeof window.__PROTOTYPE_V2_CLEANUP__ === 'function') {
+        window.__PROTOTYPE_V2_CLEANUP__();
+      }
+
+      // --- Configuration ---
+      const HOVER_CLASS = 'interactive-hover';
+      const SELECTED_CLASS = 'interactive-selected';
+      const CONNECTED_CLASS = 'interactive-connected';
+      const RUN_LINK_CLASS = 'prototype-link-hover';
+      const HOTSPOT_CLASS = 'prototype-hotspot';
+
+      // Style IDs
+      const CONNECT_STYLE_ID = 'interactive-mode-styles';
+      const RUN_STYLE_ID = 'prototype-run-styles';
+
+      // State
+      let mode = 'run'; // 'run' | 'connect'
+      let currentState = window.__PROTOTYPE_INITIAL_STATE__ || '1';
+      let links = window.__PROTOTYPE_LINKS__ || [];
+      let hotspotsVisible = window.__HOTSPOTS_INITIAL__ !== undefined ? window.__HOTSPOTS_INITIAL__ : true;
+      let selectedElement = null;
+      let interactive = true; // false when parent UI (edit dialog) should suppress iframe interactions
+
+      // --- Helper: XPath Evaluator ---
+      function getElementByXPath(xpath) {
+        const evaluate = (expr) => {
+          try {
+            return document.evaluate(
+              expr,
+              document,
+              null,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null
+            ).singleNodeValue;
+          } catch (e) {
+            console.warn('XPath evaluation failed:', expr, e);
+            return null;
+          }
         };
-    </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+
+        // 1. Try direct evaluation
+        let result = evaluate(xpath);
+
+        // 2. Try lowercased evaluation
+        if (!result) {
+          const lower = xpath.toLowerCase();
+          if (lower !== xpath) {
+            result = evaluate(lower);
+          }
         }
-        .prose-custom p {
-            margin-bottom: 2rem;
-            line-height: 1.85;
-            font-size: 1.125rem;
-            color: #e5e2e1;
-            opacity: 0.9;
+
+        // 3. Manual Traversal Fallback (Robust against case/browser quirks)
+        if (!result) {
+          try {
+            const parts = xpath.split('/').filter(p => p && p !== 'html'); // internal path often starts after html? or includes it. 
+            // Our getXPath returns e.g. "id('foo')" or "body/div[1]..."
+
+            if (xpath.startsWith('id(')) {
+              // Already handled by evaluate usually, but manual fallback:
+              const idContent = xpath.match(/id("([^"]+)")/);
+              if (idContent && idContent[1]) {
+                return document.getElementById(idContent[1]);
+              }
+            }
+
+            let current = document.body; // Start at body? Or root?
+            // If path starts with "body", we start at document.body and consume it? 
+            // getXPathForElement returns "body/div[1]" if starting at body.
+            // So if parts[0] is "body", we use current=document.body and shift.
+
+            if (parts[0].toLowerCase().startsWith('body')) {
+              parts.shift();
+            } else if (parts[0].toLowerCase().startsWith('html')) {
+              parts.shift();
+              if (parts.length > 0 && parts[0].toLowerCase().startsWith('body')) parts.shift();
+            }
+
+            for (const part of parts) {
+              // part is like "div[2]" or "span" (implies [1])
+              const match = part.match(/^([a-z0-9-_]+)(?:[(d+)])?$/i);
+              if (!match) {
+                current = null;
+                break;
+              }
+
+              const tagName = match[1].toUpperCase();
+              const index = match[2] ? parseInt(match[2], 10) : 1;
+
+              // Find nth child with this tag
+              let count = 0;
+              let found = null;
+              const children = current.children; // .children only includes Elements (skips text), which matches XPath element indexing usually?
+              // Wait, XPath "div[2]" means 2nd child that IS a div.
+              // .children is all elements.
+
+              for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                if (child.tagName === tagName) {
+                  count++;
+                  if (count === index) {
+                    found = child;
+                    break;
+                  }
+                }
+              }
+
+              if (!found) {
+                current = null;
+                break;
+              }
+              current = found;
+            }
+
+            if (current) result = current;
+
+          } catch (e) {
+            console.warn('Manual XPath traversal failed:', e);
+          }
         }
-    </style>
-<style>
-        .glass-nav {
-            background: rgba(19, 19, 19, 0.7);
-            backdrop-filter: blur(20px);
-        }
-        .hero-gradient {
-            background: linear-gradient(to right, #131313 30%, transparent 100%);
-        }
-    </style><style data-stitch-injected="">
-  /* For Webkit Browsers (Chrome, Safari, Edge) */
-  body::-webkit-scrollbar {
-    display: none;
-  }
 
-  /* For Firefox */
-  html {
-    scrollbar-width: none;
-  }
+        return result;
+      }
 
-  /* For IE/Edge */
-  body {
-    -ms-overflow-style: none;
-    min-height: auto !important;
-  }
-</style><script data-stitch-injected="">(function lUe(){window.addEventListener(`message`,async function(e){let t=e.data;if(!t||t.type!==`capture_screenshot`||e.source!==window.parent)return;let n=t.requestId,r=t.captureEngineSource,i=t.options||{},a=window.innerWidth,o=window.innerHeight,s=window.scrollX,c=window.scrollY,l=document.documentElement,u=l.style.width,d=l.style.height,f=l.style.overflow,p=l.style.position;try{if(!window.snapdom&&r){let e=document.createElement(`script`);e.setAttribute(`data-stitch-injected`,``),e.textContent=r,document.head.appendChild(e)}let e=window.snapdom;if(!e){window.parent.postMessage({type:`screenshot_error`,requestId:n,errorCode:`CAPTURE_ENGINE_UNAVAILABLE`,error:`Capture engine not available. Ensure source is sent with the capture request.`},`*`);return}let t=i.exclude||[`[data-stitch-injected]`];window.scrollTo(0,0),l.style.width=a+`px`,l.style.height=o+`px`,l.style.overflow=`hidden`,l.style.position=`relative`;let u=(await(await e(document.documentElement,{exclude:t,embedFonts:!0,scale:i.scale||1,quality:i.quality||1,plugins:[{name:`stitch-viewport-clip`,afterClone:function(e){let t=e.clone;if(!(t instanceof HTMLElement))return;t.style.position=`relative`,t.style.width=a+`px`,t.style.height=o+`px`,t.style.overflow=`hidden`;let n=[],r=t.querySelectorAll(`*`);for(let e=0;e<r.length;e++){let t=r[e];t instanceof HTMLElement&&(t.style.position||(t.__snapdomComputedStyle||window.getComputedStyle(t)).position)===`fixed`&&n.push(t)}if(s!==0||c!==0){let e=t.querySelector(`body`);e&&(e.style.marginTop=-c+`px`,e.style.marginLeft=-s+`px`)}for(let e=0;e<n.length;e++)n[e].style.position=`absolute`,t.appendChild(n[e])}}]})).toCanvas({width:a,height:o})).toDataURL(`image/png`);window.parent.postMessage({type:`screenshot_captured`,requestId:n,dataUrl:u,width:a,height:o},`*`)}catch(e){window.parent.postMessage({type:`screenshot_error`,requestId:n,error:e instanceof Error?e.message:String(e)},`*`)}finally{l.style.width=u,l.style.height=d,l.style.overflow=f,l.style.position=p,window.scrollTo(s,c)}})})();</script><script data-stitch-injected="">(function fUe(){let e=`__stitch-highlight-css`,t=`stitch-highlight-element`,n=null;function r(){if(document.getElementById(e))return;let n=document.createElement(`style`);n.id=e,n.textContent=[`@keyframes stitch-highlight-pulse {`,`  0%, 100% { box-shadow: 0 0 0 3px rgba(113,105,237,0.8), 0 0 12px 4px rgba(113,105,237,0.3); }`,`  50%      { box-shadow: 0 0 0 3px rgba(113,105,237,0.4), 0 0 6px 2px rgba(113,105,237,0.15); }`,`}`,`.`+t+` {`,`  outline: 3px solid rgba(113,105,237,0.8) !important;`,`  outline-offset: 2px !important;`,`  animation: stitch-highlight-pulse 1.5s ease-in-out infinite !important;`,`  border-radius: inherit;`,`}`].join(`
-`),document.head.appendChild(n)}function i(e){let t=e.toLowerCase().trim(),n=document.createTreeWalker(document.body,NodeFilter.SHOW_ELEMENT,null),r=null,i=-1,a=n.nextNode();for(;a;){if((a.textContent||``).trim().toLowerCase().includes(t)){let e=0,t=a.parentElement;for(;t;)e++,t=t.parentElement;e>i&&(i=e,r=a)}a=n.nextNode()}return r}function a(e){setTimeout(function(){let t=e.getBoundingClientRect(),n=window.innerWidth||1,r=window.innerHeight||1;window.parent.postMessage({type:`stitch:highlight-element-rect`,normalizedX:(t.left+t.width/2)/n,normalizedY:(t.top+t.height/2)/r,normalizedWidth:t.width/n,normalizedHeight:t.height/r},`*`)},400)}window.addEventListener(`message`,function(e){if(!e.data||e.data.type!==`stitch:highlight-element`)return;n&&=(n.classList.remove(t),null);let{text:o,selector:s}=e.data;if(!o&&!s)return;r();let c=null;if(o&&(c=i(o)),!c&&s)try{c=document.querySelector(s)}catch{}c&&(c.classList.add(t),c.scrollIntoView({behavior:`smooth`,block:`center`}),n=c,a(c))})})();</script><script data-stitch-injected="">
-      window.__PROTOTYPE_LINKS__ = [{"xpath":"//a[contains(text(), 'Hjem')]","targetScreenId":"eddf0485405c497cb32d6e3792ce2e6b","state":"1","transition":"none"},{"xpath":"//a[contains(text(), 'Taler')]","targetScreenId":"1d112c4af96d4b1cbb19fdd4b50af4a8","state":"1","transition":"none"},{"xpath":"//a[contains(text(), 'Om oss')]","targetScreenId":"54d530e1c21e4a658e3c83ac145aff23","state":"1","transition":"none"},{"xpath":"//a[contains(text(), 'Kontakt')]","targetScreenId":"bf01c37fee254053ab30b6e246bbd493","state":"1","transition":"none"},{"xpath":"//button[contains(., 'Sammenligning')]","targetScreenId":"1349832de8384436909fc01873ee7383","state":"1","transition":"none"},{"xpath":"//span[text()='Forrige tale']/parent::a","targetScreenId":"1d112c4af96d4b1cbb19fdd4b50af4a8","state":"1","transition":"push_back"},{"xpath":"//span[text()='Neste tale']/parent::a","targetScreenId":"1d112c4af96d4b1cbb19fdd4b50af4a8","state":"1","transition":"push"}];
-      window.__PROTOTYPE_INITIAL_STATE__ = "1";
-      
-  (function() {
-    const SCRIPT_VERSION = '2.0.0 - Unified Run/Connect';
+      // --- Helper: Get XPath for Element (Reverse) ---
+      function getXPathForElement(element) {
+        if (element.id !== '') return 'id("' + element.id + '")';
+        if (element === document.body) return element.tagName.toLowerCase();
 
-    // --- Cleanup Previous Instance ---
-    if (window.__PROTOTYPE_V2_CLEANUP__ && typeof window.__PROTOTYPE_V2_CLEANUP__ === 'function') {
-      window.__PROTOTYPE_V2_CLEANUP__();
-    }
+        let ix = 0;
+        const siblings = element.parentNode ? element.parentNode.childNodes : [];
 
-    // --- Configuration ---
-    const HOVER_CLASS = 'interactive-hover';
-    const SELECTED_CLASS = 'interactive-selected';
-    const CONNECTED_CLASS = 'interactive-connected';
-    const RUN_LINK_CLASS = 'prototype-link-hover';
-    const HOTSPOT_CLASS = 'prototype-hotspot';
-    
-    // Style IDs
-    const CONNECT_STYLE_ID = 'interactive-mode-styles';
-    const RUN_STYLE_ID = 'prototype-run-styles';
-
-    // State
-    let mode = 'run'; // 'run' | 'connect'
-    let currentState = window.__PROTOTYPE_INITIAL_STATE__ || '1';
-    let links = window.__PROTOTYPE_LINKS__ || [];
-    let hotspotsVisible = window.__HOTSPOTS_INITIAL__ !== undefined ? window.__HOTSPOTS_INITIAL__ : true;
-    let selectedElement = null;
-    let interactive = true; // false when parent UI (edit dialog) should suppress iframe interactions
-
-    // --- Helper: XPath Evaluator ---
-    function getElementByXPath(xpath) {
-      const evaluate = (expr) => {
-        try {
-          return document.evaluate(
-            expr, 
-            document, 
-            null, 
-            XPathResult.FIRST_ORDERED_NODE_TYPE, 
-            null
-          ).singleNodeValue;
-        } catch (e) {
-          console.warn('XPath evaluation failed:', expr, e);
-          return null;
-        }
-      };
-
-      // 1. Try direct evaluation
-      let result = evaluate(xpath);
-      
-      // 2. Try lowercased evaluation
-      if (!result) {
-        const lower = xpath.toLowerCase();
-        if (lower !== xpath) {
-             result = evaluate(lower);
+        for (let i = 0; i < siblings.length; i++) {
+          const sibling = siblings[i];
+          if (sibling === element) {
+            return getXPathForElement(element.parentNode) + '/' + element.tagName.toLowerCase() + '[' + (ix + 1) + ']';
+          }
+          if (sibling.nodeType === 1 && sibling.tagName === element.tagName) {
+            ix++;
+          }
         }
       }
 
-      // 3. Manual Traversal Fallback (Robust against case/browser quirks)
-      if (!result) {
-        try {
-          const parts = xpath.split('/').filter(p => p && p !== 'html'); // internal path often starts after html? or includes it. 
-          // Our getXPath returns e.g. "id('foo')" or "body/div[1]..."
-          
-          if (xpath.startsWith('id(')) {
-             // Already handled by evaluate usually, but manual fallback:
-             const idContent = xpath.match(/id("([^"]+)")/);
-             if (idContent && idContent[1]) {
-               return document.getElementById(idContent[1]);
-             }
-          }
+      // --- CSS Injection ---
+      function injectConnectStyles() {
+        if (document.getElementById(CONNECT_STYLE_ID)) return;
 
-          let current = document.body; // Start at body? Or root?
-          // If path starts with "body", we start at document.body and consume it? 
-          // getXPathForElement returns "body/div[1]" if starting at body.
-          // So if parts[0] is "body", we use current=document.body and shift.
-          
-          if (parts[0].toLowerCase().startsWith('body')) {
-             parts.shift();
-          } else if (parts[0].toLowerCase().startsWith('html')) {
-             parts.shift();
-             if (parts.length > 0 && parts[0].toLowerCase().startsWith('body')) parts.shift();
-          }
-
-          for (const part of parts) {
-             // part is like "div[2]" or "span" (implies [1])
-             const match = part.match(/^([a-z0-9-_]+)(?:[(d+)])?$/i);
-             if (!match) {
-               current = null;
-               break;
-             }
-             
-             const tagName = match[1].toUpperCase();
-             const index = match[2] ? parseInt(match[2], 10) : 1;
-             
-             // Find nth child with this tag
-             let count = 0;
-             let found = null;
-             const children = current.children; // .children only includes Elements (skips text), which matches XPath element indexing usually?
-             // Wait, XPath "div[2]" means 2nd child that IS a div.
-             // .children is all elements.
-             
-             for (let i = 0; i < children.length; i++) {
-               const child = children[i];
-               if (child.tagName === tagName) {
-                 count++;
-                 if (count === index) {
-                   found = child;
-                   break;
-                 }
-               }
-             }
-             
-             if (!found) {
-               current = null; 
-               break;
-             }
-             current = found;
-          }
-          
-          if (current) result = current;
-          
-        } catch(e) {
-          console.warn('Manual XPath traversal failed:', e);
-        }
-      }
-
-      return result;
-    }
-
-    // --- Helper: Get XPath for Element (Reverse) ---
-    function getXPathForElement(element) {
-      if (element.id !== '') return 'id("' + element.id + '")';
-      if (element === document.body) return element.tagName.toLowerCase();
-
-      let ix = 0;
-      const siblings = element.parentNode ? element.parentNode.childNodes : [];
-      
-      for (let i = 0; i < siblings.length; i++) {
-        const sibling = siblings[i];
-        if (sibling === element) {
-          return getXPathForElement(element.parentNode) + '/' + element.tagName.toLowerCase() + '[' + (ix + 1) + ']';
-        }
-        if (sibling.nodeType === 1 && sibling.tagName === element.tagName) {
-          ix++;
-        }
-      }
-    }
-
-    // --- CSS Injection ---
-    function injectConnectStyles() {
-      if (document.getElementById(CONNECT_STYLE_ID)) return;
-
-      const css = `
+        const css = `
         /* Cursor change for the whole page */
         body[data-mode="connect"] {
           cursor: crosshair !important;
@@ -336,17 +355,17 @@
         }
       `;
 
-      const style = document.createElement('style');
-      style.id = CONNECT_STYLE_ID;
-      style.textContent = css;
-      document.head.appendChild(style);
-    }
+        const style = document.createElement('style');
+        style.id = CONNECT_STYLE_ID;
+        style.textContent = css;
+        document.head.appendChild(style);
+      }
 
-    function injectRunStyles() {
-      if (document.getElementById(RUN_STYLE_ID)) return;
-      const style = document.createElement('style');
-      style.id = RUN_STYLE_ID;
-      style.textContent = `
+      function injectRunStyles() {
+        if (document.getElementById(RUN_STYLE_ID)) return;
+        const style = document.createElement('style');
+        style.id = RUN_STYLE_ID;
+        style.textContent = `
         .${RUN_LINK_CLASS} { cursor: pointer !important; }
         .${HOTSPOT_CLASS} {
           outline: 2px dashed rgba(66, 135, 245, 0.7) !important;
@@ -358,846 +377,2377 @@
           50% { outline-color: rgba(66, 135, 245, 0.9); }
         }
       `;
-      document.head.appendChild(style);
-    }
-
-    // --- Core Logic: Connect Mode ---
-    function updateConnectMode() {
-      document.body.setAttribute('data-mode', 'connect');
-      injectConnectStyles();
-      highlightConnections();
-      
-      // Clear run mode artifacts
-      document.querySelectorAll('.' + RUN_LINK_CLASS).forEach(el => el.classList.remove(RUN_LINK_CLASS));
-    }
-
-    function highlightConnections() {
-      // Clear existing
-      document.querySelectorAll('.' + CONNECTED_CLASS).forEach(el => {
-         el.classList.remove(CONNECTED_CLASS);
-         el.removeAttribute('data-interactive-label');
-      });
-
-      // Highlight based on current state links? 
-      // Or ALL links for this screen? Usually all links for this screen logic.
-      // But we receive potentially filtered links. 
-      // For now, let's use all links passed to us.
-      if (!links) {
-        return;
+        document.head.appendChild(style);
       }
 
-      links.forEach(link => {
-        // Show all connections in Connect mode, regardless of state
-        // if (link.state !== '1') return;
+      // --- Core Logic: Connect Mode ---
+      function updateConnectMode() {
+        document.body.setAttribute('data-mode', 'connect');
+        injectConnectStyles();
+        highlightConnections();
 
-        try {
-           let safeXpath = link.xpath;
-           if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
-             safeXpath = '//' + safeXpath;
-           }
-
-           const element = getElementByXPath(safeXpath);
-           if (element) {
-             element.classList.add(CONNECTED_CLASS);
-             element.setAttribute('data-interactive-label', 'Connected');
-           }
-        } catch (e) {}
-      });
-    }
-    
-    function handleConnectHover(e) {
-      if (mode !== 'connect') return;
-      // Don't show hover borders when interactions are paused or element is selected
-      if (!interactive || selectedElement) return;
-      
-      // Cleanup previous hover
-      document.querySelectorAll('.' + HOVER_CLASS).forEach(el => {
-         el.classList.remove(HOVER_CLASS);
-         el.removeAttribute('data-interactive-label');
-      });
-
-      const target = e.target;
-      if (target === document.body || target === document.documentElement) return;
-
-      // Don't hover if selected
-      if (target.classList.contains(SELECTED_CLASS)) return;
-
-      target.classList.add(HOVER_CLASS);
-      
-      // Determine label
-      let label = 'Select';
-      if (target.classList.contains(CONNECTED_CLASS)) label = 'Connected';
-      
-      target.setAttribute('data-interactive-label', label);
-    }
-
-    function handleConnectClick(e) {
-      if (mode !== 'connect') return;
-      e.preventDefault();
-      e.stopPropagation();
-      if (!interactive) return;
-
-      // If an element is already selected, deselect it (click anywhere to dismiss)
-      if (selectedElement) {
-        selectedElement.classList.remove(SELECTED_CLASS);
-        selectedElement.removeAttribute('data-interactive-label');
-        selectedElement = null;
-        window.parent.postMessage({ type: 'elementDeselected' }, '*');
-        return;
+        // Clear run mode artifacts
+        document.querySelectorAll('.' + RUN_LINK_CLASS).forEach(el => el.classList.remove(RUN_LINK_CLASS));
       }
 
-      const target = e.target;
-      
-      // Toggle selection
-      if (target.classList.contains(SELECTED_CLASS)) {
-        // Deselect
-        target.classList.remove(SELECTED_CLASS);
-        target.removeAttribute('data-interactive-label');
-        selectedElement = null;
-        
-        window.parent.postMessage({
-          type: 'elementDeselected' 
-        }, '*');
-
-        // Re-apply hover if mouse is still there?
-      } else {
-        // Clear previous selection
-        if (selectedElement) {
-           selectedElement.classList.remove(SELECTED_CLASS);
-           selectedElement.removeAttribute('data-interactive-label');
-        }
-        
-        selectedElement = target;
-        selectedElement.classList.add(SELECTED_CLASS);
-        selectedElement.setAttribute('data-interactive-label', 'Selected');
-        
-        // Remove hover class to avoid double border
-        selectedElement.classList.remove(HOVER_CLASS);
-
-        // Send to parent
-        const xpath = getXPathForElement(selectedElement);
-        const rect = selectedElement.getBoundingClientRect();
-
-        // Check if clicked element matches any stored link (resolve stored xpaths to compare DOM nodes)
-        let storedXpath = null;
-        if (links && links.length > 0) {
-          for (const link of links) {
-            try {
-              let safeXpath = link.xpath;
-              if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
-                safeXpath = '//' + safeXpath;
-              }
-              const el = getElementByXPath(safeXpath);
-              if (el === selectedElement) {
-                storedXpath = link.xpath;
-                break;
-              }
-            } catch (err) {}
-          }
-        }
-
-        window.parent.postMessage({
-          type: 'elementClicked',
-          payload: { 
-            xpath: storedXpath || xpath,
-            tagName: selectedElement.tagName,
-            text: (selectedElement.textContent || '').substring(0, 100),
-            attributes: Array.from(selectedElement.attributes).map(a => a.name + '="' + a.value + '"').join(' '),
-            outerHTML: (selectedElement.outerHTML || '').substring(0, 500),
-            hasBackgroundImage: !!(selectedElement.style && selectedElement.style.backgroundImage && selectedElement.style.backgroundImage.includes('url(')),
-            rect: {
-              x: rect.x,
-              y: rect.y,
-              width: rect.width,
-              height: rect.height,
-              top: rect.top,
-              right: rect.right,
-              bottom: rect.bottom,
-              left: rect.left
-            }
-          }
-        }, '*');
-      }
-    }
-
-    // --- Core Logic: Run Mode ---
-    function updateRunMode() {
-      document.body.removeAttribute('data-mode');
-      injectRunStyles();
-      addRunInteractivity();
-      
-      // Clear connect mode artifacts
-      document.querySelectorAll('.' + HOVER_CLASS).forEach(el => {
-          el.classList.remove(HOVER_CLASS);
-          el.removeAttribute('data-interactive-label');
-      });
-       document.querySelectorAll('.' + SELECTED_CLASS).forEach(el => {
-          el.classList.remove(SELECTED_CLASS);
-          el.removeAttribute('data-interactive-label');
-      });
-      document.querySelectorAll('.' + CONNECTED_CLASS).forEach(el => {
+      function highlightConnections() {
+        // Clear existing
+        document.querySelectorAll('.' + CONNECTED_CLASS).forEach(el => {
           el.classList.remove(CONNECTED_CLASS);
           el.removeAttribute('data-interactive-label');
-      });
-    }
+        });
 
-    // Timer handle for pending hotspot scans — ensures only one scan is active
-    var _hotspotTimer = null;
-
-    function addRunInteractivity(retryCount) {
-      if (!links) return;
-      retryCount = retryCount || 0;
-
-      // Cancel any pending retry to prevent overlapping scans
-      if (_hotspotTimer) {
-        clearTimeout(_hotspotTimer);
-        _hotspotTimer = null;
-      }
-      
-      // 1. Clear existing
-      document.querySelectorAll('.' + RUN_LINK_CLASS).forEach(el => {
-        el.classList.remove(RUN_LINK_CLASS);
-        el.classList.remove(HOTSPOT_CLASS);
-      });
-
-      // 2. Add highlights
-      var foundCount = 0;
-      for (const link of links) {
-        const isExact = (link.state === currentState);
-        const isDefault = (link.state === '1');
-        if (!isExact && !isDefault) continue;
-
-        try {
-          let safeXpath = link.xpath;
-          if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
-            safeXpath = '//' + safeXpath;
-          }
-          const el = getElementByXPath(safeXpath);
-          if (el) {
-            el.classList.add(RUN_LINK_CLASS);
-            if (hotspotsVisible) el.classList.add(HOTSPOT_CLASS);
-            foundCount++;
-          }
-        } catch (err) {}
-      }
-
-
-
-      // Retry with increasing delays if we have links but couldn't find elements
-      if (links.length > 0 && foundCount === 0 && retryCount < 5) {
-        var delays = [100, 200, 400, 600, 1000];
-        _hotspotTimer = setTimeout(function() {
-          _hotspotTimer = null;
-          addRunInteractivity(retryCount + 1);
-        }, delays[retryCount]);
-      }
-    }
-
-    function toggleHotspots(show) {
-      hotspotsVisible = show;
-      document.querySelectorAll('.' + RUN_LINK_CLASS).forEach(el => {
-        if (show) el.classList.add(HOTSPOT_CLASS);
-        else el.classList.remove(HOTSPOT_CLASS);
-      });
-    }
-
-    function handleRunClick(e) {
-      if (mode !== 'run') return;
-      
-      // Prevent default navigation for all links
-      const anchor = e.target.closest('a');
-      if (anchor) {
-        e.preventDefault();
-      }
-
-      if (!links || links.length === 0) return;
-
-      let bestLink = null;
-      let bestPriority = 0;
-
-      for (const link of links) {
-        const isExact = (link.state === currentState);
-        const isDefault = (link.state === '1');
-        if (!isExact && !isDefault) continue;
-
-        try {
-          let safeXpath = link.xpath;
-          if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
-            safeXpath = '//' + safeXpath;
-          }
-          const el = getElementByXPath(safeXpath);
-          
-          if (el && (el === e.target || el.contains(e.target))) {
-            const priority = isExact ? 2 : 1;
-            if (priority > bestPriority) {
-              bestLink = link;
-              bestPriority = priority;
-            }
-          }
-        } catch (err) {
-            console.error('Error checking link:', link, err);
+        // Highlight based on current state links? 
+        // Or ALL links for this screen? Usually all links for this screen logic.
+        // But we receive potentially filtered links. 
+        // For now, let's use all links passed to us.
+        if (!links) {
+          return;
         }
+
+        links.forEach(link => {
+          // Show all connections in Connect mode, regardless of state
+          // if (link.state !== '1') return;
+
+          try {
+            let safeXpath = link.xpath;
+            if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
+              safeXpath = '//' + safeXpath;
+            }
+
+            const element = getElementByXPath(safeXpath);
+            if (element) {
+              element.classList.add(CONNECTED_CLASS);
+              element.setAttribute('data-interactive-label', 'Connected');
+            }
+          } catch (e) { }
+        });
       }
 
-      if (bestLink) {
+      function handleConnectHover(e) {
+        if (mode !== 'connect') return;
+        // Don't show hover borders when interactions are paused or element is selected
+        if (!interactive || selectedElement) return;
+
+        // Cleanup previous hover
+        document.querySelectorAll('.' + HOVER_CLASS).forEach(el => {
+          el.classList.remove(HOVER_CLASS);
+          el.removeAttribute('data-interactive-label');
+        });
+
+        const target = e.target;
+        if (target === document.body || target === document.documentElement) return;
+
+        // Don't hover if selected
+        if (target.classList.contains(SELECTED_CLASS)) return;
+
+        target.classList.add(HOVER_CLASS);
+
+        // Determine label
+        let label = 'Select';
+        if (target.classList.contains(CONNECTED_CLASS)) label = 'Connected';
+
+        target.setAttribute('data-interactive-label', label);
+      }
+
+      function handleConnectClick(e) {
+        if (mode !== 'connect') return;
         e.preventDefault();
         e.stopPropagation();
-        window.parent.postMessage({
-          type: 'navigate',
-          payload: {
-            targetScreenId: bestLink.targetScreenId,
-            transition: bestLink.transition
+        if (!interactive) return;
+
+        // If an element is already selected, deselect it (click anywhere to dismiss)
+        if (selectedElement) {
+          selectedElement.classList.remove(SELECTED_CLASS);
+          selectedElement.removeAttribute('data-interactive-label');
+          selectedElement = null;
+          window.parent.postMessage({ type: 'elementDeselected' }, '*');
+          return;
+        }
+
+        const target = e.target;
+
+        // Toggle selection
+        if (target.classList.contains(SELECTED_CLASS)) {
+          // Deselect
+          target.classList.remove(SELECTED_CLASS);
+          target.removeAttribute('data-interactive-label');
+          selectedElement = null;
+
+          window.parent.postMessage({
+            type: 'elementDeselected'
+          }, '*');
+
+          // Re-apply hover if mouse is still there?
+        } else {
+          // Clear previous selection
+          if (selectedElement) {
+            selectedElement.classList.remove(SELECTED_CLASS);
+            selectedElement.removeAttribute('data-interactive-label');
           }
-        }, '*');
+
+          selectedElement = target;
+          selectedElement.classList.add(SELECTED_CLASS);
+          selectedElement.setAttribute('data-interactive-label', 'Selected');
+
+          // Remove hover class to avoid double border
+          selectedElement.classList.remove(HOVER_CLASS);
+
+          // Send to parent
+          const xpath = getXPathForElement(selectedElement);
+          const rect = selectedElement.getBoundingClientRect();
+
+          // Check if clicked element matches any stored link (resolve stored xpaths to compare DOM nodes)
+          let storedXpath = null;
+          if (links && links.length > 0) {
+            for (const link of links) {
+              try {
+                let safeXpath = link.xpath;
+                if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
+                  safeXpath = '//' + safeXpath;
+                }
+                const el = getElementByXPath(safeXpath);
+                if (el === selectedElement) {
+                  storedXpath = link.xpath;
+                  break;
+                }
+              } catch (err) { }
+            }
+          }
+
+          window.parent.postMessage({
+            type: 'elementClicked',
+            payload: {
+              xpath: storedXpath || xpath,
+              tagName: selectedElement.tagName,
+              text: (selectedElement.textContent || '').substring(0, 100),
+              attributes: Array.from(selectedElement.attributes).map(a => a.name + '="' + a.value + '"').join(' '),
+              outerHTML: (selectedElement.outerHTML || '').substring(0, 500),
+              hasBackgroundImage: !!(selectedElement.style && selectedElement.style.backgroundImage && selectedElement.style.backgroundImage.includes('url(')),
+              rect: {
+                x: rect.x,
+                y: rect.y,
+                width: rect.width,
+                height: rect.height,
+                top: rect.top,
+                right: rect.right,
+                bottom: rect.bottom,
+                left: rect.left
+              }
+            }
+          }, '*');
+        }
       }
-    }
 
-    // --- Main Event Dispatcher ---
-    function onMouseOver(e) {
-      if (mode === 'connect') handleConnectHover(e);
-    }
+      // --- Core Logic: Run Mode ---
+      function updateRunMode() {
+        document.body.removeAttribute('data-mode');
+        injectRunStyles();
+        addRunInteractivity();
 
-    function onClick(e) {
-      if (mode === 'connect') handleConnectClick(e);
-      else if (mode === 'run') handleRunClick(e);
-    }
-
-    // --- HTML Serialization (used by text edit and image replace) ---
-    function getEditedHtml() {
-      const clone = document.documentElement.cloneNode(true);
-
-      // 1. Remove contenteditable attributes
-      clone.querySelectorAll('[contenteditable]').forEach(function(e) {
-        e.removeAttribute('contenteditable');
-        e.removeAttribute('spellcheck');
-      });
-
-      // 2. Remove injected script/style elements
-      clone.querySelectorAll('script[data-stitch-injected]').forEach(function(e) {
-        e.remove();
-      });
-      clone.querySelectorAll('style[data-stitch-injected]').forEach(function(e) {
-        e.remove();
-      });
-      // Remove prototype edit/run mode style tags by ID
-      var modeStyle = clone.querySelector('#interactive-mode-styles');
-      if (modeStyle) modeStyle.remove();
-      var runStyle = clone.querySelector('#prototype-run-styles');
-      if (runStyle) runStyle.remove();
-
-      // 3. Remove prototype interactive classes and attributes
-      var protoClasses = ['interactive-selected', 'interactive-connected',
-        'interactive-hover', 'interactive-active', 'prototype-hotspot'];
-      protoClasses.forEach(function(cls) {
-        clone.querySelectorAll('.' + cls).forEach(function(e) {
-          e.classList.remove(cls);
+        // Clear connect mode artifacts
+        document.querySelectorAll('.' + HOVER_CLASS).forEach(el => {
+          el.classList.remove(HOVER_CLASS);
+          el.removeAttribute('data-interactive-label');
         });
-      });
-      // Also strip from body
-      clone.querySelector('body')?.classList.remove('interactive-active');
-      // Remove data-interactive-label attribute
-      clone.querySelectorAll('[data-interactive-label]').forEach(function(e) {
-        e.removeAttribute('data-interactive-label');
-      });
+        document.querySelectorAll('.' + SELECTED_CLASS).forEach(el => {
+          el.classList.remove(SELECTED_CLASS);
+          el.removeAttribute('data-interactive-label');
+        });
+        document.querySelectorAll('.' + CONNECTED_CLASS).forEach(el => {
+          el.classList.remove(CONNECTED_CLASS);
+          el.removeAttribute('data-interactive-label');
+        });
+      }
 
-      // 4. Remove editing highlight inline styles
-      clone.querySelectorAll('[style]').forEach(function(e) {
-        e.style.outline = '';
-        e.style.outlineOffset = '';
-        e.style.cursor = '';
-        if (!e.getAttribute('style')?.trim()) {
-          e.removeAttribute('style');
-        }
-      });
+      // Timer handle for pending hotspot scans — ensures only one scan is active
+      var _hotspotTimer = null;
 
-      return '<!DOCTYPE html>' + clone.outerHTML;
-    }
+      function addRunInteractivity(retryCount) {
+        if (!links) return;
+        retryCount = retryCount || 0;
 
-    // --- Message Listener ---
-    function handleMessage(event) {
-      if (!event.data || typeof event.data !== 'object') return;
-      const { type, payload } = event.data;
-      
-      if (type === 'setMode') {
-        const newMode = payload.mode; // 'run' or 'connect' (mapped from 'edit' -> 'connect')
-        if (newMode && newMode !== mode) {
-          mode = newMode;
-          if (mode === 'connect') updateConnectMode();
-          else updateRunMode();
+        // Cancel any pending retry to prevent overlapping scans
+        if (_hotspotTimer) {
+          clearTimeout(_hotspotTimer);
+          _hotspotTimer = null;
         }
-      } else if (type === 'setState') {
-        const newStateId = payload?.stateId;
-        if (newStateId && newStateId !== currentState) {
-          currentState = newStateId;
-          if (mode === 'run') updateRunMode();
+
+        // 1. Clear existing
+        document.querySelectorAll('.' + RUN_LINK_CLASS).forEach(el => {
+          el.classList.remove(RUN_LINK_CLASS);
+          el.classList.remove(HOTSPOT_CLASS);
+        });
+
+        // 2. Add highlights
+        var foundCount = 0;
+        for (const link of links) {
+          const isExact = (link.state === currentState);
+          const isDefault = (link.state === '1');
+          if (!isExact && !isDefault) continue;
+
+          try {
+            let safeXpath = link.xpath;
+            if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
+              safeXpath = '//' + safeXpath;
+            }
+            const el = getElementByXPath(safeXpath);
+            if (el) {
+              el.classList.add(RUN_LINK_CLASS);
+              if (hotspotsVisible) el.classList.add(HOTSPOT_CLASS);
+              foundCount++;
+            }
+          } catch (err) { }
         }
-      } else if (type === 'updateLinks') {
-         // Debounce link updates to prevent rapid broadcasts from
-         // clearing and re-scanning hotspots repeatedly
-         links = payload.links || [];
-         if (window.__updateLinksTimer) clearTimeout(window.__updateLinksTimer);
-         window.__updateLinksTimer = setTimeout(function() {
-           window.__updateLinksTimer = null;
-           if (mode === 'run') updateRunMode();
-           else updateConnectMode();
-         }, 50);
-      } else if (type === 'showHotspots') {
-         toggleHotspots(!!payload?.show);
-      } else if (type === 'clearSelection') {
-         if (selectedElement) {
+
+
+
+        // Retry with increasing delays if we have links but couldn't find elements
+        if (links.length > 0 && foundCount === 0 && retryCount < 5) {
+          var delays = [100, 200, 400, 600, 1000];
+          _hotspotTimer = setTimeout(function () {
+            _hotspotTimer = null;
+            addRunInteractivity(retryCount + 1);
+          }, delays[retryCount]);
+        }
+      }
+
+      function toggleHotspots(show) {
+        hotspotsVisible = show;
+        document.querySelectorAll('.' + RUN_LINK_CLASS).forEach(el => {
+          if (show) el.classList.add(HOTSPOT_CLASS);
+          else el.classList.remove(HOTSPOT_CLASS);
+        });
+      }
+
+      function handleRunClick(e) {
+        if (mode !== 'run') return;
+
+        // Prevent default navigation for all links
+        const anchor = e.target.closest('a');
+        if (anchor) {
+          e.preventDefault();
+        }
+
+        if (!links || links.length === 0) return;
+
+        let bestLink = null;
+        let bestPriority = 0;
+
+        for (const link of links) {
+          const isExact = (link.state === currentState);
+          const isDefault = (link.state === '1');
+          if (!isExact && !isDefault) continue;
+
+          try {
+            let safeXpath = link.xpath;
+            if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
+              safeXpath = '//' + safeXpath;
+            }
+            const el = getElementByXPath(safeXpath);
+
+            if (el && (el === e.target || el.contains(e.target))) {
+              const priority = isExact ? 2 : 1;
+              if (priority > bestPriority) {
+                bestLink = link;
+                bestPriority = priority;
+              }
+            }
+          } catch (err) {
+            console.error('Error checking link:', link, err);
+          }
+        }
+
+        if (bestLink) {
+          e.preventDefault();
+          e.stopPropagation();
+          window.parent.postMessage({
+            type: 'navigate',
+            payload: {
+              targetScreenId: bestLink.targetScreenId,
+              transition: bestLink.transition
+            }
+          }, '*');
+        }
+      }
+
+      // --- Main Event Dispatcher ---
+      function onMouseOver(e) {
+        if (mode === 'connect') handleConnectHover(e);
+      }
+
+      function onClick(e) {
+        if (mode === 'connect') handleConnectClick(e);
+        else if (mode === 'run') handleRunClick(e);
+      }
+
+      // --- HTML Serialization (used by text edit and image replace) ---
+      function getEditedHtml() {
+        const clone = document.documentElement.cloneNode(true);
+
+        // 1. Remove contenteditable attributes
+        clone.querySelectorAll('[contenteditable]').forEach(function (e) {
+          e.removeAttribute('contenteditable');
+          e.removeAttribute('spellcheck');
+        });
+
+        // 2. Remove injected script/style elements
+        clone.querySelectorAll('script[data-stitch-injected]').forEach(function (e) {
+          e.remove();
+        });
+        clone.querySelectorAll('style[data-stitch-injected]').forEach(function (e) {
+          e.remove();
+        });
+        // Remove prototype edit/run mode style tags by ID
+        var modeStyle = clone.querySelector('#interactive-mode-styles');
+        if (modeStyle) modeStyle.remove();
+        var runStyle = clone.querySelector('#prototype-run-styles');
+        if (runStyle) runStyle.remove();
+
+        // 3. Remove prototype interactive classes and attributes
+        var protoClasses = ['interactive-selected', 'interactive-connected',
+          'interactive-hover', 'interactive-active', 'prototype-hotspot'];
+        protoClasses.forEach(function (cls) {
+          clone.querySelectorAll('.' + cls).forEach(function (e) {
+            e.classList.remove(cls);
+          });
+        });
+        // Also strip from body
+        clone.querySelector('body')?.classList.remove('interactive-active');
+        // Remove data-interactive-label attribute
+        clone.querySelectorAll('[data-interactive-label]').forEach(function (e) {
+          e.removeAttribute('data-interactive-label');
+        });
+
+        // 4. Remove editing highlight inline styles
+        clone.querySelectorAll('[style]').forEach(function (e) {
+          e.style.outline = '';
+          e.style.outlineOffset = '';
+          e.style.cursor = '';
+          if (!e.getAttribute('style')?.trim()) {
+            e.removeAttribute('style');
+          }
+        });
+
+        return '<!DOCTYPE html>' + clone.outerHTML;
+      }
+
+      // --- Message Listener ---
+      function handleMessage(event) {
+        if (!event.data || typeof event.data !== 'object') return;
+        const { type, payload } = event.data;
+
+        if (type === 'setMode') {
+          const newMode = payload.mode; // 'run' or 'connect' (mapped from 'edit' -> 'connect')
+          if (newMode && newMode !== mode) {
+            mode = newMode;
+            if (mode === 'connect') updateConnectMode();
+            else updateRunMode();
+          }
+        } else if (type === 'setState') {
+          const newStateId = payload?.stateId;
+          if (newStateId && newStateId !== currentState) {
+            currentState = newStateId;
+            if (mode === 'run') updateRunMode();
+          }
+        } else if (type === 'updateLinks') {
+          // Debounce link updates to prevent rapid broadcasts from
+          // clearing and re-scanning hotspots repeatedly
+          links = payload.links || [];
+          if (window.__updateLinksTimer) clearTimeout(window.__updateLinksTimer);
+          window.__updateLinksTimer = setTimeout(function () {
+            window.__updateLinksTimer = null;
+            if (mode === 'run') updateRunMode();
+            else updateConnectMode();
+          }, 50);
+        } else if (type === 'showHotspots') {
+          toggleHotspots(!!payload?.show);
+        } else if (type === 'clearSelection') {
+          if (selectedElement) {
             selectedElement.classList.remove(SELECTED_CLASS);
             selectedElement.removeAttribute('data-interactive-label');
             selectedElement = null;
-         }
-      } else if (type === 'enableTextEdit') {
-         // --- Direct text editing ---
-         const xpath = payload?.xpath;
-         if (!xpath) return;
-         let safeXpath = xpath;
-         if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
-           safeXpath = '//' + safeXpath;
-         }
-         const el = getElementByXPath(safeXpath);
-         if (!el || !(el instanceof HTMLElement)) return;
+          }
+        } else if (type === 'enableTextEdit') {
+          // --- Direct text editing ---
+          const xpath = payload?.xpath;
+          if (!xpath) return;
+          let safeXpath = xpath;
+          if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
+            safeXpath = '//' + safeXpath;
+          }
+          const el = getElementByXPath(safeXpath);
+          if (!el || !(el instanceof HTMLElement)) return;
 
-         // Track the element being edited
-         let textEditElement = el;
+          // Track the element being edited
+          let textEditElement = el;
 
-         // Make editable
-         textEditElement.setAttribute('contenteditable', 'true');
-         textEditElement.setAttribute('spellcheck', 'false');
-         textEditElement.style.outline = '2px solid #4287f5';
-         textEditElement.style.outlineOffset = '2px';
-         textEditElement.style.cursor = 'text';
-         textEditElement.focus();
+          // Make editable
+          textEditElement.setAttribute('contenteditable', 'true');
+          textEditElement.setAttribute('spellcheck', 'false');
+          textEditElement.style.outline = '2px solid #4287f5';
+          textEditElement.style.outlineOffset = '2px';
+          textEditElement.style.cursor = 'text';
+          textEditElement.focus();
 
-         // Select all text so user can start typing immediately
-         const range = document.createRange();
-         range.selectNodeContents(textEditElement);
-         const sel = window.getSelection();
-         if (sel) {
-           sel.removeAllRanges();
-           sel.addRange(range);
-         }
+          // Select all text so user can start typing immediately
+          const range = document.createRange();
+          range.selectNodeContents(textEditElement);
+          const sel = window.getSelection();
+          if (sel) {
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
 
-         // getEditedHtml is defined at the outer scope
+          // getEditedHtml is defined at the outer scope
 
-         // Debounce text extraction to avoid O(N) DOM cloning on every keystroke
-         let textEditTimeout;
-         function sendHtml() {
-           window.parent.postMessage({
-             type: 'textChanged',
-             payload: { html: getEditedHtml() }
-           }, '*');
-         }
-         function onTextInput() {
-           clearTimeout(textEditTimeout);
-           textEditTimeout = setTimeout(sendHtml, 300);
-         }
+          // Debounce text extraction to avoid O(N) DOM cloning on every keystroke
+          let textEditTimeout;
+          function sendHtml() {
+            window.parent.postMessage({
+              type: 'textChanged',
+              payload: { html: getEditedHtml() }
+            }, '*');
+          }
+          function onTextInput() {
+            clearTimeout(textEditTimeout);
+            textEditTimeout = setTimeout(sendHtml, 300);
+          }
 
-         // Cleanup on blur
-         function onTextBlur() {
-           // Flush any pending debounced update and send final text
-           clearTimeout(textEditTimeout);
-           sendHtml();
+          // Cleanup on blur
+          function onTextBlur() {
+            // Flush any pending debounced update and send final text
+            clearTimeout(textEditTimeout);
+            sendHtml();
 
-           // Cleanup
-           textEditElement.removeAttribute('contenteditable');
-           textEditElement.removeAttribute('spellcheck');
-           textEditElement.style.outline = '';
-           textEditElement.style.outlineOffset = '';
-           textEditElement.style.cursor = '';
-           textEditElement.removeEventListener('input', onTextInput);
-           textEditElement.removeEventListener('blur', onTextBlur);
+            // Cleanup
+            textEditElement.removeAttribute('contenteditable');
+            textEditElement.removeAttribute('spellcheck');
+            textEditElement.style.outline = '';
+            textEditElement.style.outlineOffset = '';
+            textEditElement.style.cursor = '';
+            textEditElement.removeEventListener('input', onTextInput);
+            textEditElement.removeEventListener('blur', onTextBlur);
 
-           // Notify parent that text editing ended
-           window.parent.postMessage({
-             type: 'textEditEnded'
-           }, '*');
-         }
+            // Notify parent that text editing ended
+            window.parent.postMessage({
+              type: 'textEditEnded'
+            }, '*');
+          }
 
-         textEditElement.addEventListener('input', onTextInput);
-         textEditElement.addEventListener('blur', onTextBlur);
+          textEditElement.addEventListener('input', onTextInput);
+          textEditElement.addEventListener('blur', onTextBlur);
 
-         // Store cleanup for disableTextEdit message
-         window.__stitchTextEditCleanup = function() {
-           textEditElement.removeAttribute('contenteditable');
-           textEditElement.removeAttribute('spellcheck');
-           textEditElement.style.outline = '';
-           textEditElement.style.outlineOffset = '';
-           textEditElement.style.cursor = '';
-           textEditElement.removeEventListener('input', onTextInput);
-           textEditElement.removeEventListener('blur', onTextBlur);
-           textEditElement.blur();
-         };
-      } else if (type === 'disableTextEdit') {
-         if (window.__stitchTextEditCleanup) {
-           window.__stitchTextEditCleanup();
-           window.__stitchTextEditCleanup = null;
-         }
-      } else if (type === 'replaceImage') {
-         // --- Image replacement ---
-         const xpath = payload?.xpath;
-         const newSrc = payload?.src;
-         if (!xpath || !newSrc) return;
-         let safeXpath = xpath;
-         if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
-           safeXpath = '//' + safeXpath;
-         }
-         const imgEl = getElementByXPath(safeXpath);
-         if (!imgEl || !(imgEl instanceof HTMLElement)) return;
+          // Store cleanup for disableTextEdit message
+          window.__stitchTextEditCleanup = function () {
+            textEditElement.removeAttribute('contenteditable');
+            textEditElement.removeAttribute('spellcheck');
+            textEditElement.style.outline = '';
+            textEditElement.style.outlineOffset = '';
+            textEditElement.style.cursor = '';
+            textEditElement.removeEventListener('input', onTextInput);
+            textEditElement.removeEventListener('blur', onTextBlur);
+            textEditElement.blur();
+          };
+        } else if (type === 'disableTextEdit') {
+          if (window.__stitchTextEditCleanup) {
+            window.__stitchTextEditCleanup();
+            window.__stitchTextEditCleanup = null;
+          }
+        } else if (type === 'replaceImage') {
+          // --- Image replacement ---
+          const xpath = payload?.xpath;
+          const newSrc = payload?.src;
+          if (!xpath || !newSrc) return;
+          let safeXpath = xpath;
+          if (!safeXpath.startsWith('/') && !safeXpath.startsWith('id(')) {
+            safeXpath = '//' + safeXpath;
+          }
+          const imgEl = getElementByXPath(safeXpath);
+          if (!imgEl || !(imgEl instanceof HTMLElement)) return;
 
-         // Swap image source
-         const tag = imgEl.tagName.toLowerCase();
-         if (tag === 'img') {
-           imgEl.setAttribute('src', newSrc);
-         } else {
-           // Background image element
-           imgEl.style.backgroundImage = 'url("' + newSrc + '")';
-         }
+          // Swap image source
+          const tag = imgEl.tagName.toLowerCase();
+          if (tag === 'img') {
+            imgEl.setAttribute('src', newSrc);
+          } else {
+            // Background image element
+            imgEl.style.backgroundImage = 'url("' + newSrc + '")';
+          }
 
-         // Send updated HTML to parent for persistence
-         window.parent.postMessage({
-           type: 'textChanged',
-           payload: { html: getEditedHtml() }
-         }, '*');
-      } else if (type === 'setInteractive') {
-         interactive = !!payload?.interactive;
-         if (!interactive) {
-           // Clear hovers when disabling
-           document.querySelectorAll('.' + HOVER_CLASS).forEach(el => {
-             el.classList.remove(HOVER_CLASS);
-             el.removeAttribute('data-interactive-label');
-           });
-         }
-       }
+          // Send updated HTML to parent for persistence
+          window.parent.postMessage({
+            type: 'textChanged',
+            payload: { html: getEditedHtml() }
+          }, '*');
+        } else if (type === 'setInteractive') {
+          interactive = !!payload?.interactive;
+          if (!interactive) {
+            // Clear hovers when disabling
+            document.querySelectorAll('.' + HOVER_CLASS).forEach(el => {
+              el.classList.remove(HOVER_CLASS);
+              el.removeAttribute('data-interactive-label');
+            });
+          }
+        }
+      }
+
+      window.addEventListener('message', handleMessage);
+
+      // --- Initialization ---
+      document.addEventListener('mouseover', onMouseOver, true);
+      document.addEventListener('click', onClick, true); // Capture phase to prevent default
+
+      // Esc key to deselect in connect mode
+      function onKeyDown(e) {
+        if (e.key === 'Escape' && mode === 'connect' && selectedElement) {
+          selectedElement.classList.remove(SELECTED_CLASS);
+          selectedElement.removeAttribute('data-interactive-label');
+          selectedElement = null;
+          window.parent.postMessage({ type: 'elementDeselected' }, '*');
+        }
+      }
+      document.addEventListener('keydown', onKeyDown, true);
+
+      // Clear hover borders when mouse leaves the iframe entirely
+      function onMouseLeave() {
+        document.querySelectorAll('.' + HOVER_CLASS).forEach(el => {
+          el.classList.remove(HOVER_CLASS);
+          el.removeAttribute('data-interactive-label');
+        });
+      }
+      document.addEventListener('mouseleave', onMouseLeave);
+
+      // Cleanup function
+      window.__PROTOTYPE_V2_CLEANUP__ = function () {
+        document.removeEventListener('mouseover', onMouseOver, true);
+        document.removeEventListener('click', onClick, true);
+        document.removeEventListener('keydown', onKeyDown, true);
+        document.removeEventListener('mouseleave', onMouseLeave);
+        window.removeEventListener('message', handleMessage);
+        // Remove styles
+        const connectStyle = document.getElementById(CONNECT_STYLE_ID);
+        if (connectStyle) connectStyle.remove();
+        const runStyle = document.getElementById(RUN_STYLE_ID);
+        if (runStyle) runStyle.remove();
+      };
+
+      // Start in default mode
+      function init() {
+        if (!document.body) {
+          // Should not happen if script is at end of body, but just in case
+          console.warn('PrototypeV2: document.body not ready during init');
+          return;
+        }
+        if (mode === 'run') updateRunMode();
+        else updateConnectMode();
+
+        // Notify parent that script is ready to receive messages (links, mode, state)
+        window.parent.postMessage({ type: 'iframe_heartbeat' }, '*');
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+
+    })();
+
+  </script>
+  <style>
+    *,
+    ::before,
+    ::after {
+      --tw-border-spacing-x: 0;
+      --tw-border-spacing-y: 0;
+      --tw-translate-x: 0;
+      --tw-translate-y: 0;
+      --tw-rotate: 0;
+      --tw-skew-x: 0;
+      --tw-skew-y: 0;
+      --tw-scale-x: 1;
+      --tw-scale-y: 1;
+      --tw-pan-x: ;
+      --tw-pan-y: ;
+      --tw-pinch-zoom: ;
+      --tw-scroll-snap-strictness: proximity;
+      --tw-gradient-from-position: ;
+      --tw-gradient-via-position: ;
+      --tw-gradient-to-position: ;
+      --tw-ordinal: ;
+      --tw-slashed-zero: ;
+      --tw-numeric-figure: ;
+      --tw-numeric-spacing: ;
+      --tw-numeric-fraction: ;
+      --tw-ring-inset: ;
+      --tw-ring-offset-width: 0px;
+      --tw-ring-offset-color: #fff;
+      --tw-ring-color: rgb(59 130 246 / 0.5);
+      --tw-ring-offset-shadow: 0 0 #0000;
+      --tw-ring-shadow: 0 0 #0000;
+      --tw-shadow: 0 0 #0000;
+      --tw-shadow-colored: 0 0 #0000;
+      --tw-blur: ;
+      --tw-brightness: ;
+      --tw-contrast: ;
+      --tw-grayscale: ;
+      --tw-hue-rotate: ;
+      --tw-invert: ;
+      --tw-saturate: ;
+      --tw-sepia: ;
+      --tw-drop-shadow: ;
+      --tw-backdrop-blur: ;
+      --tw-backdrop-brightness: ;
+      --tw-backdrop-contrast: ;
+      --tw-backdrop-grayscale: ;
+      --tw-backdrop-hue-rotate: ;
+      --tw-backdrop-invert: ;
+      --tw-backdrop-opacity: ;
+      --tw-backdrop-saturate: ;
+      --tw-backdrop-sepia: ;
+      --tw-contain-size: ;
+      --tw-contain-layout: ;
+      --tw-contain-paint: ;
+      --tw-contain-style:
     }
 
-    window.addEventListener('message', handleMessage);
+    ::backdrop {
+      --tw-border-spacing-x: 0;
+      --tw-border-spacing-y: 0;
+      --tw-translate-x: 0;
+      --tw-translate-y: 0;
+      --tw-rotate: 0;
+      --tw-skew-x: 0;
+      --tw-skew-y: 0;
+      --tw-scale-x: 1;
+      --tw-scale-y: 1;
+      --tw-pan-x: ;
+      --tw-pan-y: ;
+      --tw-pinch-zoom: ;
+      --tw-scroll-snap-strictness: proximity;
+      --tw-gradient-from-position: ;
+      --tw-gradient-via-position: ;
+      --tw-gradient-to-position: ;
+      --tw-ordinal: ;
+      --tw-slashed-zero: ;
+      --tw-numeric-figure: ;
+      --tw-numeric-spacing: ;
+      --tw-numeric-fraction: ;
+      --tw-ring-inset: ;
+      --tw-ring-offset-width: 0px;
+      --tw-ring-offset-color: #fff;
+      --tw-ring-color: rgb(59 130 246 / 0.5);
+      --tw-ring-offset-shadow: 0 0 #0000;
+      --tw-ring-shadow: 0 0 #0000;
+      --tw-shadow: 0 0 #0000;
+      --tw-shadow-colored: 0 0 #0000;
+      --tw-blur: ;
+      --tw-brightness: ;
+      --tw-contrast: ;
+      --tw-grayscale: ;
+      --tw-hue-rotate: ;
+      --tw-invert: ;
+      --tw-saturate: ;
+      --tw-sepia: ;
+      --tw-drop-shadow: ;
+      --tw-backdrop-blur: ;
+      --tw-backdrop-brightness: ;
+      --tw-backdrop-contrast: ;
+      --tw-backdrop-grayscale: ;
+      --tw-backdrop-hue-rotate: ;
+      --tw-backdrop-invert: ;
+      --tw-backdrop-opacity: ;
+      --tw-backdrop-saturate: ;
+      --tw-backdrop-sepia: ;
+      --tw-contain-size: ;
+      --tw-contain-layout: ;
+      --tw-contain-paint: ;
+      --tw-contain-style:
+    }
 
-    // --- Initialization ---
-    document.addEventListener('mouseover', onMouseOver, true);
-    document.addEventListener('click', onClick, true); // Capture phase to prevent default
+    /* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */
+    *,
+    ::after,
+    ::before {
+      box-sizing: border-box;
+      border-width: 0;
+      border-style: solid;
+      border-color: #e5e7eb
+    }
 
-    // Esc key to deselect in connect mode
-    function onKeyDown(e) {
-      if (e.key === 'Escape' && mode === 'connect' && selectedElement) {
-        selectedElement.classList.remove(SELECTED_CLASS);
-        selectedElement.removeAttribute('data-interactive-label');
-        selectedElement = null;
-        window.parent.postMessage({ type: 'elementDeselected' }, '*');
+    ::after,
+    ::before {
+      --tw-content: ''
+    }
+
+    :host,
+    html {
+      line-height: 1.5;
+      -webkit-text-size-adjust: 100%;
+      -moz-tab-size: 4;
+      tab-size: 4;
+      font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+      font-feature-settings: normal;
+      font-variation-settings: normal;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    body {
+      margin: 0;
+      line-height: inherit
+    }
+
+    hr {
+      height: 0;
+      color: inherit;
+      border-top-width: 1px
+    }
+
+    abbr:where([title]) {
+      -webkit-text-decoration: underline dotted;
+      text-decoration: underline dotted
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-size: inherit;
+      font-weight: inherit
+    }
+
+    a {
+      color: inherit;
+      text-decoration: inherit
+    }
+
+    b,
+    strong {
+      font-weight: bolder
+    }
+
+    code,
+    kbd,
+    pre,
+    samp {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-feature-settings: normal;
+      font-variation-settings: normal;
+      font-size: 1em
+    }
+
+    small {
+      font-size: 80%
+    }
+
+    sub,
+    sup {
+      font-size: 75%;
+      line-height: 0;
+      position: relative;
+      vertical-align: baseline
+    }
+
+    sub {
+      bottom: -.25em
+    }
+
+    sup {
+      top: -.5em
+    }
+
+    table {
+      text-indent: 0;
+      border-color: inherit;
+      border-collapse: collapse
+    }
+
+    button,
+    input,
+    optgroup,
+    select,
+    textarea {
+      font-family: inherit;
+      font-feature-settings: inherit;
+      font-variation-settings: inherit;
+      font-size: 100%;
+      font-weight: inherit;
+      line-height: inherit;
+      letter-spacing: inherit;
+      color: inherit;
+      margin: 0;
+      padding: 0
+    }
+
+    button,
+    select {
+      text-transform: none
+    }
+
+    button,
+    input:where([type=button]),
+    input:where([type=reset]),
+    input:where([type=submit]) {
+      -webkit-appearance: button;
+      background-color: transparent;
+      background-image: none
+    }
+
+    :-moz-focusring {
+      outline: auto
+    }
+
+    :-moz-ui-invalid {
+      box-shadow: none
+    }
+
+    progress {
+      vertical-align: baseline
+    }
+
+    ::-webkit-inner-spin-button,
+    ::-webkit-outer-spin-button {
+      height: auto
+    }
+
+    [type=search] {
+      -webkit-appearance: textfield;
+      outline-offset: -2px
+    }
+
+    ::-webkit-search-decoration {
+      -webkit-appearance: none
+    }
+
+    ::-webkit-file-upload-button {
+      -webkit-appearance: button;
+      font: inherit
+    }
+
+    summary {
+      display: list-item
+    }
+
+    blockquote,
+    dd,
+    dl,
+    figure,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    hr,
+    p,
+    pre {
+      margin: 0
+    }
+
+    fieldset {
+      margin: 0;
+      padding: 0
+    }
+
+    legend {
+      padding: 0
+    }
+
+    menu,
+    ol,
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0
+    }
+
+    dialog {
+      padding: 0
+    }
+
+    textarea {
+      resize: vertical
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      opacity: 1;
+      color: #9ca3af
+    }
+
+    [role=button],
+    button {
+      cursor: pointer
+    }
+
+    :disabled {
+      cursor: default
+    }
+
+    audio,
+    canvas,
+    embed,
+    iframe,
+    img,
+    object,
+    svg,
+    video {
+      display: block;
+      vertical-align: middle
+    }
+
+    img,
+    video {
+      max-width: 100%;
+      height: auto
+    }
+
+    [hidden]:where(:not([hidden=until-found])) {
+      display: none
+    }
+
+    [type='text'],
+    input:where(:not([type])),
+    [type='email'],
+    [type='url'],
+    [type='password'],
+    [type='number'],
+    [type='date'],
+    [type='datetime-local'],
+    [type='month'],
+    [type='search'],
+    [type='tel'],
+    [type='time'],
+    [type='week'],
+    [multiple],
+    textarea,
+    select {
+      -webkit-appearance: none;
+      appearance: none;
+      background-color: #fff;
+      border-color: #6b7280;
+      border-width: 1px;
+      border-radius: 0px;
+      padding-top: 0.5rem;
+      padding-right: 0.75rem;
+      padding-bottom: 0.5rem;
+      padding-left: 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      --tw-shadow: 0 0 #0000;
+    }
+
+    [type='text']:focus,
+    input:where(:not([type])):focus,
+    [type='email']:focus,
+    [type='url']:focus,
+    [type='password']:focus,
+    [type='number']:focus,
+    [type='date']:focus,
+    [type='datetime-local']:focus,
+    [type='month']:focus,
+    [type='search']:focus,
+    [type='tel']:focus,
+    [type='time']:focus,
+    [type='week']:focus,
+    [multiple]:focus,
+    textarea:focus,
+    select:focus {
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+      --tw-ring-inset: var(--tw-empty,
+          /*!*/
+          /*!*/
+        );
+      --tw-ring-offset-width: 0px;
+      --tw-ring-offset-color: #fff;
+      --tw-ring-color: #2563eb;
+      --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+      --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+      box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+      border-color: #2563eb
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #6b7280;
+      opacity: 1
+    }
+
+    ::-webkit-datetime-edit-fields-wrapper {
+      padding: 0
+    }
+
+    ::-webkit-date-and-time-value {
+      min-height: 1.5em;
+      text-align: inherit
+    }
+
+    ::-webkit-datetime-edit {
+      display: inline-flex
+    }
+
+    ::-webkit-datetime-edit,
+    ::-webkit-datetime-edit-year-field,
+    ::-webkit-datetime-edit-month-field,
+    ::-webkit-datetime-edit-day-field,
+    ::-webkit-datetime-edit-hour-field,
+    ::-webkit-datetime-edit-minute-field,
+    ::-webkit-datetime-edit-second-field,
+    ::-webkit-datetime-edit-millisecond-field,
+    ::-webkit-datetime-edit-meridiem-field {
+      padding-top: 0;
+      padding-bottom: 0
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.5rem center;
+      background-repeat: no-repeat;
+      background-size: 1.5em 1.5em;
+      padding-right: 2.5rem;
+      print-color-adjust: exact
+    }
+
+    [multiple],
+    [size]:where(select:not([size="1"])) {
+      background-image: initial;
+      background-position: initial;
+      background-repeat: unset;
+      background-size: initial;
+      padding-right: 0.75rem;
+      print-color-adjust: unset
+    }
+
+    [type='checkbox'],
+    [type='radio'] {
+      -webkit-appearance: none;
+      appearance: none;
+      padding: 0;
+      print-color-adjust: exact;
+      display: inline-block;
+      vertical-align: middle;
+      background-origin: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+      flex-shrink: 0;
+      height: 1rem;
+      width: 1rem;
+      color: #2563eb;
+      background-color: #fff;
+      border-color: #6b7280;
+      border-width: 1px;
+      --tw-shadow: 0 0 #0000
+    }
+
+    [type='checkbox'] {
+      border-radius: 0px
+    }
+
+    [type='radio'] {
+      border-radius: 100%
+    }
+
+    [type='checkbox']:focus,
+    [type='radio']:focus {
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+      --tw-ring-inset: var(--tw-empty,
+          /*!*/
+          /*!*/
+        );
+      --tw-ring-offset-width: 2px;
+      --tw-ring-offset-color: #fff;
+      --tw-ring-color: #2563eb;
+      --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+      --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+      box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)
+    }
+
+    [type='checkbox']:checked,
+    [type='radio']:checked {
+      border-color: transparent;
+      background-color: currentColor;
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat
+    }
+
+    [type='checkbox']:checked {
+      background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+    }
+
+    @media (forced-colors: active) {
+      [type='checkbox']:checked {
+        -webkit-appearance: auto;
+        appearance: auto
       }
     }
-    document.addEventListener('keydown', onKeyDown, true);
 
-    // Clear hover borders when mouse leaves the iframe entirely
-    function onMouseLeave() {
-      document.querySelectorAll('.' + HOVER_CLASS).forEach(el => {
-        el.classList.remove(HOVER_CLASS);
-        el.removeAttribute('data-interactive-label');
-      });
+    [type='radio']:checked {
+      background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
     }
-    document.addEventListener('mouseleave', onMouseLeave);
 
-    // Cleanup function
-    window.__PROTOTYPE_V2_CLEANUP__ = function() {
-      document.removeEventListener('mouseover', onMouseOver, true);
-      document.removeEventListener('click', onClick, true);
-      document.removeEventListener('keydown', onKeyDown, true);
-      document.removeEventListener('mouseleave', onMouseLeave);
-      window.removeEventListener('message', handleMessage);
-      // Remove styles
-      const connectStyle = document.getElementById(CONNECT_STYLE_ID);
-      if (connectStyle) connectStyle.remove();
-      const runStyle = document.getElementById(RUN_STYLE_ID);
-      if (runStyle) runStyle.remove();
-    };
-
-    // Start in default mode
-    function init() {
-      if (!document.body) {
-        // Should not happen if script is at end of body, but just in case
-        console.warn('PrototypeV2: document.body not ready during init');
-        return;
+    @media (forced-colors: active) {
+      [type='radio']:checked {
+        -webkit-appearance: auto;
+        appearance: auto
       }
-      if (mode === 'run') updateRunMode();
-      else updateConnectMode();
-
-      // Notify parent that script is ready to receive messages (links, mode, state)
-      window.parent.postMessage({ type: 'iframe_heartbeat' }, '*');
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
+    [type='checkbox']:checked:hover,
+    [type='checkbox']:checked:focus,
+    [type='radio']:checked:hover,
+    [type='radio']:checked:focus {
+      border-color: transparent;
+      background-color: currentColor
     }
 
-  })();
+    [type='checkbox']:indeterminate {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 8h8'/%3e%3c/svg%3e");
+      border-color: transparent;
+      background-color: currentColor;
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
 
-    </script><style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}[type='text'],input:where(:not([type])),[type='email'],[type='url'],[type='password'],[type='number'],[type='date'],[type='datetime-local'],[type='month'],[type='search'],[type='tel'],[type='time'],[type='week'],[multiple],textarea,select{-webkit-appearance:none;appearance:none;background-color:#fff;border-color:#6b7280;border-width:1px;border-radius:0px;padding-top:0.5rem;padding-right:0.75rem;padding-bottom:0.5rem;padding-left:0.75rem;font-size:1rem;line-height:1.5rem;--tw-shadow:0 0 #0000;}[type='text']:focus, input:where(:not([type])):focus, [type='email']:focus, [type='url']:focus, [type='password']:focus, [type='number']:focus, [type='date']:focus, [type='datetime-local']:focus, [type='month']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus, [type='week']:focus, [multiple]:focus, textarea:focus, select:focus{outline:2px solid transparent;outline-offset:2px;--tw-ring-inset:var(--tw-empty,/*!*/ /*!*/);--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:#2563eb;--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);border-color:#2563eb}input::placeholder,textarea::placeholder{color:#6b7280;opacity:1}::-webkit-datetime-edit-fields-wrapper{padding:0}::-webkit-date-and-time-value{min-height:1.5em;text-align:inherit}::-webkit-datetime-edit{display:inline-flex}::-webkit-datetime-edit,::-webkit-datetime-edit-year-field,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute-field,::-webkit-datetime-edit-second-field,::-webkit-datetime-edit-millisecond-field,::-webkit-datetime-edit-meridiem-field{padding-top:0;padding-bottom:0}select{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");background-position:right 0.5rem center;background-repeat:no-repeat;background-size:1.5em 1.5em;padding-right:2.5rem;print-color-adjust:exact}[multiple],[size]:where(select:not([size="1"])){background-image:initial;background-position:initial;background-repeat:unset;background-size:initial;padding-right:0.75rem;print-color-adjust:unset}[type='checkbox'],[type='radio']{-webkit-appearance:none;appearance:none;padding:0;print-color-adjust:exact;display:inline-block;vertical-align:middle;background-origin:border-box;-webkit-user-select:none;user-select:none;flex-shrink:0;height:1rem;width:1rem;color:#2563eb;background-color:#fff;border-color:#6b7280;border-width:1px;--tw-shadow:0 0 #0000}[type='checkbox']{border-radius:0px}[type='radio']{border-radius:100%}[type='checkbox']:focus,[type='radio']:focus{outline:2px solid transparent;outline-offset:2px;--tw-ring-inset:var(--tw-empty,/*!*/ /*!*/);--tw-ring-offset-width:2px;--tw-ring-offset-color:#fff;--tw-ring-color:#2563eb;--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)}[type='checkbox']:checked,[type='radio']:checked{border-color:transparent;background-color:currentColor;background-size:100% 100%;background-position:center;background-repeat:no-repeat}[type='checkbox']:checked{background-image:url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");}@media (forced-colors: active) {[type='checkbox']:checked{-webkit-appearance:auto;appearance:auto}}[type='radio']:checked{background-image:url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");}@media (forced-colors: active) {[type='radio']:checked{-webkit-appearance:auto;appearance:auto}}[type='checkbox']:checked:hover,[type='checkbox']:checked:focus,[type='radio']:checked:hover,[type='radio']:checked:focus{border-color:transparent;background-color:currentColor}[type='checkbox']:indeterminate{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 16 16'%3e%3cpath stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 8h8'/%3e%3c/svg%3e");border-color:transparent;background-color:currentColor;background-size:100% 100%;background-position:center;background-repeat:no-repeat;}@media (forced-colors: active) {[type='checkbox']:indeterminate{-webkit-appearance:auto;appearance:auto}}[type='checkbox']:indeterminate:hover,[type='checkbox']:indeterminate:focus{border-color:transparent;background-color:currentColor}[type='file']{background:unset;border-color:inherit;border-width:0;border-radius:0;padding:0;font-size:unset;line-height:inherit}[type='file']:focus{outline:1px solid ButtonText;outline:1px auto -webkit-focus-ring-color}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.left-0{left:0px}.right-8{right:2rem}.top-0{top:0px}.top-24{top:6rem}.top-4{top:1rem}.top-\[72px\]{top:72px}.z-0{z-index:0}.z-10{z-index:10}.z-40{z-index:40}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.my-12{margin-top:3rem;margin-bottom:3rem}.mb-1{margin-bottom:0.25rem}.mb-12{margin-bottom:3rem}.mb-4{margin-bottom:1rem}.mr-4{margin-right:1rem}.mr-6{margin-right:1.5rem}.mt-6{margin-top:1.5rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-1{height:0.25rem}.h-6{height:1.5rem}.h-\[1px\]{height:1px}.h-\[500px\]{height:500px}.h-fit{height:-moz-fit-content;height:fit-content}.h-full{height:100%}.min-h-screen{min-height:100vh}.w-1{width:0.25rem}.w-1\/4{width:25%}.w-12{width:3rem}.w-16{width:4rem}.w-\[1px\]{width:1px}.w-full{width:100%}.max-w-4xl{max-width:56rem}.max-w-7xl{max-width:80rem}.max-w-screen-2xl{max-width:1536px}.max-w-screen-xl{max-width:1280px}.scale-95{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-12{gap:3rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.space-x-2 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.5rem * var(--tw-space-x-reverse));margin-left:calc(0.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-4 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1rem * var(--tw-space-x-reverse));margin-left:calc(1rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-8 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(2rem * var(--tw-space-x-reverse));margin-left:calc(2rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-12 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(3rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(3rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-8 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.border{border-width:1px}.border-y{border-top-width:1px;border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-t{border-top-width:1px}.border-\[\#A8C9F4\]{--tw-border-opacity:1;border-color:rgb(168 201 244 / var(--tw-border-opacity, 1))}.border-outline-variant\/10{border-color:rgb(67 71 78 / 0.1)}.border-outline-variant\/5{border-color:rgb(67 71 78 / 0.05)}.bg-background{--tw-bg-opacity:1;background-color:rgb(19 19 19 / var(--tw-bg-opacity, 1))}.bg-background\/95{background-color:rgb(19 19 19 / 0.95)}.bg-outline-variant\/30{background-color:rgb(67 71 78 / 0.3)}.bg-primary{--tw-bg-opacity:1;background-color:rgb(168 201 244 / var(--tw-bg-opacity, 1))}.bg-secondary{--tw-bg-opacity:1;background-color:rgb(220 194 169 / var(--tw-bg-opacity, 1))}.bg-surface-container{--tw-bg-opacity:1;background-color:rgb(32 31 31 / var(--tw-bg-opacity, 1))}.bg-surface-container-high{--tw-bg-opacity:1;background-color:rgb(42 42 42 / var(--tw-bg-opacity, 1))}.bg-surface-container-low{--tw-bg-opacity:1;background-color:rgb(28 27 27 / var(--tw-bg-opacity, 1))}.bg-surface-container-lowest{--tw-bg-opacity:1;background-color:rgb(14 14 14 / var(--tw-bg-opacity, 1))}.bg-gradient-to-t{background-image:linear-gradient(to top, var(--tw-gradient-stops))}.from-background{--tw-gradient-from:#131313 var(--tw-gradient-from-position);--tw-gradient-to:rgb(19 19 19 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-background\/60{--tw-gradient-to:rgb(19 19 19 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), rgb(19 19 19 / 0.6) var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-background\/20{--tw-gradient-to:rgb(19 19 19 / 0.2) var(--tw-gradient-to-position)}.object-cover{object-fit:cover}.p-1{padding:0.25rem}.p-2{padding:0.5rem}.p-6{padding:1.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-8{padding-left:2rem;padding-right:2rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-12{padding-top:3rem;padding-bottom:3rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-1{padding-bottom:0.25rem}.pb-12{padding-bottom:3rem}.pt-16{padding-top:4rem}.pt-4{padding-top:1rem}.text-center{text-align:center}.font-body{font-family:Inter}.font-headline{font-family:Noto Serif}.font-label{font-family:Inter}.text-2xl{font-size:1.5rem;line-height:2rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-8xl{font-size:6rem;line-height:1}.text-\[10px\]{font-size:10px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-\[1\.1\]{line-height:1.1}.leading-snug{line-height:1.375}.tracking-\[0\.05em\]{letter-spacing:0.05em}.tracking-\[0\.2em\]{letter-spacing:0.2em}.tracking-tight{letter-spacing:-0.025em}.tracking-tighter{letter-spacing:-0.05em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-\[\#A8C9F4\]{--tw-text-opacity:1;color:rgb(168 201 244 / var(--tw-text-opacity, 1))}.text-\[\#E5E2E1\]{--tw-text-opacity:1;color:rgb(229 226 225 / var(--tw-text-opacity, 1))}.text-\[\#E5E2E1\]\/70{color:rgb(229 226 225 / 0.7)}.text-on-background{--tw-text-opacity:1;color:rgb(229 226 225 / var(--tw-text-opacity, 1))}.text-on-surface{--tw-text-opacity:1;color:rgb(229 226 225 / var(--tw-text-opacity, 1))}.text-on-surface-variant{--tw-text-opacity:1;color:rgb(195 198 207 / var(--tw-text-opacity, 1))}.text-outline{--tw-text-opacity:1;color:rgb(141 145 153 / var(--tw-text-opacity, 1))}.text-outline-variant{--tw-text-opacity:1;color:rgb(67 71 78 / var(--tw-text-opacity, 1))}.text-primary{--tw-text-opacity:1;color:rgb(168 201 244 / var(--tw-text-opacity, 1))}.text-secondary{--tw-text-opacity:1;color:rgb(220 194 169 / var(--tw-text-opacity, 1))}.text-secondary-fixed-dim{--tw-text-opacity:1;color:rgb(220 194 169 / var(--tw-text-opacity, 1))}.text-secondary\/5{color:rgb(220 194 169 / 0.05)}.opacity-60{opacity:0.6}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.first-letter\:float-left::first-letter{float:left}.first-letter\:mr-3::first-letter{margin-right:0.75rem}.first-letter\:font-headline::first-letter{font-family:Noto Serif}.first-letter\:text-7xl::first-letter{font-size:4.5rem;line-height:1}.first-letter\:font-bold::first-letter{font-weight:700}.first-letter\:text-primary::first-letter{--tw-text-opacity:1;color:rgb(168 201 244 / var(--tw-text-opacity, 1))}.selection\:bg-primary-container *::selection{--tw-bg-opacity:1;background-color:rgb(68 101 139 / var(--tw-bg-opacity, 1))}.selection\:text-on-primary-container *::selection{--tw-text-opacity:1;color:rgb(205 225 255 / var(--tw-text-opacity, 1))}.selection\:bg-primary-container::selection{--tw-bg-opacity:1;background-color:rgb(68 101 139 / var(--tw-bg-opacity, 1))}.selection\:text-on-primary-container::selection{--tw-text-opacity:1;color:rgb(205 225 255 / var(--tw-text-opacity, 1))}.hover\:bg-\[\#2A2A2A\]\/50:hover{background-color:rgb(42 42 42 / 0.5)}.hover\:bg-surface-container-high:hover{--tw-bg-opacity:1;background-color:rgb(42 42 42 / var(--tw-bg-opacity, 1))}.hover\:text-\[\#E5E2E1\]:hover{--tw-text-opacity:1;color:rgb(229 226 225 / var(--tw-text-opacity, 1))}.hover\:text-on-surface:hover{--tw-text-opacity:1;color:rgb(229 226 225 / var(--tw-text-opacity, 1))}.hover\:text-primary:hover{--tw-text-opacity:1;color:rgb(168 201 244 / var(--tw-text-opacity, 1))}.hover\:text-primary-fixed:hover{--tw-text-opacity:1;color:rgb(209 228 255 / var(--tw-text-opacity, 1))}.active\:scale-90:active{--tw-scale-x:.9;--tw-scale-y:.9;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:text-primary{--tw-text-opacity:1;color:rgb(168 201 244 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:block{display:block}.sm\:inline{display:inline}.sm\:flex-row{flex-direction:row}.sm\:items-start{align-items:flex-start}.sm\:items-end{align-items:flex-end}.sm\:text-left{text-align:left}.sm\:text-right{text-align:right}}@media (min-width: 768px){.md\:my-16{margin-top:4rem;margin-bottom:4rem}.md\:mb-16{margin-bottom:4rem}.md\:flex{display:flex}.md\:hidden{display:none}.md\:h-\[614px\]{height:614px}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:justify-end{justify-content:flex-end}.md\:px-12{padding-left:3rem;padding-right:3rem}.md\:px-8{padding-left:2rem;padding-right:2rem}.md\:py-12{padding-top:3rem;padding-bottom:3rem}.md\:py-16{padding-top:4rem;padding-bottom:4rem}.md\:pb-16{padding-bottom:4rem}.md\:text-left{text-align:left}.md\:text-4xl{font-size:2.25rem;line-height:2.5rem}.md\:text-6xl{font-size:3.75rem;line-height:1}.md\:text-xl{font-size:1.25rem;line-height:1.75rem}}@media (min-width: 1024px){.lg\:block{display:block}.lg\:grid{display:grid}.lg\:grid-cols-\[1fr_minmax\(auto\2c 720px\)_1fr\]{grid-template-columns:1fr minmax(auto,720px) 1fr}.lg\:text-7xl{font-size:4.5rem;line-height:1}}</style><style id="prototype-run-styles">
-        .prototype-link-hover { cursor: pointer !important; }
-        .prototype-hotspot {
-          outline: 2px dashed rgba(66, 135, 245, 0.7) !important;
-          outline-offset: 2px;
-          animation: hotspot-pulse 2s ease-in-out infinite;
-        }
-        @keyframes hotspot-pulse {
-          0%, 100% { outline-color: rgba(66, 135, 245, 0.5); }
-          50% { outline-color: rgba(66, 135, 245, 0.9); }
-        }
-      </style><style id="interactive-mode-styles">
-        /* Cursor change for the whole page */
-        body[data-mode="connect"] {
-          cursor: crosshair !important;
-        }
+    @media (forced-colors: active) {
+      [type='checkbox']:indeterminate {
+        -webkit-appearance: auto;
+        appearance: auto
+      }
+    }
 
-        /* Connected State - Blue/Green (Persistent) */
-        .interactive-connected {
-          outline: 2px dashed #4287f5 !important;
-          position: relative;
-          z-index: 9990; 
-        }
+    [type='checkbox']:indeterminate:hover,
+    [type='checkbox']:indeterminate:focus {
+      border-color: transparent;
+      background-color: currentColor
+    }
 
-        /* Hover State - Blurple */
-        .interactive-hover {
-          outline: 2px solid #5E56E7 !important;
-          position: relative;
-          z-index: 9999;
-        }
+    [type='file'] {
+      background: unset;
+      border-color: inherit;
+      border-width: 0;
+      border-radius: 0;
+      padding: 0;
+      font-size: unset;
+      line-height: inherit
+    }
 
-        /* Selected State - Same Blurple (Persistent) */
-        .interactive-selected {
-          outline: 2px solid #5E56E7 !important;
-          box-shadow: 0 0 0 2px #5E56E7 !important;
-          position: relative;
-          z-index: 10000;
-        }
+    [type='file']:focus {
+      outline: 1px solid ButtonText;
+      outline: 1px auto -webkit-focus-ring-color
+    }
 
-        /* Label Tag */
-        .interactive-connected::before,
-        .interactive-hover::before,
-        .interactive-selected::before {
-          content: attr(data-interactive-label);
-          position: absolute;
-          top: -24px;
-          left: -2px;
-          padding: 2px 8px;
-          font-size: 12px !important;
-          line-height: 1 !important;
-          height: auto !important;
-          display: block !important;
-          font-family: monospace !important;
-          font-weight: normal !important;
-          font-style: normal !important;
-          text-transform: none !important;
-          letter-spacing: normal !important;
-          border-radius: 4px 4px 0 0;
-          white-space: nowrap;
-          pointer-events: none;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-          z-index: 10001;
-        }
+    .pointer-events-none {
+      pointer-events: none
+    }
 
-        /* Specific Colors for Labels */
-        .interactive-connected::before {
-          background: #4287f5;
-          color: white;
-          content: "Connected"; 
-        }
-        
-        .interactive-hover::before,
-        .interactive-selected::before {
-          background: #5E56E7;
-          color: white;
-        }
-      </style></head>
-<body class="bg-background text-on-background font-body selection:bg-primary-container selection:text-on-primary-container" data-mode="connect">
-<!-- TopNavBar -->
-<nav class="fixed top-0 w-full z-50 glass-nav">
-<div class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
-<div class="text-2xl font-headline tracking-tighter text-[#E5E2E1]">branham.no</div>
-<!-- Desktop Navigation -->
-<div class="hidden md:flex items-center space-x-8">
-<a class="font-headline tracking-tight text-[#A8C9F4] font-bold border-b-2 border-[#A8C9F4] pb-1 prototype-hotspot interactive-connected" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#" data-interactive-label="Connected">Hjem</a>
-<a class="font-headline tracking-tight text-[#E5E2E1]/70 hover:text-[#E5E2E1] transition-colors duration-300 prototype-hotspot interactive-connected" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#" data-interactive-label="Connected">Taler</a>
-<a class="font-headline tracking-tight text-[#E5E2E1]/70 hover:text-[#E5E2E1] transition-colors duration-300 prototype-hotspot interactive-connected" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#" data-interactive-label="Connected">Om oss</a>
-<a class="font-headline tracking-tight text-[#E5E2E1]/70 hover:text-[#E5E2E1] transition-colors duration-300 prototype-hotspot interactive-connected" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#" data-interactive-label="Connected">Kontakt</a>
-</div>
-<div class="flex items-center space-x-4">
-<button class="p-2 hover:bg-[#2A2A2A]/50 transition-all duration-300 rounded-full scale-95 active:scale-90 text-[#A8C9F4]">
-<span class="material-symbols-outlined">search</span>
-</button>
-<button class="p-2 hover:bg-[#2A2A2A]/50 transition-all duration-300 rounded-full scale-95 active:scale-90 text-[#A8C9F4]">
-<span class="material-symbols-outlined">language</span>
-</button>
-<!-- Mobile Menu Icon -->
-<button class="md:hidden p-2 text-[#E5E2E1]">
-<span class="material-symbols-outlined">menu</span>
-</button>
-</div>
-</div>
-</nav>
-<main class="min-h-screen pt-16">
-<!-- Hero Section with Background -->
-<header class="relative w-full h-[500px] md:h-[614px] flex items-end overflow-hidden">
-<div class="absolute inset-0 z-0">
-<img alt="Et fredelig morgenlandskap med milde åser badet i mykt sollys" class="w-full h-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWpVrZzbMaXJYasclAnCxqggnKRK39BNr3-h9cTmwV4rV59pIxRcy5iZySIP_jOklAoxTgplLwm7AZ0LVb3TcZyq-J5xjgk-njURigngaPdNAR-u6piKTtL8WLDXibbXzyk0j10F4tDWAZBR1VLOsCFg2tTWHMfSt3rUNa7M4vf_q4zYgIdCzUh6sUIqHuV00kocJJ4zmLw5tT35EjikrBoPd8Oycj_72BNsist6FXtGmXey1659mZ5aT54aIZ-0BqGX2VLt5Cla5M">
-<div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20"></div>
-</div>
-<div class="relative z-10 w-full max-w-4xl mx-auto px-6 md:px-8 pb-12 md:pb-16">
-<div class="space-y-4">
-<div class="flex items-center space-x-4">
-<span class="text-secondary font-label text-xs uppercase tracking-[0.2em]">Sermon Archive</span>
-<div class="h-[1px] w-12 bg-outline-variant/30"></div>
-</div>
-<h1 class="text-4xl md:text-6xl lg:text-7xl font-headline font-bold text-on-surface tracking-tight leading-[1.1]">
-                        Det Valgte Hvilested
-                    </h1>
-<div class="flex flex-wrap items-center gap-6 text-on-surface-variant font-body text-sm font-medium pt-4">
-<div class="flex items-center space-x-2">
-<span class="material-symbols-outlined text-primary text-lg" data-icon="location_on">location_on</span>
-<span>Jeffersonville, IN</span>
-</div>
-<div class="flex items-center space-x-2">
-<span class="material-symbols-outlined text-primary text-lg" data-icon="calendar_today">calendar_today</span>
-<span>13. Mai 1965</span>
-</div>
-</div>
-</div>
-</div>
-</header>
-<!-- Reading Canvas -->
-<div class="max-w-screen-xl mx-auto px-6 md:px-8 lg:grid lg:grid-cols-[1fr_minmax(auto,720px)_1fr] gap-12 py-12 md:py-16">
-<!-- Left Sidebar: Reading Stats/Progress (Subtle) -->
-<aside class="hidden lg:block sticky top-24 h-fit space-y-12">
-<div class="space-y-4">
-<div class="text-[10px] uppercase tracking-widest text-outline">Lese-fremgang</div>
-<div class="w-full bg-surface-container-high h-1 rounded-full overflow-hidden">
-<div class="bg-primary w-1/4 h-full"></div>
-</div>
-</div>
-</aside>
-<!-- Main Content Column -->
-<article class="prose-custom">
-<!-- Controls Bar -->
-<div class="flex flex-wrap items-center justify-between mb-12 md:mb-16 py-4 border-y border-outline-variant/10 sticky top-[72px] bg-background/95 backdrop-blur-sm z-40 gap-4" style="top: 64px;">
-<div class="flex items-center">
-<div class="flex items-center bg-surface-container rounded-lg p-1 mr-4">
-<button class="px-3 py-1.5 rounded-md text-xs font-label font-bold transition-all bg-surface-container-high text-on-surface shadow-sm">
-                                Lese-modus
-                            </button>
-<button class="px-3 py-1.5 rounded-md text-xs font-label font-bold transition-all text-on-surface-variant hover:text-on-surface prototype-hotspot interactive-connected" data-interactive-label="Connected">
-                                Sammenligning
-                            </button>
-</div>
-<div class="h-6 w-[1px] bg-outline-variant/30 hidden sm:block mr-6"></div>
-<div class="flex items-center bg-surface-container rounded-full px-4 py-1.5 space-x-4">
-<button class="text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined text-lg" data-icon="text_decrease">text_decrease</span>
-</button>
-<span class="text-xs font-label font-bold text-outline">AA</span>
-<button class="text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined text-lg" data-icon="text_increase">text_increase</span>
-</button>
-</div>
-</div>
-<div class="flex items-center space-x-2">
-<button class="flex items-center space-x-2 px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-medium transition-all rounded-md">
-<span class="material-symbols-outlined text-lg" data-icon="download">download</span>
-<span class="hidden sm:inline">Last ned PDF</span>
-</button>
-<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
-</button>
-</div>
-</div>
-<!-- Text Content -->
-<div class="space-y-8">
-<p class="first-letter:text-7xl first-letter:font-headline first-letter:font-bold first-letter:mr-3 first-letter:float-left first-letter:text-primary">
-                        Velsignet være Herrens Navn. Det er en stor forrett å være her i kveld i Herrens hus. Vi ser frem til hva Herren vil gjøre iblant oss når vi åpner Hans Ord. Vi vet at Hans Ord aldri vender tomt tilbake, men det vil utrette det som Han har sendt det for å gjøre.
-                    </p>
-<p>
-                        Jeg vil at vi skal vende oss til Skriftene i kveld for å finne vårt emne. Vi lever i en tid hvor mange søker etter et hvilested, et sted for fred i en urolig verden. Men det finnes bare ett sant hvilested som Gud Selv har utvalgt.
-                    </p>
-<!-- Pull Quote Component -->
-<div class="my-12 md:my-16 relative py-10 md:py-12 px-6 md:px-8 bg-surface-container-low overflow-hidden group">
-<div class="absolute top-0 left-0 w-1 h-full bg-secondary"></div>
-<span class="material-symbols-outlined absolute top-4 right-8 text-8xl text-secondary/5 pointer-events-none" data-icon="format_quote">format_quote</span>
-<blockquote class="relative z-10 text-2xl md:text-4xl font-headline italic leading-snug text-secondary-fixed-dim">
-                            "Gud hviler ikke i bygninger av stein og tre, men i et hjerte som har gjort rom for Hans Ord."
-                        </blockquote>
-<cite class="block mt-6 text-sm font-label uppercase tracking-widest text-outline-variant">— William Marrion Branham</cite>
-</div>
-<p>
-                        Da Salomon bygde templet, trodde han kanskje at han hadde bygget et hus for Den Høyeste. Men profeten sa: "Hvilket hus vil dere bygge Meg? sier Herren. Eller hva er Min hvileplass?" Jorden er Hans fotskammel og himmelen er Hans trone.
-                    </p>
-<p>
-                        Vi ser i dag at folk prøver å bygge store organisasjoner, praktfulle katedraler med glassmalerier og høye spir. De tror at Gud vil bo der. Men Gud kan ikke begrenses til menneskehenders verk. Han søker etter et tempel av kjøtt og blod, et menneske som vil tro Hans løfte for denne timen.
-                    </p>
-<div class="py-8 md:py-12 flex justify-center">
-<div class="w-16 h-[1px] bg-outline-variant/30"></div>
-</div>
-<p>
-                        Når vi ser på Israels historie, ser vi hvordan de alltid ønsket noe de kunne se og røre ved. De ville ha en konge som nasjonene rundt dem. Men Gud var deres Konge. De ønsket et tabernakel, men Gud ønsket å bo i deres midte gjennom Sin Ånd.
-                    </p>
-<p>
-                        I denne siste tid har Gud igjen sendt oss et budskap for å kalle oss ut av systemene og inn i det sanne hvilestedet. Det hvilestedet er i Kristus, som er Ordet. Når du tar imot Ordet for din dag, da tar du imot Gud Selv, for Ordet og Gud er ett.
-                    </p>
-</div>
-</article>
-<!-- Right Sidebar: Metadata / Related (Subtle) -->
-<aside class="hidden lg:block sticky top-24 h-fit">
-<div class="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
-<h4 class="font-headline text-lg mb-4 text-secondary">Detaljer</h4>
-<dl class="space-y-4 text-sm">
-<div>
-<dt class="text-outline text-[10px] uppercase tracking-wider mb-1">Serien</dt>
-<dd class="text-on-surface">De syv segl</dd>
-</div>
-<div>
-<dt class="text-outline text-[10px] uppercase tracking-wider mb-1">Oversettelse</dt>
-<dd class="text-on-surface">Norsk (Bokmål)</dd>
-</div>
-<div>
-<dt class="text-outline text-[10px] uppercase tracking-wider mb-1">Lydfil</dt>
-<dd class="flex items-center space-x-2 text-primary hover:text-primary-fixed cursor-pointer transition-colors">
-<span class="material-symbols-outlined text-base" data-icon="play_circle">play_circle</span>
-<span>65-0513</span>
-</dd>
-</div>
-</dl>
-</div>
-</aside>
-</div>
-<!-- Reader Navigation -->
-<div class="max-w-4xl mx-auto px-6 md:px-8 py-12 border-t border-outline-variant/10">
-<div class="flex flex-col sm:flex-row justify-between items-center gap-8">
-<a class="group flex flex-col items-center sm:items-start space-y-2 text-center sm:text-left prototype-hotspot interactive-connected" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#" data-interactive-label="Connected">
-<span class="text-xs font-label uppercase tracking-widest text-outline group-hover:text-primary transition-colors">Forrige tale</span>
-<span class="font-headline text-lg md:text-xl text-on-surface">Det ellevte bud</span>
-</a>
-<a class="group flex flex-col items-center sm:items-end space-y-2 text-center sm:text-right prototype-hotspot interactive-connected" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#" data-interactive-label="Connected">
-<span class="text-xs font-label uppercase tracking-widest text-outline group-hover:text-primary transition-colors">Neste tale</span>
-<span class="font-headline text-lg md:text-xl text-on-surface">Kraften av forvandling</span>
-</a>
-</div>
-</div>
-</main>
-<!-- Footer -->
-<footer class="bg-surface-container-lowest border-t border-outline-variant/10 py-12">
-<div class="max-w-screen-2xl mx-auto px-6 md:px-12">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-<div class="space-y-2 text-center md:text-left">
-<div class="text-lg font-headline italic text-secondary">The Digital Archive</div>
-<p class="font-label text-[10px] uppercase tracking-[0.05em] text-outline">© 2024 The Digital Archive. Med enerett.</p>
-</div>
-<div class="flex flex-wrap justify-center md:justify-end gap-6">
-<a class="font-label text-[10px] uppercase tracking-[0.05em] text-outline hover:text-on-surface transition-colors" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Retningslinjer</a>
-<a class="font-label text-[10px] uppercase tracking-[0.05em] text-outline hover:text-on-surface transition-colors" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Personvern</a>
-<a class="font-label text-[10px] uppercase tracking-[0.05em] text-outline hover:text-on-surface transition-colors" href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Brukervilkår</a>
-</div>
-</div>
-</div>
-</footer>
-</body></html>
+    .fixed {
+      position: fixed
+    }
+
+    .absolute {
+      position: absolute
+    }
+
+    .relative {
+      position: relative
+    }
+
+    .sticky {
+      position: sticky
+    }
+
+    .inset-0 {
+      inset: 0px
+    }
+
+    .left-0 {
+      left: 0px
+    }
+
+    .right-8 {
+      right: 2rem
+    }
+
+    .top-0 {
+      top: 0px
+    }
+
+    .top-24 {
+      top: 6rem
+    }
+
+    .top-4 {
+      top: 1rem
+    }
+
+    .top-\[72px\] {
+      top: 72px
+    }
+
+    .z-0 {
+      z-index: 0
+    }
+
+    .z-10 {
+      z-index: 10
+    }
+
+    .z-40 {
+      z-index: 40
+    }
+
+    .z-50 {
+      z-index: 50
+    }
+
+    .mx-auto {
+      margin-left: auto;
+      margin-right: auto
+    }
+
+    .my-12 {
+      margin-top: 3rem;
+      margin-bottom: 3rem
+    }
+
+    .mb-1 {
+      margin-bottom: 0.25rem
+    }
+
+    .mb-12 {
+      margin-bottom: 3rem
+    }
+
+    .mb-4 {
+      margin-bottom: 1rem
+    }
+
+    .mr-4 {
+      margin-right: 1rem
+    }
+
+    .mr-6 {
+      margin-right: 1.5rem
+    }
+
+    .mt-6 {
+      margin-top: 1.5rem
+    }
+
+    .block {
+      display: block
+    }
+
+    .flex {
+      display: flex
+    }
+
+    .grid {
+      display: grid
+    }
+
+    .hidden {
+      display: none
+    }
+
+    .h-1 {
+      height: 0.25rem
+    }
+
+    .h-6 {
+      height: 1.5rem
+    }
+
+    .h-\[1px\] {
+      height: 1px
+    }
+
+    .h-\[500px\] {
+      height: 500px
+    }
+
+    .h-fit {
+      height: -moz-fit-content;
+      height: fit-content
+    }
+
+    .h-full {
+      height: 100%
+    }
+
+    .min-h-screen {
+      min-height: 100vh
+    }
+
+    .w-1 {
+      width: 0.25rem
+    }
+
+    .w-1\/4 {
+      width: 25%
+    }
+
+    .w-12 {
+      width: 3rem
+    }
+
+    .w-16 {
+      width: 4rem
+    }
+
+    .w-\[1px\] {
+      width: 1px
+    }
+
+    .w-full {
+      width: 100%
+    }
+
+    .max-w-4xl {
+      max-width: 56rem
+    }
+
+    .max-w-7xl {
+      max-width: 80rem
+    }
+
+    .max-w-screen-2xl {
+      max-width: 1536px
+    }
+
+    .max-w-screen-xl {
+      max-width: 1280px
+    }
+
+    .scale-95 {
+      --tw-scale-x: .95;
+      --tw-scale-y: .95;
+      transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
+    }
+
+    .cursor-pointer {
+      cursor: pointer
+    }
+
+    .grid-cols-1 {
+      grid-template-columns: repeat(1, minmax(0, 1fr))
+    }
+
+    .flex-col {
+      flex-direction: column
+    }
+
+    .flex-wrap {
+      flex-wrap: wrap
+    }
+
+    .items-end {
+      align-items: flex-end
+    }
+
+    .items-center {
+      align-items: center
+    }
+
+    .justify-center {
+      justify-content: center
+    }
+
+    .justify-between {
+      justify-content: space-between
+    }
+
+    .gap-12 {
+      gap: 3rem
+    }
+
+    .gap-4 {
+      gap: 1rem
+    }
+
+    .gap-6 {
+      gap: 1.5rem
+    }
+
+    .gap-8 {
+      gap: 2rem
+    }
+
+    .space-x-2> :not([hidden])~ :not([hidden]) {
+      --tw-space-x-reverse: 0;
+      margin-right: calc(0.5rem * var(--tw-space-x-reverse));
+      margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)))
+    }
+
+    .space-x-4> :not([hidden])~ :not([hidden]) {
+      --tw-space-x-reverse: 0;
+      margin-right: calc(1rem * var(--tw-space-x-reverse));
+      margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)))
+    }
+
+    .space-x-8> :not([hidden])~ :not([hidden]) {
+      --tw-space-x-reverse: 0;
+      margin-right: calc(2rem * var(--tw-space-x-reverse));
+      margin-left: calc(2rem * calc(1 - var(--tw-space-x-reverse)))
+    }
+
+    .space-y-12> :not([hidden])~ :not([hidden]) {
+      --tw-space-y-reverse: 0;
+      margin-top: calc(3rem * calc(1 - var(--tw-space-y-reverse)));
+      margin-bottom: calc(3rem * var(--tw-space-y-reverse))
+    }
+
+    .space-y-2> :not([hidden])~ :not([hidden]) {
+      --tw-space-y-reverse: 0;
+      margin-top: calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));
+      margin-bottom: calc(0.5rem * var(--tw-space-y-reverse))
+    }
+
+    .space-y-4> :not([hidden])~ :not([hidden]) {
+      --tw-space-y-reverse: 0;
+      margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
+      margin-bottom: calc(1rem * var(--tw-space-y-reverse))
+    }
+
+    .space-y-8> :not([hidden])~ :not([hidden]) {
+      --tw-space-y-reverse: 0;
+      margin-top: calc(2rem * calc(1 - var(--tw-space-y-reverse)));
+      margin-bottom: calc(2rem * var(--tw-space-y-reverse))
+    }
+
+    .overflow-hidden {
+      overflow: hidden
+    }
+
+    .rounded-full {
+      border-radius: 9999px
+    }
+
+    .rounded-lg {
+      border-radius: 0.5rem
+    }
+
+    .rounded-md {
+      border-radius: 0.375rem
+    }
+
+    .border {
+      border-width: 1px
+    }
+
+    .border-y {
+      border-top-width: 1px;
+      border-bottom-width: 1px
+    }
+
+    .border-b-2 {
+      border-bottom-width: 2px
+    }
+
+    .border-t {
+      border-top-width: 1px
+    }
+
+    .border-\[\#A8C9F4\] {
+      --tw-border-opacity: 1;
+      border-color: rgb(168 201 244 / var(--tw-border-opacity, 1))
+    }
+
+    .border-outline-variant\/10 {
+      border-color: rgb(67 71 78 / 0.1)
+    }
+
+    .border-outline-variant\/5 {
+      border-color: rgb(67 71 78 / 0.05)
+    }
+
+    .bg-background {
+      --tw-bg-opacity: 1;
+      background-color: rgb(19 19 19 / var(--tw-bg-opacity, 1))
+    }
+
+    .bg-background\/95 {
+      background-color: rgb(19 19 19 / 0.95)
+    }
+
+    .bg-outline-variant\/30 {
+      background-color: rgb(67 71 78 / 0.3)
+    }
+
+    .bg-primary {
+      --tw-bg-opacity: 1;
+      background-color: rgb(168 201 244 / var(--tw-bg-opacity, 1))
+    }
+
+    .bg-secondary {
+      --tw-bg-opacity: 1;
+      background-color: rgb(220 194 169 / var(--tw-bg-opacity, 1))
+    }
+
+    .bg-surface-container {
+      --tw-bg-opacity: 1;
+      background-color: rgb(32 31 31 / var(--tw-bg-opacity, 1))
+    }
+
+    .bg-surface-container-high {
+      --tw-bg-opacity: 1;
+      background-color: rgb(42 42 42 / var(--tw-bg-opacity, 1))
+    }
+
+    .bg-surface-container-low {
+      --tw-bg-opacity: 1;
+      background-color: rgb(28 27 27 / var(--tw-bg-opacity, 1))
+    }
+
+    .bg-surface-container-lowest {
+      --tw-bg-opacity: 1;
+      background-color: rgb(14 14 14 / var(--tw-bg-opacity, 1))
+    }
+
+    .bg-gradient-to-t {
+      background-image: linear-gradient(to top, var(--tw-gradient-stops))
+    }
+
+    .from-background {
+      --tw-gradient-from: #131313 var(--tw-gradient-from-position);
+      --tw-gradient-to: rgb(19 19 19 / 0) var(--tw-gradient-to-position);
+      --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to)
+    }
+
+    .via-background\/60 {
+      --tw-gradient-to: rgb(19 19 19 / 0) var(--tw-gradient-to-position);
+      --tw-gradient-stops: var(--tw-gradient-from), rgb(19 19 19 / 0.6) var(--tw-gradient-via-position), var(--tw-gradient-to)
+    }
+
+    .to-background\/20 {
+      --tw-gradient-to: rgb(19 19 19 / 0.2) var(--tw-gradient-to-position)
+    }
+
+    .object-cover {
+      object-fit: cover
+    }
+
+    .p-1 {
+      padding: 0.25rem
+    }
+
+    .p-2 {
+      padding: 0.5rem
+    }
+
+    .p-6 {
+      padding: 1.5rem
+    }
+
+    .px-3 {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem
+    }
+
+    .px-4 {
+      padding-left: 1rem;
+      padding-right: 1rem
+    }
+
+    .px-6 {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem
+    }
+
+    .px-8 {
+      padding-left: 2rem;
+      padding-right: 2rem
+    }
+
+    .py-1\.5 {
+      padding-top: 0.375rem;
+      padding-bottom: 0.375rem
+    }
+
+    .py-10 {
+      padding-top: 2.5rem;
+      padding-bottom: 2.5rem
+    }
+
+    .py-12 {
+      padding-top: 3rem;
+      padding-bottom: 3rem
+    }
+
+    .py-2 {
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem
+    }
+
+    .py-4 {
+      padding-top: 1rem;
+      padding-bottom: 1rem
+    }
+
+    .py-8 {
+      padding-top: 2rem;
+      padding-bottom: 2rem
+    }
+
+    .pb-1 {
+      padding-bottom: 0.25rem
+    }
+
+    .pb-12 {
+      padding-bottom: 3rem
+    }
+
+    .pt-16 {
+      padding-top: 4rem
+    }
+
+    .pt-4 {
+      padding-top: 1rem
+    }
+
+    .text-center {
+      text-align: center
+    }
+
+    .font-body {
+      font-family: Inter
+    }
+
+    .font-headline {
+      font-family: Noto Serif
+    }
+
+    .font-label {
+      font-family: Inter
+    }
+
+    .text-2xl {
+      font-size: 1.5rem;
+      line-height: 2rem
+    }
+
+    .text-4xl {
+      font-size: 2.25rem;
+      line-height: 2.5rem
+    }
+
+    .text-8xl {
+      font-size: 6rem;
+      line-height: 1
+    }
+
+    .text-\[10px\] {
+      font-size: 10px
+    }
+
+    .text-base {
+      font-size: 1rem;
+      line-height: 1.5rem
+    }
+
+    .text-lg {
+      font-size: 1.125rem;
+      line-height: 1.75rem
+    }
+
+    .text-sm {
+      font-size: 0.875rem;
+      line-height: 1.25rem
+    }
+
+    .text-xs {
+      font-size: 0.75rem;
+      line-height: 1rem
+    }
+
+    .font-bold {
+      font-weight: 700
+    }
+
+    .font-medium {
+      font-weight: 500
+    }
+
+    .uppercase {
+      text-transform: uppercase
+    }
+
+    .italic {
+      font-style: italic
+    }
+
+    .leading-\[1\.1\] {
+      line-height: 1.1
+    }
+
+    .leading-snug {
+      line-height: 1.375
+    }
+
+    .tracking-\[0\.05em\] {
+      letter-spacing: 0.05em
+    }
+
+    .tracking-\[0\.2em\] {
+      letter-spacing: 0.2em
+    }
+
+    .tracking-tight {
+      letter-spacing: -0.025em
+    }
+
+    .tracking-tighter {
+      letter-spacing: -0.05em
+    }
+
+    .tracking-wider {
+      letter-spacing: 0.05em
+    }
+
+    .tracking-widest {
+      letter-spacing: 0.1em
+    }
+
+    .text-\[\#A8C9F4\] {
+      --tw-text-opacity: 1;
+      color: rgb(168 201 244 / var(--tw-text-opacity, 1))
+    }
+
+    .text-\[\#E5E2E1\] {
+      --tw-text-opacity: 1;
+      color: rgb(229 226 225 / var(--tw-text-opacity, 1))
+    }
+
+    .text-\[\#E5E2E1\]\/70 {
+      color: rgb(229 226 225 / 0.7)
+    }
+
+    .text-on-background {
+      --tw-text-opacity: 1;
+      color: rgb(229 226 225 / var(--tw-text-opacity, 1))
+    }
+
+    .text-on-surface {
+      --tw-text-opacity: 1;
+      color: rgb(229 226 225 / var(--tw-text-opacity, 1))
+    }
+
+    .text-on-surface-variant {
+      --tw-text-opacity: 1;
+      color: rgb(195 198 207 / var(--tw-text-opacity, 1))
+    }
+
+    .text-outline {
+      --tw-text-opacity: 1;
+      color: rgb(141 145 153 / var(--tw-text-opacity, 1))
+    }
+
+    .text-outline-variant {
+      --tw-text-opacity: 1;
+      color: rgb(67 71 78 / var(--tw-text-opacity, 1))
+    }
+
+    .text-primary {
+      --tw-text-opacity: 1;
+      color: rgb(168 201 244 / var(--tw-text-opacity, 1))
+    }
+
+    .text-secondary {
+      --tw-text-opacity: 1;
+      color: rgb(220 194 169 / var(--tw-text-opacity, 1))
+    }
+
+    .text-secondary-fixed-dim {
+      --tw-text-opacity: 1;
+      color: rgb(220 194 169 / var(--tw-text-opacity, 1))
+    }
+
+    .text-secondary\/5 {
+      color: rgb(220 194 169 / 0.05)
+    }
+
+    .opacity-60 {
+      opacity: 0.6
+    }
+
+    .shadow-sm {
+      --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
+      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)
+    }
+
+    .backdrop-blur-sm {
+      --tw-backdrop-blur: blur(4px);
+      -webkit-backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
+      backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)
+    }
+
+    .transition-all {
+      transition-property: all;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 150ms
+    }
+
+    .transition-colors {
+      transition-property: color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;
+      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+      transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 150ms
+    }
+
+    .duration-300 {
+      transition-duration: 300ms
+    }
+
+    .first-letter\:float-left::first-letter {
+      float: left
+    }
+
+    .first-letter\:mr-3::first-letter {
+      margin-right: 0.75rem
+    }
+
+    .first-letter\:font-headline::first-letter {
+      font-family: Noto Serif
+    }
+
+    .first-letter\:text-7xl::first-letter {
+      font-size: 4.5rem;
+      line-height: 1
+    }
+
+    .first-letter\:font-bold::first-letter {
+      font-weight: 700
+    }
+
+    .first-letter\:text-primary::first-letter {
+      --tw-text-opacity: 1;
+      color: rgb(168 201 244 / var(--tw-text-opacity, 1))
+    }
+
+    .selection\:bg-primary-container *::selection {
+      --tw-bg-opacity: 1;
+      background-color: rgb(68 101 139 / var(--tw-bg-opacity, 1))
+    }
+
+    .selection\:text-on-primary-container *::selection {
+      --tw-text-opacity: 1;
+      color: rgb(205 225 255 / var(--tw-text-opacity, 1))
+    }
+
+    .selection\:bg-primary-container::selection {
+      --tw-bg-opacity: 1;
+      background-color: rgb(68 101 139 / var(--tw-bg-opacity, 1))
+    }
+
+    .selection\:text-on-primary-container::selection {
+      --tw-text-opacity: 1;
+      color: rgb(205 225 255 / var(--tw-text-opacity, 1))
+    }
+
+    .hover\:bg-\[\#2A2A2A\]\/50:hover {
+      background-color: rgb(42 42 42 / 0.5)
+    }
+
+    .hover\:bg-surface-container-high:hover {
+      --tw-bg-opacity: 1;
+      background-color: rgb(42 42 42 / var(--tw-bg-opacity, 1))
+    }
+
+    .hover\:text-\[\#E5E2E1\]:hover {
+      --tw-text-opacity: 1;
+      color: rgb(229 226 225 / var(--tw-text-opacity, 1))
+    }
+
+    .hover\:text-on-surface:hover {
+      --tw-text-opacity: 1;
+      color: rgb(229 226 225 / var(--tw-text-opacity, 1))
+    }
+
+    .hover\:text-primary:hover {
+      --tw-text-opacity: 1;
+      color: rgb(168 201 244 / var(--tw-text-opacity, 1))
+    }
+
+    .hover\:text-primary-fixed:hover {
+      --tw-text-opacity: 1;
+      color: rgb(209 228 255 / var(--tw-text-opacity, 1))
+    }
+
+    .active\:scale-90:active {
+      --tw-scale-x: .9;
+      --tw-scale-y: .9;
+      transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
+    }
+
+    .group:hover .group-hover\:text-primary {
+      --tw-text-opacity: 1;
+      color: rgb(168 201 244 / var(--tw-text-opacity, 1))
+    }
+
+    @media (min-width: 640px) {
+      .sm\:block {
+        display: block
+      }
+
+      .sm\:inline {
+        display: inline
+      }
+
+      .sm\:flex-row {
+        flex-direction: row
+      }
+
+      .sm\:items-start {
+        align-items: flex-start
+      }
+
+      .sm\:items-end {
+        align-items: flex-end
+      }
+
+      .sm\:text-left {
+        text-align: left
+      }
+
+      .sm\:text-right {
+        text-align: right
+      }
+    }
+
+    @media (min-width: 768px) {
+      .md\:my-16 {
+        margin-top: 4rem;
+        margin-bottom: 4rem
+      }
+
+      .md\:mb-16 {
+        margin-bottom: 4rem
+      }
+
+      .md\:flex {
+        display: flex
+      }
+
+      .md\:hidden {
+        display: none
+      }
+
+      .md\:h-\[614px\] {
+        height: 614px
+      }
+
+      .md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+      }
+
+      .md\:justify-end {
+        justify-content: flex-end
+      }
+
+      .md\:px-12 {
+        padding-left: 3rem;
+        padding-right: 3rem
+      }
+
+      .md\:px-8 {
+        padding-left: 2rem;
+        padding-right: 2rem
+      }
+
+      .md\:py-12 {
+        padding-top: 3rem;
+        padding-bottom: 3rem
+      }
+
+      .md\:py-16 {
+        padding-top: 4rem;
+        padding-bottom: 4rem
+      }
+
+      .md\:pb-16 {
+        padding-bottom: 4rem
+      }
+
+      .md\:text-left {
+        text-align: left
+      }
+
+      .md\:text-4xl {
+        font-size: 2.25rem;
+        line-height: 2.5rem
+      }
+
+      .md\:text-6xl {
+        font-size: 3.75rem;
+        line-height: 1
+      }
+
+      .md\:text-xl {
+        font-size: 1.25rem;
+        line-height: 1.75rem
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .lg\:block {
+        display: block
+      }
+
+      .lg\:grid {
+        display: grid
+      }
+
+      .lg\:grid-cols-\[1fr_minmax\(auto\2c 720px\)_1fr\] {
+        grid-template-columns: 1fr minmax(auto, 720px) 1fr
+      }
+
+      .lg\:text-7xl {
+        font-size: 4.5rem;
+        line-height: 1
+      }
+    }
+  </style>
+  <style id="prototype-run-styles">
+    .prototype-link-hover {
+      cursor: pointer !important;
+    }
+
+    .prototype-hotspot {
+      outline: 2px dashed rgba(66, 135, 245, 0.7) !important;
+      outline-offset: 2px;
+      animation: hotspot-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes hotspot-pulse {
+
+      0%,
+      100% {
+        outline-color: rgba(66, 135, 245, 0.5);
+      }
+
+      50% {
+        outline-color: rgba(66, 135, 245, 0.9);
+      }
+    }
+  </style>
+  <style id="interactive-mode-styles">
+    /* Cursor change for the whole page */
+    body[data-mode="connect"] {
+      cursor: crosshair !important;
+    }
+
+    /* Connected State - Blue/Green (Persistent) */
+    .interactive-connected {
+      outline: 2px dashed #4287f5 !important;
+      position: relative;
+      z-index: 9990;
+    }
+
+    /* Hover State - Blurple */
+    .interactive-hover {
+      outline: 2px solid #5E56E7 !important;
+      position: relative;
+      z-index: 9999;
+    }
+
+    /* Selected State - Same Blurple (Persistent) */
+    .interactive-selected {
+      outline: 2px solid #5E56E7 !important;
+      box-shadow: 0 0 0 2px #5E56E7 !important;
+      position: relative;
+      z-index: 10000;
+    }
+
+    /* Label Tag */
+    .interactive-connected::before,
+    .interactive-hover::before,
+    .interactive-selected::before {
+      content: attr(data-interactive-label);
+      position: absolute;
+      top: -24px;
+      left: -2px;
+      padding: 2px 8px;
+      font-size: 12px !important;
+      line-height: 1 !important;
+      height: auto !important;
+      display: block !important;
+      font-family: monospace !important;
+      font-weight: normal !important;
+      font-style: normal !important;
+      text-transform: none !important;
+      letter-spacing: normal !important;
+      border-radius: 4px 4px 0 0;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      z-index: 10001;
+    }
+
+    /* Specific Colors for Labels */
+    .interactive-connected::before {
+      background: #4287f5;
+      color: white;
+      content: "Connected";
+    }
+
+    .interactive-hover::before,
+    .interactive-selected::before {
+      background: #5E56E7;
+      color: white;
+    }
+  </style>
+</head>
+
+<body
+  class="bg-background text-on-background font-body selection:bg-primary-container selection:text-on-primary-container"
+  data-mode="connect">
+  <!-- TopNavBar -->
+  <nav class="fixed top-0 w-full z-50 glass-nav">
+    <div class="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
+      <div class="text-2xl font-headline tracking-tighter text-[#E5E2E1]">branham.no</div>
+      <!-- Desktop Navigation -->
+      <div class="hidden md:flex items-center space-x-8">
+        <a class="font-headline tracking-tight text-[#A8C9F4] font-bold border-b-2 border-[#A8C9F4] pb-1 prototype-hotspot interactive-connected"
+          href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#"
+          data-interactive-label="Connected">Hjem</a>
+        <a class="font-headline tracking-tight text-[#E5E2E1]/70 hover:text-[#E5E2E1] transition-colors duration-300 prototype-hotspot interactive-connected"
+          href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#"
+          data-interactive-label="Connected">Taler</a>
+        <a class="font-headline tracking-tight text-[#E5E2E1]/70 hover:text-[#E5E2E1] transition-colors duration-300 prototype-hotspot interactive-connected"
+          href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#"
+          data-interactive-label="Connected">Om oss</a>
+        <a class="font-headline tracking-tight text-[#E5E2E1]/70 hover:text-[#E5E2E1] transition-colors duration-300 prototype-hotspot interactive-connected"
+          href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#"
+          data-interactive-label="Connected">Kontakt</a>
+      </div>
+      <div class="flex items-center space-x-4">
+        <button
+          class="p-2 hover:bg-[#2A2A2A]/50 transition-all duration-300 rounded-full scale-95 active:scale-90 text-[#A8C9F4]">
+          <span class="material-symbols-outlined">search</span>
+        </button>
+        <button
+          class="p-2 hover:bg-[#2A2A2A]/50 transition-all duration-300 rounded-full scale-95 active:scale-90 text-[#A8C9F4]">
+          <span class="material-symbols-outlined">language</span>
+        </button>
+        <!-- Mobile Menu Icon -->
+        <button class="md:hidden p-2 text-[#E5E2E1]">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+  <main class="min-h-screen pt-16">
+    <!-- Hero Section with Background -->
+    <header class="relative w-full h-[500px] md:h-[614px] flex items-end overflow-hidden">
+      <div class="absolute inset-0 z-0">
+        <img alt="Et fredelig morgenlandskap med milde åser badet i mykt sollys"
+          class="w-full h-full object-cover opacity-60"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWpVrZzbMaXJYasclAnCxqggnKRK39BNr3-h9cTmwV4rV59pIxRcy5iZySIP_jOklAoxTgplLwm7AZ0LVb3TcZyq-J5xjgk-njURigngaPdNAR-u6piKTtL8WLDXibbXzyk0j10F4tDWAZBR1VLOsCFg2tTWHMfSt3rUNa7M4vf_q4zYgIdCzUh6sUIqHuV00kocJJ4zmLw5tT35EjikrBoPd8Oycj_72BNsist6FXtGmXey1659mZ5aT54aIZ-0BqGX2VLt5Cla5M">
+        <div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20"></div>
+      </div>
+      <div class="relative z-10 w-full max-w-4xl mx-auto px-6 md:px-8 pb-12 md:pb-16">
+        <div class="space-y-4">
+          <div class="flex items-center space-x-4">
+            <span class="text-secondary font-label text-xs uppercase tracking-[0.2em]">Sermon Archive</span>
+            <div class="h-[1px] w-12 bg-outline-variant/30"></div>
+          </div>
+          <h1
+            class="text-4xl md:text-6xl lg:text-7xl font-headline font-bold text-on-surface tracking-tight leading-[1.1]">
+            Det Valgte Hvilested
+          </h1>
+          <div class="flex flex-wrap items-center gap-6 text-on-surface-variant font-body text-sm font-medium pt-4">
+            <div class="flex items-center space-x-2">
+              <span class="material-symbols-outlined text-primary text-lg" data-icon="location_on">location_on</span>
+              <span>Jeffersonville, IN</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="material-symbols-outlined text-primary text-lg"
+                data-icon="calendar_today">calendar_today</span>
+              <span>13. Mai 1965</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+    <!-- Reading Canvas -->
+    <div
+      class="max-w-screen-xl mx-auto px-6 md:px-8 lg:grid lg:grid-cols-[1fr_minmax(auto,720px)_1fr] gap-12 py-12 md:py-16">
+      <!-- Left Sidebar: Reading Stats/Progress (Subtle) -->
+      <aside class="hidden lg:block sticky top-24 h-fit space-y-12">
+        <div class="space-y-4">
+          <div class="text-[10px] uppercase tracking-widest text-outline">Lese-fremgang</div>
+          <div class="w-full bg-surface-container-high h-1 rounded-full overflow-hidden">
+            <div class="bg-primary w-1/4 h-full"></div>
+          </div>
+        </div>
+      </aside>
+      <!-- Main Content Column -->
+      <article class="prose-custom">
+        <!-- Controls Bar -->
+        <div
+          class="flex flex-wrap items-center justify-between mb-12 md:mb-16 py-4 border-y border-outline-variant/10 sticky top-[72px] bg-background/95 backdrop-blur-sm z-40 gap-4"
+          style="top: 64px;">
+          <div class="flex items-center">
+            <div class="flex items-center bg-surface-container rounded-lg p-1 mr-4">
+              <button
+                class="px-3 py-1.5 rounded-md text-xs font-label font-bold transition-all bg-surface-container-high text-on-surface shadow-sm">
+                Lese-modus
+              </button>
+              <button
+                class="px-3 py-1.5 rounded-md text-xs font-label font-bold transition-all text-on-surface-variant hover:text-on-surface prototype-hotspot interactive-connected"
+                data-interactive-label="Connected">
+                Sammenligning
+              </button>
+            </div>
+            <div class="h-6 w-[1px] bg-outline-variant/30 hidden sm:block mr-6"></div>
+            <div class="flex items-center bg-surface-container rounded-full px-4 py-1.5 space-x-4">
+              <button class="text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-lg" data-icon="text_decrease">text_decrease</span>
+              </button>
+              <span class="text-xs font-label font-bold text-outline">AA</span>
+              <button class="text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-lg" data-icon="text_increase">text_increase</span>
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              class="flex items-center space-x-2 px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface text-sm font-medium transition-all rounded-md">
+              <span class="material-symbols-outlined text-lg" data-icon="download">download</span>
+              <span class="hidden sm:inline">Last ned PDF</span>
+            </button>
+            <button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+              <span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+            </button>
+          </div>
+        </div>
+        <!-- Text Content -->
+        <div class="space-y-8">
+          <p
+            class="first-letter:text-7xl first-letter:font-headline first-letter:font-bold first-letter:mr-3 first-letter:float-left first-letter:text-primary">
+            Velsignet være Herrens Navn. Det er en stor forrett å være her i kveld i Herrens hus. Vi ser frem til hva
+            Herren vil gjøre iblant oss når vi åpner Hans Ord. Vi vet at Hans Ord aldri vender tomt tilbake, men det vil
+            utrette det som Han har sendt det for å gjøre.
+          </p>
+          <p>
+            Jeg vil at vi skal vende oss til Skriftene i kveld for å finne vårt emne. Vi lever i en tid hvor mange søker
+            etter et hvilested, et sted for fred i en urolig verden. Men det finnes bare ett sant hvilested som Gud Selv
+            har utvalgt.
+          </p>
+          <!-- Pull Quote Component -->
+          <div
+            class="my-12 md:my-16 relative py-10 md:py-12 px-6 md:px-8 bg-surface-container-low overflow-hidden group">
+            <div class="absolute top-0 left-0 w-1 h-full bg-secondary"></div>
+            <span class="material-symbols-outlined absolute top-4 right-8 text-8xl text-secondary/5 pointer-events-none"
+              data-icon="format_quote">format_quote</span>
+            <blockquote
+              class="relative z-10 text-2xl md:text-4xl font-headline italic leading-snug text-secondary-fixed-dim">
+              "Gud hviler ikke i bygninger av stein og tre, men i et hjerte som har gjort rom for Hans Ord."
+            </blockquote>
+            <cite class="block mt-6 text-sm font-label uppercase tracking-widest text-outline-variant">— William Marrion
+              Branham</cite>
+          </div>
+          <p>
+            Da Salomon bygde templet, trodde han kanskje at han hadde bygget et hus for Den Høyeste. Men profeten sa:
+            "Hvilket hus vil dere bygge Meg? sier Herren. Eller hva er Min hvileplass?" Jorden er Hans fotskammel og
+            himmelen er Hans trone.
+          </p>
+          <p>
+            Vi ser i dag at folk prøver å bygge store organisasjoner, praktfulle katedraler med glassmalerier og høye
+            spir. De tror at Gud vil bo der. Men Gud kan ikke begrenses til menneskehenders verk. Han søker etter et
+            tempel av kjøtt og blod, et menneske som vil tro Hans løfte for denne timen.
+          </p>
+          <div class="py-8 md:py-12 flex justify-center">
+            <div class="w-16 h-[1px] bg-outline-variant/30"></div>
+          </div>
+          <p>
+            Når vi ser på Israels historie, ser vi hvordan de alltid ønsket noe de kunne se og røre ved. De ville ha en
+            konge som nasjonene rundt dem. Men Gud var deres Konge. De ønsket et tabernakel, men Gud ønsket å bo i deres
+            midte gjennom Sin Ånd.
+          </p>
+          <p>
+            I denne siste tid har Gud igjen sendt oss et budskap for å kalle oss ut av systemene og inn i det sanne
+            hvilestedet. Det hvilestedet er i Kristus, som er Ordet. Når du tar imot Ordet for din dag, da tar du imot
+            Gud Selv, for Ordet og Gud er ett.
+          </p>
+        </div>
+      </article>
+      <!-- Right Sidebar: Metadata / Related (Subtle) -->
+      <aside class="hidden lg:block sticky top-24 h-fit">
+        <div class="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
+          <h4 class="font-headline text-lg mb-4 text-secondary">Detaljer</h4>
+          <dl class="space-y-4 text-sm">
+            <div>
+              <dt class="text-outline text-[10px] uppercase tracking-wider mb-1">Serien</dt>
+              <dd class="text-on-surface">De syv segl</dd>
+            </div>
+            <div>
+              <dt class="text-outline text-[10px] uppercase tracking-wider mb-1">Oversettelse</dt>
+              <dd class="text-on-surface">Norsk (Bokmål)</dd>
+            </div>
+            <div>
+              <dt class="text-outline text-[10px] uppercase tracking-wider mb-1">Lydfil</dt>
+              <dd
+                class="flex items-center space-x-2 text-primary hover:text-primary-fixed cursor-pointer transition-colors">
+                <span class="material-symbols-outlined text-base" data-icon="play_circle">play_circle</span>
+                <span>65-0513</span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+    <!-- Reader Navigation -->
+    <div class="max-w-4xl mx-auto px-6 md:px-8 py-12 border-t border-outline-variant/10">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-8">
+        <a class="group flex flex-col items-center sm:items-start space-y-2 text-center sm:text-left prototype-hotspot interactive-connected"
+          href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#"
+          data-interactive-label="Connected">
+          <span
+            class="text-xs font-label uppercase tracking-widest text-outline group-hover:text-primary transition-colors">Forrige
+            tale</span>
+          <span class="font-headline text-lg md:text-xl text-on-surface">Det ellevte bud</span>
+        </a>
+        <a class="group flex flex-col items-center sm:items-end space-y-2 text-center sm:text-right prototype-hotspot interactive-connected"
+          href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#"
+          data-interactive-label="Connected">
+          <span
+            class="text-xs font-label uppercase tracking-widest text-outline group-hover:text-primary transition-colors">Neste
+            tale</span>
+          <span class="font-headline text-lg md:text-xl text-on-surface">Kraften av forvandling</span>
+        </a>
+      </div>
+    </div>
+  </main>
+  <!-- Footer -->
+  <footer class="bg-surface-container-lowest border-t border-outline-variant/10 py-12">
+    <div class="max-w-screen-2xl mx-auto px-6 md:px-12">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div class="space-y-2 text-center md:text-left">
+          <div class="text-lg font-headline italic text-secondary">The Digital Archive</div>
+          <p class="font-label text-[10px] uppercase tracking-[0.05em] text-outline">© 2024 The Digital Archive. Med
+            enerett.</p>
+        </div>
+        <div class="flex flex-wrap justify-center md:justify-end gap-6">
+          <a class="font-label text-[10px] uppercase tracking-[0.05em] text-outline hover:text-on-surface transition-colors"
+            href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Retningslinjer</a>
+          <a class="font-label text-[10px] uppercase tracking-[0.05em] text-outline hover:text-on-surface transition-colors"
+            href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Personvern</a>
+          <a class="font-label text-[10px] uppercase tracking-[0.05em] text-outline hover:text-on-surface transition-colors"
+            href="https://app-companion-430619.appspot.com/projects/13288491202800148532?usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.no.p8KUI-_oI_8.O%2Fd%3D1%2Frs%3DAHpOoo-WxWWzwpwooZrhXm6YaWII0PjVsg%2Fm%3D__features__#">Brukervilkår</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>
