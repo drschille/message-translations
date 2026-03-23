@@ -8,6 +8,7 @@ import {
   Minus,
   PlayCircle,
   Plus,
+  Type,
 } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -200,7 +201,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
           <img
             src={homePillarOfFire}
             alt="William Branham with pillar of fire"
-            className="absolute inset-0 h-full w-full object-cover object-top opacity-60"
+            className="absolute inset-0 mx-auto h-full w-full max-w-[1000px] object-cover object-top opacity-60"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
 
@@ -239,11 +240,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
 
         {/* Three-column layout */}
         <div
-          className={`mx-auto grid w-full gap-12 px-6 py-12 md:px-8 md:py-16 ${
-            mode === "proofread"
-              ? "max-w-[1440px] lg:grid-cols-[200px_1fr_240px]"
-              : "max-w-screen-xl lg:grid-cols-[1fr_minmax(auto,720px)_1fr]"
-          }`}
+          className="mx-auto grid w-full gap-12 px-6 py-12 md:px-8 md:py-16 lg:grid-cols-[200px_1fr_min(20vw,350px)]"
         >
           {/* Left sidebar — progress */}
           <aside className="hidden h-fit space-y-12 lg:sticky lg:top-24 lg:block">
@@ -342,7 +339,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                   >
                     <Minus size={16} />
                   </button>
-                  <span className="text-xs font-bold text-outline">AA</span>
+                  <Type size={16} className="text-outline" />
                   <button
                     onClick={increaseText}
                     className="rounded-full p-1 text-on-surface-variant transition hover:text-primary"
@@ -502,8 +499,8 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
           </article>
 
           {/* Right sidebar — details */}
-          <aside className="hidden h-fit lg:sticky lg:top-24 lg:block">
-            <div className="rounded-lg border border-outline/15 bg-surface-container-low p-6">
+          <aside className="hidden min-w-0 h-fit lg:sticky lg:top-24 lg:block">
+            <div className="overflow-hidden rounded-lg border border-outline/15 bg-surface-container-low p-6">
               <h3 className="mb-4 font-headline text-lg text-secondary">
                 {t("reader.details")}
               </h3>
@@ -518,15 +515,15 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                   <dt className="mb-1 text-[10px] uppercase tracking-wider text-outline">
                     {t("reader.audioFile")}
                   </dt>
-                  <dd>
+                  <dd className="min-w-0">
                     <a
                       href={sermon?.audioUrl || "#"}
                       target={sermon?.audioUrl ? "_blank" : undefined}
                       rel={sermon?.audioUrl ? "noopener noreferrer" : undefined}
-                      className="inline-flex items-center gap-2 text-primary transition hover:text-primary/80"
+                      className="flex min-w-0 items-center gap-2 text-primary transition hover:text-primary/80"
                     >
-                      <PlayCircle size={16} />
-                      {sermon?._id || "65-0513"}
+                      <PlayCircle size={16} className="shrink-0" />
+                      <span className="truncate">{sermon?._id || "65-0513"}</span>
                     </a>
                   </dd>
                 </div>

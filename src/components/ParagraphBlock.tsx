@@ -93,8 +93,8 @@ export default function ParagraphBlock({
             <p
               className={`font-headline leading-relaxed ${
                 isActiveEditing
-                  ? "text-xl text-on-surface"
-                  : "text-lg italic text-on-surface-variant"
+                  ? "text-on-surface"
+                  : "italic text-on-surface-variant"
               }`}
             >
               {index === 0 ? (
@@ -116,7 +116,7 @@ export default function ParagraphBlock({
           className={
             isProofread
               ? `relative p-8 ${!isActiveEditing && segment.status !== "approved" && onStartEditing ? "cursor-pointer" : ""}`
-              : `py-8 md:py-10`
+              : `py-3 md:py-4`
           }
           onClick={
             isProofread && !isActiveEditing && segment.status !== "approved" && onStartEditing
