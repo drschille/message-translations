@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
   CalendarDays,
@@ -96,9 +96,15 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
   const [bookmarked, setBookmarked] = useState(false);
   const [commentsParagraphId, setCommentsParagraphId] = useState<ParagraphId | null>(null);
   const [historyParagraphId, setHistoryParagraphId] = useState<ParagraphId | null>(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [draftText, setDraftText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const sermonId = sermon?._id as SermonId | undefined;
   const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
+  const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
+  const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
   const paragraphsResult = useQuery(
     api.editorial.listParagraphs,
     sermonId ? { sermonId, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
@@ -153,6 +159,39 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
   const increaseText = () => setFontScale((prev) => Math.min(1.3, Number((prev + 0.05).toFixed(2))));
   const decreaseText = () => setFontScale((prev) => Math.max(0.85, Number((prev - 0.05).toFixed(2))));
 
+  const startEditing = useCallback(async (segment: ParagraphBlockSegment) => {
+    if (segment.status === "approved") return;
+    setEditingKey(segment.key);
+    setDraftText(segment.translatedText);
+    if (segment.paragraphId && segment.status !== "drafting") {
+      await updateParagraphStatus({ paragraphId: segment.paragraphId, status: "drafting" });
+    }
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  }, [updateParagraphStatus]);
+
+  const saveDraft = useCallback(async (submitForReview = false) => {
+    const segment = segments.find((s) => s.key === editingKey);
+    if (!segment?.paragraphId) return;
+    setSaving(true);
+    try {
+      await updateParagraphDraft({
+        paragraphId: segment.paragraphId,
+        translatedText: draftText,
+        reason: submitForReview
+          ? "Submitted for review from reader"
+          : "Draft saved from reader",
+        submitForReview,
+      });
+      setEditingKey(null);
+    } finally {
+      setSaving(false);
+    }
+  }, [editingKey, draftText, segments, updateParagraphDraft]);
+
+  const discardDraft = useCallback(() => {
+    setEditingKey(null);
+  }, []);
+
   return (
     <>
       <main className="min-h-screen bg-background text-on-surface">
@@ -202,7 +241,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
         <div
           className={`mx-auto grid w-full gap-12 px-6 py-12 md:px-8 md:py-16 ${
             mode === "proofread"
-              ? "max-w-screen-2xl lg:grid-cols-[1fr_minmax(auto,960px)_1fr]"
+              ? "max-w-[1440px] lg:grid-cols-[200px_1fr_240px]"
               : "max-w-screen-xl lg:grid-cols-[1fr_minmax(auto,720px)_1fr]"
           }`}
         >
@@ -219,6 +258,50 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                 />
               </div>
             </div>
+
+            {/* Statusfordeling */}
+            {(() => {
+              const total = segments.length || 1;
+              const approved = segments.filter((s) => s.status === "approved").length;
+              const needsReview = segments.filter((s) => s.status === "needs_review").length;
+              const draft = total - approved - needsReview;
+              return (
+                <div className="space-y-3 border-t border-outline-variant/10 pt-4">
+                  <div className="text-[10px] uppercase tracking-widest text-outline">
+                    {t("reader.statusBreakdown")}
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-2 text-on-surface-variant">
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                        {t("reader.statusApproved")}
+                      </span>
+                      <span className="font-bold text-primary">
+                        {Math.round((approved / total) * 100)}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-2 text-on-surface-variant">
+                        <span className="h-2 w-2 rounded-full bg-secondary" />
+                        {t("reader.statusNeedsReview")}
+                      </span>
+                      <span className="font-bold text-secondary">
+                        {Math.round((needsReview / total) * 100)}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-2 text-on-surface-variant">
+                        <span className="h-2 w-2 rounded-full bg-outline-variant" />
+                        {t("reader.statusDraft")}
+                      </span>
+                      <span className="font-bold text-outline">
+                        {Math.round((draft / total) * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </aside>
 
           {/* Main content */}
@@ -290,6 +373,14 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
               </div>
             </div>
 
+            {/* Column headers (proofread only) */}
+            {mode === "proofread" && (
+              <div className="mb-8 grid grid-cols-2 gap-12 border-b border-outline-variant/20 pb-4">
+                <span className="font-bold text-outline-variant">Original English</span>
+                <span className="font-bold text-primary">Norsk (Bokmål)</span>
+              </div>
+            )}
+
             {/* Paragraph flow */}
             <div className="space-y-0" style={{ fontSize: `${fontScale}rem` }}>
               {segments.length === 0 ? (
@@ -300,7 +391,36 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                 segments.map((segment, index) => (
                   <div key={segment.key}>
                     {/* Decorative quote block after paragraph 2 */}
-                    {index === 2 && (
+                    {index === 2 && mode === "proofread" && (
+                      <div className="my-12 grid grid-cols-1 gap-12 md:my-16 lg:grid-cols-2">
+                        {/* Original quote */}
+                        <div className="relative overflow-hidden bg-surface-container-low p-8">
+                          <div className="absolute left-0 top-0 h-full w-1 bg-outline-variant/30" />
+                          <blockquote className="relative z-10 font-headline text-xl italic leading-snug text-on-surface/50">
+                            &ldquo;God does not rest in buildings of stone and wood, but in a heart that has
+                            made room for His Word.&rdquo;
+                          </blockquote>
+                          <cite className="mt-6 block text-sm not-italic uppercase tracking-widest text-outline-variant">
+                            – William Marrion Branham
+                          </cite>
+                        </div>
+                        {/* Translated quote */}
+                        <div className="relative overflow-hidden bg-surface-container-low p-8">
+                          <div className="absolute left-0 top-0 h-full w-1 bg-secondary" />
+                          <span className="pointer-events-none absolute right-8 top-4 font-headline text-8xl text-secondary/5">
+                            &ldquo;
+                          </span>
+                          <blockquote className="relative z-10 font-headline text-2xl italic leading-snug text-secondary-fixed-dim">
+                            &ldquo;Gud hviler ikke i bygninger av stein og tre, men i et hjerte som har
+                            gjort rom for Hans Ord.&rdquo;
+                          </blockquote>
+                          <cite className="mt-6 block text-sm not-italic uppercase tracking-widest text-outline-variant">
+                            – William Marrion Branham
+                          </cite>
+                        </div>
+                      </div>
+                    )}
+                    {index === 2 && mode === "read" && (
                       <div className="group relative my-12 overflow-hidden bg-surface-container-low px-6 py-10 md:my-16 md:px-8 md:py-12">
                         <div className="absolute left-0 top-0 h-full w-1 bg-secondary" />
                         <span className="pointer-events-none absolute right-8 top-4 font-headline text-8xl text-secondary/5">
@@ -319,6 +439,17 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                       segment={segment}
                       index={index}
                       mode={mode}
+                      isActiveEditing={editingKey === segment.key && mode === "proofread"}
+                      onStartEditing={
+                        mode === "proofread" && segment.status !== "approved"
+                          ? () => startEditing(segment)
+                          : undefined
+                      }
+                      onApprove={
+                        segment.paragraphId && segment.status === "needs_review"
+                          ? () => updateParagraphStatus({ paragraphId: segment.paragraphId!, status: "approved", reason: "Approved in reader" })
+                          : undefined
+                      }
                       onOpenComments={
                         segment.paragraphId
                           ? () => setCommentsParagraphId(segment.paragraphId)
@@ -329,7 +460,41 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                           ? () => setHistoryParagraphId(segment.paragraphId)
                           : undefined
                       }
-                    />
+                    >
+                      {editingKey === segment.key && mode === "proofread" ? (
+                        <>
+                          <textarea
+                            ref={textareaRef}
+                            className="min-h-[8rem] w-full resize-none border-none bg-transparent p-0 font-headline text-xl leading-relaxed text-on-surface focus:outline-none focus:ring-0"
+                            spellCheck={false}
+                            value={draftText}
+                            onChange={(e) => setDraftText(e.target.value)}
+                          />
+                          <div className="mt-6 flex justify-end gap-3">
+                            <button
+                              onClick={discardDraft}
+                              className="px-4 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-on-surface-variant transition-colors hover:text-on-surface"
+                            >
+                              {t("common.discard")}
+                            </button>
+                            <button
+                              disabled={saving}
+                              onClick={() => saveDraft(false)}
+                              className="rounded border border-outline/30 bg-surface-container-highest px-5 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-surface shadow disabled:opacity-50 transition-colors hover:bg-surface-container-high"
+                            >
+                              {t("proofreading.saveDraft")}
+                            </button>
+                            <button
+                              disabled={saving}
+                              onClick={() => saveDraft(true)}
+                              className="rounded bg-gradient-to-br from-primary to-[#44658b] px-6 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-primary shadow-lg disabled:opacity-50"
+                            >
+                              {t("proofreading.submitForReview")}
+                            </button>
+                          </div>
+                        </>
+                      ) : undefined}
+                    </ParagraphBlock>
                   </div>
                 ))
               )}
@@ -407,7 +572,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
         </div>
 
         {/* Inline footer */}
-        <footer className="border-t border-outline-variant/10 bg-surface-container-lowest py-12">
+        <footer className="border-t border-outline-variant/15 bg-surface-container-low py-12">
           <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-8 px-6 md:grid-cols-2 md:px-12">
             <div className="space-y-2 text-center md:text-left">
               <div className="text-lg font-headline italic text-secondary">

@@ -67,14 +67,14 @@ export default function ParagraphBlock({
       <div
         className={`${
           isProofread
-            ? "grid grid-cols-1 lg:grid-cols-2"
+            ? "grid grid-cols-1 lg:grid-cols-2 lg:gap-12"
             : ""
         } ${isActiveEditing ? "p-0" : ""}`}
       >
         {/* ── Original text column (proofread only) ── */}
         {isProofread && (
           <div
-            className={`border-b border-outline/20 p-8 lg:border-b-0 lg:border-r ${
+            className={`border-b border-outline/20 p-8 lg:border-b-0 ${
               isActiveEditing ? "bg-surface-container-highest/20" : ""
             }`}
           >
@@ -84,7 +84,7 @@ export default function ParagraphBlock({
                   isActiveEditing ? "text-secondary" : "text-on-surface-variant"
                 }`}
               >
-                EN-US [{String(segment.order).padStart(3, "0")}]
+                {segment.order}
               </span>
               {isActiveEditing && (
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-secondary" />
@@ -97,7 +97,16 @@ export default function ParagraphBlock({
                   : "text-lg italic text-on-surface-variant"
               }`}
             >
-              {segment.sourceText}
+              {index === 0 ? (
+                <>
+                  <span className="float-left mr-3 font-headline text-6xl font-bold leading-[0.9] text-primary md:text-7xl">
+                    {segment.sourceText[0]}
+                  </span>
+                  {segment.sourceText.slice(1)}
+                </>
+              ) : (
+                segment.sourceText
+              )}
             </p>
           </div>
         )}
@@ -106,7 +115,7 @@ export default function ParagraphBlock({
         <div
           className={
             isProofread
-              ? `relative bg-surface-container p-8 ${!isActiveEditing && segment.status !== "approved" && onStartEditing ? "cursor-pointer" : ""}`
+              ? `relative p-8 ${!isActiveEditing && segment.status !== "approved" && onStartEditing ? "cursor-pointer" : ""}`
               : `py-8 md:py-10`
           }
           onClick={

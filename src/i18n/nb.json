@@ -59,7 +59,11 @@
     "audioFile": "Lydfil",
     "previousSermon": "Forrige tale",
     "nextSermon": "Neste tale",
-    "readProgress": "Lese-fremgang"
+    "readProgress": "Lese-fremgang",
+    "statusBreakdown": "Statusfordeling",
+    "statusApproved": "Godkjent",
+    "statusNeedsReview": "Venter",
+    "statusDraft": "Utkast"
   },
   "editorial": {
     "paragraphComments": "Paragrafkommentarer",

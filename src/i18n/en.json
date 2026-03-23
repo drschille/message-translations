@@ -59,7 +59,11 @@
     "audioFile": "Audio File",
     "previousSermon": "Previous Sermon",
     "nextSermon": "Next Sermon",
-    "readProgress": "Reading Progress"
+    "readProgress": "Reading Progress",
+    "statusBreakdown": "Status Breakdown",
+    "statusApproved": "Approved",
+    "statusNeedsReview": "Pending",
+    "statusDraft": "Draft"
   },
   "editorial": {
     "paragraphComments": "Paragraph Comments",
