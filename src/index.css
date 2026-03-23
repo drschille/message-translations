@@ -18,6 +18,13 @@
   --color-surface-container-high: #2a2a2a;
   --color-surface-container-highest: #353534;
   --color-on-surface-variant: #c3c6cf;
+  --color-surface-container-lowest: #0E0E0E;
+  --color-outline: #8E9099;
+  --color-outline-variant: #44474F;
+  --color-error-container: #93000A;
+  --color-on-error-container: #FFB4AB;
+  --color-secondary-fixed-dim: #C0A78F;
+  --color-primary-container: #44658b;
 }
 
 @layer base {
@@ -52,4 +59,12 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.backdrop-blur-glass {
+  backdrop-filter: blur(20px);
+}
+
+.shadow-glass-deep {
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
 }

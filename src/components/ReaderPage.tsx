@@ -310,7 +310,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                           &ldquo;Gud hviler ikke i bygninger av stein og tre, men i et hjerte som har
                           gjort rom for Hans Ord.&rdquo;
                         </blockquote>
-                        <cite className="mt-6 block text-sm uppercase tracking-widest text-outline-variant">
+                        <cite className="mt-6 block text-sm not-italic uppercase tracking-widest text-outline-variant">
                           – William Marrion Branham
                         </cite>
                       </div>
@@ -358,7 +358,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                       href={sermon?.audioUrl || "#"}
                       target={sermon?.audioUrl ? "_blank" : undefined}
                       rel={sermon?.audioUrl ? "noopener noreferrer" : undefined}
-                      className="inline-flex items-center gap-2 text-primary transition hover:text-[#d1e4ff]"
+                      className="inline-flex items-center gap-2 text-primary transition hover:text-primary/80"
                     >
                       <PlayCircle size={16} />
                       {sermon?._id || "65-0513"}
@@ -407,7 +407,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
         </div>
 
         {/* Inline footer */}
-        <footer className="border-t border-[#e5e2e1]/10 bg-surface-container-lowest py-12">
+        <footer className="border-t border-outline-variant/10 bg-surface-container-lowest py-12">
           <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 gap-8 px-6 md:grid-cols-2 md:px-12">
             <div className="space-y-2 text-center md:text-left">
               <div className="text-lg font-headline italic text-secondary">
