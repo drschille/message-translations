@@ -1,0 +1,23 @@
+# Legg dette inn i din eksisterende Caddyfile på VPS-en.
+# Erstatt "app.example.com" med ditt subdomain og "/path/to/message-translations" med riktig sti.
+
+app.example.com {
+    root * /path/to/message-translations/dist
+    file_server
+    try_files {path} /index.html
+    encode gzip zstd
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+
+    # Cache statiske assets (JS/CSS med hash i filnavn)
+    @static path *.js *.css *.woff2 *.png *.jpg *.svg *.ico
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    # Ikke cache index.html
+    @html path /index.html
+    header @html Cache-Control "no-cache, no-store, must-revalidate"
+}
