@@ -15,7 +15,7 @@ export default function AboutPage() {
           </p>
         </div>
         <div className="md:col-span-5 relative">
-          <div className="aspect-[4/5] bg-surface-container-high overflow-hidden rounded-lg shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)]">
+          <div className="aspect-4/5 bg-surface-container-high overflow-hidden rounded-lg shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)]">
             <img 
               alt="Gammel bok i et bibliotek" 
               className="w-full h-full object-cover opacity-80 mix-blend-luminosity hover:mix-blend-normal transition-all duration-700" 
@@ -88,7 +88,7 @@ export default function AboutPage() {
       {/* Brief Biography: Bento Grid Style */}
       <section className="max-w-7xl mx-auto px-8 mb-32">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 bg-surface-container p-12 rounded-xl flex flex-col justify-end min-h-[400px] relative overflow-hidden group">
+          <div className="md:col-span-2 bg-surface-container p-12 rounded-xl flex flex-col justify-end min-h-100 relative overflow-hidden group">
             <div className="absolute inset-0 opacity-20 group-hover:scale-105 transition-transform duration-700">
               <img 
                 alt="Tåket landskap i fjellet" 

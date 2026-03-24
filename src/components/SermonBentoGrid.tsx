@@ -19,7 +19,7 @@ export default function SermonBentoGrid() {
           {/* Featured Sermon */}
           <motion.div 
             whileHover={{ scale: 1.01 }}
-            className="md:col-span-8 group relative overflow-hidden rounded-xl bg-surface-container aspect-[16/9] flex items-end p-8 transition-all hover:bg-surface-container-high"
+            className="md:col-span-8 group relative overflow-hidden rounded-xl bg-surface-container aspect-video flex items-end p-8 transition-all hover:bg-surface-container-high"
           >
             <div className="absolute inset-0 z-0 transition-transform duration-700 group-hover:scale-105 opacity-40">
               <img 
@@ -28,7 +28,7 @@ export default function SermonBentoGrid() {
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDF8Cwje0Udf6bZa3ZEBf9hR8P5hCx5FqRxt1DQlbC2cbvSYdXec7kFbFVCyUYp91OkFInWbx6PNnwedUzr32dcxzPERMsX6kSL8RPQW1SH9IOzyUxzFS_mNiLKwK1BeF_ORP1STsLDNkEbUYXDGgzt1ZcS-b2k2MgTUnd4ehNtzAzHk56EgwbuU_S86vzSNw7WujE3GF5wKwhv_B3mxlrgGcycIE37YqJoWxu44OHUwxZNvievrHJ27Oo5Em4ngPwqKwqagxnajwjz"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-linear-to-t from-surface via-surface/20 to-transparent"></div>
             </div>
             <div className="relative z-10 w-full">
               <span className="text-xs font-bold text-primary tracking-widest uppercase mb-2 block">SISTE OVERSETTELSE</span>

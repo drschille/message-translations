@@ -197,13 +197,13 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
     <>
       <main className="min-h-screen bg-background text-on-surface">
         {/* Hero header */}
-        <header className="relative flex h-[500px] w-full items-end overflow-hidden md:h-[614px]">
+        <header className="relative flex h-125 w-full items-end overflow-hidden md:h-153.5">
           <img
             src={homePillarOfFire}
             alt="William Branham with pillar of fire"
-            className="absolute inset-0 mx-auto h-full w-full max-w-[1000px] object-cover object-top opacity-60"
+            className="absolute inset-0 mx-auto h-full w-full max-w-250 object-cover object-top opacity-60"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
+          <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-background/20" />
 
           <div className="relative z-10 mx-auto w-full max-w-4xl px-6 pb-12 md:px-8 md:pb-16">
             <button
@@ -304,13 +304,13 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
           {/* Main content */}
           <article className="text-on-surface">
             {/* Sticky toolbar */}
-            <div className="sticky top-[72px] z-40 mb-12 flex flex-wrap items-center justify-between gap-4 border-y border-outline/20 bg-background/95 py-4 backdrop-blur-sm md:mb-16">
+            <div className="sticky top-18 z-40 mb-12 flex flex-wrap items-center justify-between gap-4 border-y border-outline/20 bg-background/95 py-4 backdrop-blur-sm md:mb-16">
               <div className="flex items-center gap-4">
                 {/* Mode toggle */}
                 <div className="flex items-center rounded-lg bg-surface-container p-1">
                   <button
                     onClick={() => setMode("read")}
-                    className={`rounded-md px-3 py-1.5 text-xs font-bold tracking-[0.1em] ${
+                    className={`rounded-md px-3 py-1.5 text-xs font-bold tracking-widest ${
                       mode === "read"
                         ? "bg-surface-container-high text-on-surface shadow-sm"
                         : "text-on-surface-variant hover:text-on-surface"
@@ -320,7 +320,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                   </button>
                   <button
                     onClick={() => setMode("proofread")}
-                    className={`rounded-md px-3 py-1.5 text-xs font-bold tracking-[0.1em] ${
+                    className={`rounded-md px-3 py-1.5 text-xs font-bold tracking-widest ${
                       mode === "proofread"
                         ? "bg-surface-container-high text-on-surface shadow-sm"
                         : "text-on-surface-variant hover:text-on-surface"
@@ -462,7 +462,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                         <>
                           <textarea
                             ref={textareaRef}
-                            className="min-h-[8rem] w-full resize-none border-none bg-transparent p-0 font-headline text-xl leading-relaxed text-on-surface focus:outline-none focus:ring-0"
+                            className="min-h-32 w-full resize-none border-none bg-transparent p-0 font-headline text-xl leading-relaxed text-on-surface focus:outline-none focus:ring-0"
                             spellCheck={false}
                             value={draftText}
                             onChange={(e) => setDraftText(e.target.value)}
@@ -484,7 +484,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
                             <button
                               disabled={saving}
                               onClick={() => saveDraft(true)}
-                              className="rounded bg-gradient-to-br from-primary to-[#44658b] px-6 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-primary shadow-lg disabled:opacity-50"
+                              className="rounded bg-linear-to-br from-primary to-primary-container px-6 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-primary shadow-lg disabled:opacity-50"
                             >
                               {t("proofreading.submitForReview")}
                             </button>

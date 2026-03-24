@@ -95,9 +95,9 @@ export default function TranslationsPage({ onOpenReader }: TranslationsPageProps
         </p>
       </header>
 
-      <section className="mb-12 sticky top-[64px] z-40">
+      <section className="mb-12 sticky top-16 z-40">
         <div className="bg-surface-container-low p-2 rounded-xl flex flex-col md:flex-row gap-2 md:gap-4 items-center shadow-2xl border border-outline-variant/10 w-full max-w-full overflow-hidden">
-          <div className="relative w-full flex-grow group">
+          <div className="relative w-full grow group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface/40 group-focus-within:text-primary transition-colors" size={20} />
             <input
               className="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-secondary py-4 pl-12 pr-4 rounded text-on-surface placeholder:text-on-surface/30 font-body transition-all text-sm md:text-base"
@@ -109,7 +109,7 @@ export default function TranslationsPage({ onOpenReader }: TranslationsPageProps
           </div>
           <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar shrink-0">
             <select
-              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-[100px]"
+              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-25"
               value={selectedYear || ""}
               onChange={(e) => setSelectedYear(e.target.value || null)}
             >
@@ -117,7 +117,7 @@ export default function TranslationsPage({ onOpenReader }: TranslationsPageProps
               {years.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
             <select
-              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-[120px]"
+              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-30"
               value={selectedSeries || ""}
               onChange={(e) => setSelectedSeries(e.target.value || null)}
             >
@@ -149,7 +149,7 @@ export default function TranslationsPage({ onOpenReader }: TranslationsPageProps
           <>
             {featuredSermon && (
               <div className="group relative bg-surface-container border border-outline-variant/10 rounded-xl overflow-hidden hover:bg-surface-container-high transition-all duration-500 p-8 flex flex-col md:flex-row gap-8 items-center">
-                <div className="flex-shrink-0 w-full md:w-64 aspect-square bg-surface-container-highest rounded-lg overflow-hidden relative">
+                <div className="shrink-0 w-full md:w-64 aspect-square bg-surface-container-highest rounded-lg overflow-hidden relative">
                   <img
                     className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
                     src="https://picsum.photos/seed/sermon/800/800"
@@ -159,9 +159,9 @@ export default function TranslationsPage({ onOpenReader }: TranslationsPageProps
                     <Play className="text-primary opacity-80 group-hover:scale-110 transition-transform" size={64} fill="currentColor" />
                   </div>
                 </div>
-                <div className="flex-grow space-y-4">
+                <div className="grow space-y-4">
                   <div className="flex items-center gap-3">
-                    <span className="text-xs tracking-[0.1em] font-bold text-secondary uppercase">Jeffersonville, IN</span>
+                    <span className="text-xs tracking-widest font-bold text-secondary uppercase">Jeffersonville, IN</span>
                     <span className="text-xs text-outline">•</span>
                     <span className="text-xs text-outline">{formatDate(featuredSermon.date, i18n.language)}</span>
                   </div>
@@ -172,7 +172,7 @@ export default function TranslationsPage({ onOpenReader }: TranslationsPageProps
                     {featuredSermon.description}
                   </p>
                   <div className="flex flex-wrap gap-4 pt-4">
-                    <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-tr from-primary to-[#44658b] text-on-primary rounded-md font-bold text-sm hover:opacity-90 transition-opacity">
+                    <button className="flex items-center gap-2 px-6 py-3 bg-linear-to-tr from-primary to-primary-container text-on-primary rounded-md font-bold text-sm hover:opacity-90 transition-opacity">
                       <Headphones size={18} /> {t('translations.listenNow')}
                     </button>
                     <button
@@ -188,7 +188,7 @@ export default function TranslationsPage({ onOpenReader }: TranslationsPageProps
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {otherSermons.map((sermon) => (
-                <div key={sermon._id} className="group bg-surface-container-low p-6 rounded-xl hover:bg-surface-container transition-all duration-300 flex flex-col justify-between min-h-[220px]">
+                <div key={sermon._id} className="group bg-surface-container-low p-6 rounded-xl hover:bg-surface-container transition-all duration-300 flex flex-col justify-between min-h-55">
                   <div className="space-y-3">
                     <div className="flex justify-between items-start">
                       <span className="text-[10px] tracking-widest text-outline uppercase">62-1231</span>

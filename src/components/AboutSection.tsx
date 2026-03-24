@@ -13,7 +13,7 @@ export default function AboutSection() {
               className="relative z-10 rounded-xl overflow-hidden shadow-2xl"
             >
               <img 
-                className="w-full aspect-[4/5] object-cover grayscale brightness-75 hover:scale-105 transition-transform duration-1000" 
+                className="w-full aspect-4/5 object-cover grayscale brightness-75 hover:scale-105 transition-transform duration-1000" 
                 alt="Norwegian landscape" 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbWJtnSxkQcCUdAMdtVkW8zUAHpRBjrIbvQVumT5tyKI6g-FNs58MX_zyd0HST3E5x3_wMIxX1ZE4Qz7PrWJBTgmsYPUFeZdRySqzRh9RKdbFeoRgmArxnC7kIB3ARxyckVjGJ-HRXa1gBSg2wZXjMoQnqpSD6z1pAK_be43qZ0eFuK9CCIy61YOUnQW5Hz5HxYKxuNcfBs74xMLJAnhrck0ayHL0oC8cqg7nWwyOpY9cfMBj13cTZSDX6G6MRcf7li_6MsClTaRrX"
                 referrerPolicy="no-referrer"

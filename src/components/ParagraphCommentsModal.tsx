@@ -62,7 +62,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md md:p-6">
+    <div className="fixed inset-0 z-120 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md md:p-6">
       <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-outline/20 bg-surface-container shadow-[0_0_50px_rgba(0,0,0,0.5)]">
         <div className="flex items-center justify-between border-b border-outline/20 bg-surface-container-low px-8 py-6">
           <div>
@@ -101,7 +101,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
                     <p className="font-headline text-lg leading-relaxed text-on-surface-variant">{comment.body}</p>
                     <button
                       onClick={() => setReplyParentId(comment._id)}
-                      className="mt-1 inline-flex items-center gap-1 text-xs uppercase tracking-[0.1em] text-on-surface-variant transition-colors hover:text-primary"
+                      className="mt-1 inline-flex items-center gap-1 text-xs uppercase tracking-widest text-on-surface-variant transition-colors hover:text-primary"
                     >
                       <Reply size={13} />
                       {t('common.reply')}
@@ -150,7 +150,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
             <button
               disabled={submitting || !draftComment.trim()}
               onClick={submitComment}
-              className="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded bg-gradient-to-br from-primary to-[#44658b] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-on-primary shadow-lg disabled:opacity-50"
+              className="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded bg-linear-to-br from-primary to-primary-container px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-on-primary shadow-lg disabled:opacity-50"
             >
               <Send size={14} />
               {t('common.post')}

@@ -99,7 +99,7 @@ export default function VersionHistoryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md md:p-6">
+    <div className="fixed inset-0 z-120 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md md:p-6">
       <div className="flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-outline/20 bg-surface-container shadow-[0_0_50px_rgba(0,0,0,0.5)]">
         <div className="flex items-center justify-between border-b border-outline/20 bg-surface-container-low px-8 py-6">
           <div>
@@ -134,7 +134,7 @@ export default function VersionHistoryModal({
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.1em] text-primary">
+                        <span className="rounded border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-primary">
                           {revision.kind === "restore" ? t('editorial.restore') : t('editorial.edit')}
                         </span>
                         <span className="text-sm font-semibold text-on-surface">{statusLabel(revision.status, t)}</span>
@@ -167,7 +167,7 @@ export default function VersionHistoryModal({
 
                   {isComparing && (
                     <div className="mt-3 rounded border border-outline/10 bg-surface-container p-4">
-                      <div className="mb-2 inline-flex items-center gap-2 text-xs uppercase tracking-[0.1em] text-secondary">
+                      <div className="mb-2 inline-flex items-center gap-2 text-xs uppercase tracking-widest text-secondary">
                         <CheckCircle2 size={12} />
                         {t('editorial.diffVsCurrent')}
                       </div>

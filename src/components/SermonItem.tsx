@@ -53,7 +53,7 @@ export default function SermonItem({ sermon, onReadText }: SermonItemProps) {
                     e.stopPropagation();
                     onReadText?.(sermon);
                   }}
-                  className="bg-gradient-to-tr from-primary to-[#44658b] text-on-primary px-6 py-2.5 rounded-md font-label text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  className="bg-linear-to-tr from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-md font-label text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity"
                 >
                   <BookOpen size={16} />
                   Les Tekst

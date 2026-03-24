@@ -215,7 +215,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
           className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-[0.04]"
           style={{ backgroundImage: `url(${hillsideBg})` }}
         />
-        <div className="relative z-10 mx-auto max-w-[1280px]">
+        <div className="relative z-10 mx-auto max-w-7xl">
           <button
             onClick={onBack}
             className="mb-8 inline-flex items-center gap-2 rounded-md border border-outline/30 bg-surface-container-low px-3 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
@@ -325,7 +325,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
                         <button
                           disabled={saving}
                           onClick={() => saveDraft(true)}
-                          className="rounded bg-gradient-to-br from-primary to-[#44658b] px-6 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-primary shadow-lg disabled:opacity-50"
+                          className="rounded bg-linear-to-br from-primary to-primary-container px-6 py-2 text-xs font-bold uppercase tracking-[0.16em] text-on-primary shadow-lg disabled:opacity-50"
                         >
                           {t("proofreading.submitForReview")}
                         </button>
@@ -380,7 +380,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
           >
             <Save size={20} />
           </button>
-          <button className="mt-2 inline-flex h-14 items-center gap-2 rounded-full bg-gradient-to-br from-secondary to-[#584633] px-6 text-xs font-bold uppercase tracking-[0.16em] text-on-secondary shadow-xl transition-transform hover:scale-105">
+          <button className="mt-2 inline-flex h-14 items-center gap-2 rounded-full bg-linear-to-br from-secondary to-[#584633] px-6 text-xs font-bold uppercase tracking-[0.16em] text-on-secondary shadow-xl transition-transform hover:scale-105">
             <FileOutput size={18} />
             {t("proofreading.exportDraft")}
           </button>
