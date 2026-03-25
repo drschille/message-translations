@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { DEFAULT_LOCALE, appendActivityLog, requireAccess } from "./_lib/platform";
+import { computeDocumentStatus, isAllowedTransition } from "./_lib/workflowUtils";
 
 const statusValidator = v.union(
   v.literal("draft"),
@@ -9,15 +10,6 @@ const statusValidator = v.union(
   v.literal("approved"),
   v.literal("blocked"),
 );
-
-function computeDocumentStatus(statuses: string[]): "draft" | "drafting" | "needs_review" | "approved" | "blocked" {
-  if (statuses.length === 0) return "draft";
-  if (statuses.every((s) => s === "approved")) return "approved";
-  if (statuses.some((s) => s === "blocked")) return "blocked";
-  if (statuses.some((s) => s === "needs_review")) return "needs_review";
-  if (statuses.some((s) => s === "drafting")) return "drafting";
-  return "draft";
-}
 
 export const getProgress = query({
   args: {
@@ -78,15 +70,7 @@ export const transitionSegmentStatus = mutation({
     const template = await ctx.db.get(document.workflowTemplateId);
     if (!template) throw new Error("Workflow template not found");
 
-    const allowed = template.transitions.some((transition) => {
-      const fromMatches = transition.from === state.status;
-      const toMatches = transition.to === args.toStatus;
-      const roleAllowed =
-        role.name === "owner" ||
-        role.name === "admin" ||
-        transition.rolesAllowed.includes(role.name);
-      return fromMatches && toMatches && roleAllowed;
-    });
+    const allowed = isAllowedTransition(template.transitions, state.status, args.toStatus, role.name);
 
     if (!allowed && args.toStatus !== state.status) {
       throw new Error("CONFLICT");

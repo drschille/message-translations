@@ -8,6 +8,7 @@ import {
   ensureBootstrapDefaults,
   requireAccess,
 } from "./_lib/platform";
+import { computeDocumentStatus } from "./_lib/workflowUtils";
 
 function splitTranscript(transcript: string): string[] {
   const byDoubleLine = transcript
@@ -21,15 +22,6 @@ function splitTranscript(transcript: string): string[] {
     .split(/(?<=[.!?])\s+/)
     .map((chunk) => chunk.trim())
     .filter(Boolean);
-}
-
-function computeDocumentStatus(statuses: string[]): "draft" | "drafting" | "needs_review" | "approved" | "blocked" {
-  if (statuses.length === 0) return "draft";
-  if (statuses.every((s) => s === "approved")) return "approved";
-  if (statuses.some((s) => s === "blocked")) return "blocked";
-  if (statuses.some((s) => s === "needs_review")) return "needs_review";
-  if (statuses.some((s) => s === "drafting")) return "drafting";
-  return "draft";
 }
 
 async function getDefaultTemplateId(ctx: MutationCtx, tenantId: Id<"tenants">) {
