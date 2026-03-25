@@ -21,7 +21,6 @@ import VersionHistoryModal from "@/src/components/VersionHistoryModal";
 import homePillarOfFire from "@/src/assets/home_pillar_of_fire.jpg";
 import { formatDate } from "@/src/lib/utils";
 import type { ParagraphId, SermonId } from "@/src/types/editorial";
-import type { Id } from "@/convex/_generated/dataModel";
 
 const fallbackSegments: ParagraphBlockSegment[] = [
   {
@@ -101,18 +100,20 @@ export default function ReaderPage() {
   const [saving, setSaving] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const bootstrap = useMutation(api.admin.bootstrapDefault as any);
+  const syncLegacySermons = useMutation(api.documents.syncLegacySermons as any);
+  const ensureFromLegacySermon = useMutation(api.documents.ensureFromLegacySermon as any);
   const sermon = useQuery(
-    api.sermons.getById,
-    sermonIdParam ? { id: sermonIdParam as Id<"sermons"> } : "skip",
+    api.documents.getById as any,
+    sermonIdParam ? { id: sermonIdParam } : "skip",
   );
 
   const sermonId = sermonIdParam as SermonId | undefined;
-  const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
-  const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
-  const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
+  const updateSegmentTranslation = useMutation(api.translations.saveSegmentTranslation as any);
+  const transitionSegmentStatus = useMutation(api.workflow.transitionSegmentStatus as any);
   const paragraphsResult = useQuery(
-    api.editorial.listParagraphs,
-    sermonId ? { sermonId, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
+    api.documents.listSegments as any,
+    sermonId ? { documentId: sermonId, locale: "nb", paginationOpts: { cursor: null, numItems: 500 } } : "skip",
   );
 
   const paragraphs = useMemo(() => paragraphsResult?.page ?? [], [paragraphsResult]);
@@ -132,11 +133,24 @@ export default function ReaderPage() {
   }, []);
 
   useEffect(() => {
-    if (!sermonId) return;
-    ensureParagraphs({ sermonId }).catch((error) => {
-      console.error("Failed ensuring paragraphs", error);
-    });
-  }, [sermonId, ensureParagraphs]);
+    if (!sermonIdParam) return;
+    (async () => {
+      try {
+        await bootstrap({});
+        await syncLegacySermons({ locale: "nb" });
+      } catch {
+        // If we are already on a new document id, no legacy bridge call is needed.
+      }
+      try {
+        const mapped = await ensureFromLegacySermon({ sermonId: sermonIdParam, locale: "nb" });
+        if (mapped?.documentId && String(mapped.documentId) !== String(sermonIdParam)) {
+          navigate(`/sermons/${mapped.documentId}`, { replace: true });
+        }
+      } catch {
+        // Ignore if current route id is already a generic document id.
+      }
+    })();
+  }, [bootstrap, ensureFromLegacySermon, navigate, sermonIdParam, syncLegacySermons]);
 
   const segments: ParagraphBlockSegment[] = useMemo(() => {
     if (paragraphs.length > 0) {
@@ -158,8 +172,8 @@ export default function ReaderPage() {
   );
 
   const sermonTitle = sermon?.title ?? "Det Valgte Hvilested";
-  const sermonDate = sermon?.date ? formatDate(sermon.date, i18n.language) : "13. MAI 1965";
-  const sermonSeries = sermon?.series ?? "De syv segl";
+  const sermonDate = sermon?.metadata?.date ? formatDate(sermon.metadata.date, i18n.language) : "13. MAI 1965";
+  const sermonSeries = sermon?.metadata?.series ?? "De syv segl";
 
   const increaseText = () => setFontScale((prev) => Math.min(1.3, Number((prev + 0.05).toFixed(2))));
   const decreaseText = () => setFontScale((prev) => Math.max(0.85, Number((prev - 0.05).toFixed(2))));
@@ -169,19 +183,20 @@ export default function ReaderPage() {
     setEditingKey(segment.key);
     setDraftText(segment.translatedText);
     if (segment.paragraphId && segment.status !== "drafting") {
-      await updateParagraphStatus({ paragraphId: segment.paragraphId, status: "drafting" });
+      await transitionSegmentStatus({ segmentId: segment.paragraphId, locale: "nb", toStatus: "drafting" });
     }
     setTimeout(() => textareaRef.current?.focus(), 0);
-  }, [updateParagraphStatus]);
+  }, [transitionSegmentStatus]);
 
   const saveDraft = useCallback(async (submitForReview = false) => {
     const segment = segments.find((s) => s.key === editingKey);
     if (!segment?.paragraphId) return;
     setSaving(true);
     try {
-      await updateParagraphDraft({
-        paragraphId: segment.paragraphId,
-        translatedText: draftText,
+      await updateSegmentTranslation({
+        segmentId: segment.paragraphId,
+        locale: "nb",
+        text: draftText,
         reason: submitForReview
           ? "Submitted for review from reader"
           : "Draft saved from reader",
@@ -191,7 +206,7 @@ export default function ReaderPage() {
     } finally {
       setSaving(false);
     }
-  }, [editingKey, draftText, segments, updateParagraphDraft]);
+  }, [editingKey, draftText, segments, updateSegmentTranslation]);
 
   const discardDraft = useCallback(() => {
     setEditingKey(null);
@@ -472,7 +487,13 @@ export default function ReaderPage() {
                       }
                       onApprove={
                         segment.paragraphId && segment.status === "needs_review"
-                          ? () => updateParagraphStatus({ paragraphId: segment.paragraphId!, status: "approved", reason: "Approved in reader" })
+                          ? () =>
+                              transitionSegmentStatus({
+                                segmentId: segment.paragraphId!,
+                                locale: "nb",
+                                toStatus: "approved",
+                                reason: "Approved in reader",
+                              })
                           : undefined
                       }
                       onOpenComments={

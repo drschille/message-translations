@@ -16,10 +16,10 @@ interface ParagraphCommentsModalProps {
 export default function ParagraphCommentsModal({ paragraphId, open, onClose }: ParagraphCommentsModalProps) {
   const { t } = useTranslation();
   const commentsResult = useQuery(
-    api.editorial.listComments,
-    paragraphId ? { paragraphId, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
+    api.comments.listBySegment as any,
+    paragraphId ? { segmentId: paragraphId, locale: "nb", paginationOpts: { cursor: null, numItems: 200 } } : "skip",
   );
-  const addComment = useMutation(api.editorial.addComment);
+  const addComment = useMutation(api.comments.add as any);
   const [draftComment, setDraftComment] = useState("");
   const [replyParentId, setReplyParentId] = useState<Id<"paragraphComments"> | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -50,7 +50,8 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
     setSubmitting(true);
     try {
       await addComment({
-        paragraphId,
+        segmentId: paragraphId,
+        locale: "nb",
         body,
         parentCommentId: replyParentId ?? undefined,
       });
@@ -88,12 +89,14 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
             rootComments.map((comment) => (
               <div key={comment._id} className="space-y-4">
                 <div className="flex gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-outline/30 bg-surface-container-high text-sm font-bold text-primary">
-                    {comment.authorName.slice(0, 1).toUpperCase()}
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-outline/30 bg-surface-container-high text-sm font-bold text-primary">
+                    {(comment.authorUserId ?? "A").slice(0, 1).toUpperCase()}
                   </div>
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold tracking-tight text-on-surface">{comment.authorName}</span>
+                      <span className="font-semibold tracking-tight text-on-surface">
+                        {comment.authorUserId?.slice(0, 12) ?? "Anonymous"}
+                      </span>
                       <span className="text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
                         {formatRelativeTime(comment.createdAt, t)}
                       </span>
@@ -112,11 +115,13 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
                 {(repliesByParent[String(comment._id)] ?? []).map((reply) => (
                   <div key={reply._id} className="ml-14 flex gap-3 opacity-90 transition-opacity hover:opacity-100">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-outline/20 bg-surface-container-high text-xs font-bold text-primary">
-                      {reply.authorName.slice(0, 1).toUpperCase()}
+                      {(reply.authorUserId ?? "A").slice(0, 1).toUpperCase()}
                     </div>
                     <div className="flex-1 rounded-lg border border-outline/10 bg-surface-container-high/40 px-4 py-3">
                       <div className="mb-2 flex items-center justify-between">
-                        <span className="font-semibold text-sm text-on-surface">{reply.authorName}</span>
+                        <span className="font-semibold text-sm text-on-surface">
+                          {reply.authorUserId?.slice(0, 12) ?? "Anonymous"}
+                        </span>
                         <span className="text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
                           {formatRelativeTime(reply.createdAt, t)}
                         </span>

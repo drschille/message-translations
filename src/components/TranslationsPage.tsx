@@ -16,8 +16,9 @@ export default function TranslationsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const paginatedResults = usePaginatedQuery(
-    api.sermons.list as any,
+    api.documents.list as any,
     {
+      useCase: "sermon",
       search: debouncedSearchQuery || undefined,
       year: selectedYear || undefined,
       series: selectedSeries || undefined
@@ -28,18 +29,26 @@ export default function TranslationsPage() {
   const results = paginatedResults?.results || [];
   const status = paginatedResults?.status || "LoadingFirstPage";
 
+  const bootstrap = useMutation(api.admin.bootstrapDefault as any);
   const seed = useMutation(api.sermons.seed as any);
+  const syncLegacySermons = useMutation(api.documents.syncLegacySermons as any);
 
   useEffect(() => {
-    if (seed) {
-      seed().catch((err: any) => {
+    if (bootstrap && seed && syncLegacySermons) {
+      (async () => {
+        try {
+          await bootstrap({});
+          await seed();
+          await syncLegacySermons({ locale: "nb" });
+        } catch (err: any) {
         console.error("Seed failed:", err);
         if (err.message?.includes("Could not find public function")) {
           setError(t('errors.deploymentMessage'));
         }
-      });
+        }
+      })();
     }
-  }, [seed, t]);
+  }, [bootstrap, seed, syncLegacySermons, t]);
 
   useEffect(() => {
     if (status === "LoadingFirstPage" && !paginatedResults && !error) {
@@ -72,8 +81,16 @@ export default function TranslationsPage() {
     );
   }
 
-  const featuredSermon = results[0];
-  const otherSermons = results.slice(1);
+  const mapped = results.map((doc: any) => ({
+    _id: doc._id,
+    title: doc.title,
+    description: doc.metadata?.summary ?? "",
+    date: doc.metadata?.date ?? "",
+    series: doc.metadata?.series ?? "",
+  }));
+
+  const featuredSermon = mapped[0];
+  const otherSermons = mapped.slice(1);
 
   const years = ["1963", "1964", "1965"];
   const series = [t('archive.sevenSeals'), t('archive.churchAges')];

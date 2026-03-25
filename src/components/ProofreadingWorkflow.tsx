@@ -86,7 +86,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
   const paragraphsResult = useQuery(
     api.editorial.listParagraphs,
-    sermonId ? { sermonId, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
+    sermonId ? ({ sermonId: sermonId as any, paginationOpts: { cursor: null, numItems: 500 } } as any) : "skip",
   );
 
   const segments = useMemo<UiSegment[]>(() => {
@@ -117,7 +117,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
 
   useEffect(() => {
     if (!sermonId) return;
-    ensureParagraphs({ sermonId }).catch((error) => {
+    ensureParagraphs({ sermonId: sermonId as any }).catch((error) => {
       console.error("Failed to seed sermon paragraphs", error);
     });
   }, [sermonId, ensureParagraphs]);
@@ -165,7 +165,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
     setActiveSegmentId(segment.key);
     if (!segment.paragraphId) return;
     if (segment.status !== "drafting") {
-      await updateParagraphStatus({ paragraphId: segment.paragraphId, status: "drafting" });
+      await updateParagraphStatus({ paragraphId: segment.paragraphId as any, status: "drafting" });
     }
   };
 
@@ -174,7 +174,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
     setSaving(true);
     try {
       await updateParagraphDraft({
-        paragraphId: activeSegment.paragraphId,
+        paragraphId: activeSegment.paragraphId as any,
         translatedText: draftText,
         reason: submitForReview
           ? "Submitted for review from proofreading workflow"
@@ -193,7 +193,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
 
   const approveSegment = async (paragraphId: ParagraphId) => {
     await updateParagraphStatus({
-      paragraphId,
+      paragraphId: paragraphId as any,
       status: "approved",
       reason: "Approved in proofreading workflow",
     });

@@ -8,8 +8,15 @@
  * @module
  */
 
+import type * as _lib_platform from "../_lib/platform.js";
+import type * as admin from "../admin.js";
+import type * as comments from "../comments.js";
+import type * as documents from "../documents.js";
 import type * as editorial from "../editorial.js";
+import type * as history from "../history.js";
 import type * as sermons from "../sermons.js";
+import type * as translations from "../translations.js";
+import type * as workflow from "../workflow.js";
 
 import type {
   ApiFromModules,
@@ -18,8 +25,15 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "_lib/platform": typeof _lib_platform;
+  admin: typeof admin;
+  comments: typeof comments;
+  documents: typeof documents;
   editorial: typeof editorial;
+  history: typeof history;
   sermons: typeof sermons;
+  translations: typeof translations;
+  workflow: typeof workflow;
 }>;
 
 /**
