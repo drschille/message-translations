@@ -1,0 +1,29 @@
+# Read/search commands
+prefix_rule(pattern=["rg"], decision="allow")
+prefix_rule(pattern=["find"], decision="allow")
+prefix_rule(pattern=["ls"], decision="allow")
+prefix_rule(pattern=["cat"], decision="allow")
+prefix_rule(pattern=["sed"], decision="allow")
+prefix_rule(pattern=["awk"], decision="allow")
+prefix_rule(pattern=["sort"], decision="allow")
+prefix_rule(pattern=["grep"], decision="allow")
+
+# Git commands (high autonomy)
+prefix_rule(pattern=["git"], decision="allow")
+
+# NPM scripts used in this repo
+prefix_rule(pattern=["npm", "run", "dev"], decision="allow")
+prefix_rule(pattern=["npm", "run", "build"], decision="allow")
+prefix_rule(pattern=["npm", "run", "lint"], decision="allow")
+prefix_rule(pattern=["npm", "run", "preview"], decision="allow")
+prefix_rule(pattern=["npm", "run", "convex:dev"], decision="allow")
+prefix_rule(pattern=["npm", "run", "convex:deploy"], decision="allow")
+
+# Convex CLI workflows
+prefix_rule(pattern=["npx", "convex", "dev"], decision="allow")
+prefix_rule(pattern=["npx", "convex", "deploy"], decision="allow")
+prefix_rule(pattern=["npx", "convex", "codegen"], decision="allow")
+
+# Local runtime/dev server
+prefix_rule(pattern=["node"], decision="allow")
+prefix_rule(pattern=["npx", "vite"], decision="allow")
