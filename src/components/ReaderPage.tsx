@@ -13,6 +13,7 @@ import {
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTranslation } from "react-i18next";
+import { useParams, useNavigate } from "react-router";
 import ParagraphBlock from "@/src/components/ParagraphBlock";
 import type { ParagraphBlockSegment } from "@/src/components/ParagraphBlock";
 import ParagraphCommentsModal from "@/src/components/ParagraphCommentsModal";
@@ -20,11 +21,7 @@ import VersionHistoryModal from "@/src/components/VersionHistoryModal";
 import homePillarOfFire from "@/src/assets/home_pillar_of_fire.jpg";
 import { formatDate } from "@/src/lib/utils";
 import type { ParagraphId, SermonId } from "@/src/types/editorial";
-
-interface ReaderPageProps {
-  sermon?: any;
-  onBack: () => void;
-}
+import type { Id } from "@/convex/_generated/dataModel";
 
 const fallbackSegments: ParagraphBlockSegment[] = [
   {
@@ -89,8 +86,10 @@ const fallbackSegments: ParagraphBlockSegment[] = [
   },
 ];
 
-export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
+export default function ReaderPage() {
   const { t, i18n } = useTranslation();
+  const { sermonId: sermonIdParam } = useParams();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<"read" | "proofread">("read");
   const [fontScale, setFontScale] = useState(1);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -102,7 +101,12 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
   const [saving, setSaving] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const sermonId = sermon?._id as SermonId | undefined;
+  const sermon = useQuery(
+    api.sermons.getById,
+    sermonIdParam ? { id: sermonIdParam as Id<"sermons"> } : "skip",
+  );
+
+  const sermonId = sermonIdParam as SermonId | undefined;
   const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
   const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
   const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
@@ -193,6 +197,30 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
     setEditingKey(null);
   }, []);
 
+  if (sermon === undefined && sermonIdParam) {
+    return (
+      <main className="min-h-screen bg-background text-on-surface flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </main>
+    );
+  }
+
+  if (sermon === null && sermonIdParam) {
+    return (
+      <main className="min-h-screen bg-background text-on-surface flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-headline">{t("errors.notFound", "Not found")}</h2>
+          <button
+            onClick={() => navigate("/sermons")}
+            className="text-primary hover:underline"
+          >
+            {t("common.back")}
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <>
       <main className="min-h-screen bg-background text-on-surface">
@@ -207,7 +235,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
 
           <div className="relative z-10 mx-auto w-full max-w-4xl px-6 pb-12 md:px-8 md:pb-16">
             <button
-              onClick={onBack}
+              onClick={() => navigate(-1)}
               className="mb-7 inline-flex items-center gap-2 rounded-md border border-outline/30 bg-surface-container-low/70 px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-on-surface-variant transition hover:border-primary/60 hover:text-primary"
             >
               <ChevronLeft size={14} />
@@ -544,7 +572,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
         <div className="mx-auto mt-2 w-full max-w-4xl border-t border-outline/20 px-6 py-12 md:px-8">
           <div className="flex flex-col items-center justify-between gap-8 sm:flex-row">
             <button
-              onClick={onBack}
+              onClick={() => navigate("/sermons")}
               className="group flex flex-col items-center gap-2 text-center sm:items-start sm:text-left"
             >
               <span className="text-xs uppercase tracking-[0.16em] text-outline transition group-hover:text-primary">
@@ -555,7 +583,7 @@ export default function ReaderPage({ sermon, onBack }: ReaderPageProps) {
               </span>
             </button>
             <button
-              onClick={onBack}
+              onClick={() => navigate("/sermons")}
               className="group flex flex-col items-center gap-2 text-center sm:items-end sm:text-right"
             >
               <span className="text-xs uppercase tracking-[0.16em] text-outline transition group-hover:text-primary">

@@ -1,16 +1,13 @@
 import { useState, useEffect } from "react";
 import { Search, Calendar, Filter, Headphones, FileText, Play, ExternalLink, Quote as QuoteIcon, BookOpen } from "lucide-react";
+import { Link } from "react-router";
 import { usePaginatedQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "@/src/lib/utils";
 import { useDebounce } from "@/src/hooks/useDebounce";
 
-interface TranslationsPageProps {
-  onOpenReader?: (sermon: any) => void;
-}
-
-export default function TranslationsPage({ onOpenReader }: TranslationsPageProps) {
+export default function TranslationsPage() {
   const { t, i18n } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -175,12 +172,12 @@ export default function TranslationsPage({ onOpenReader }: TranslationsPageProps
                     <button className="flex items-center gap-2 px-6 py-3 bg-linear-to-tr from-primary to-primary-container text-on-primary rounded-md font-bold text-sm hover:opacity-90 transition-opacity">
                       <Headphones size={18} /> {t('translations.listenNow')}
                     </button>
-                    <button
-                      onClick={() => onOpenReader?.(featuredSermon)}
+                    <Link
+                      to={`/sermons/${featuredSermon._id}`}
                       className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest text-on-surface rounded-md font-bold text-sm hover:bg-surface-bright transition-colors"
                     >
                       <FileText size={18} /> {t('translations.readText')}
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -206,12 +203,12 @@ export default function TranslationsPage({ onOpenReader }: TranslationsPageProps
                       <button className="p-2 bg-surface-container-highest hover:bg-primary hover:text-on-primary rounded-md transition-all">
                         <Play size={14} fill="currentColor" />
                       </button>
-                      <button
-                        onClick={() => onOpenReader?.(sermon)}
+                      <Link
+                        to={`/sermons/${sermon._id}`}
                         className="p-2 bg-surface-container-highest hover:bg-secondary hover:text-on-secondary rounded-md transition-all"
                       >
                         <FileText size={14} />
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>

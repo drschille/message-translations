@@ -1,57 +1,44 @@
 import { Search, Menu } from "lucide-react";
+import { NavLink, Link } from "react-router";
 import { cn } from "@/src/lib/utils";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-interface NavbarProps {
-  currentPage: string;
-  onPageChange: (page: string) => void;
-}
-
-export default function Navbar({ currentPage, onPageChange }: NavbarProps) {
+export default function Navbar() {
   const { t } = useTranslation();
+
+  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+    cn(
+      "font-headline tracking-tight transition-colors duration-300",
+      isActive
+        ? "text-primary font-bold border-b-2 border-primary pb-1"
+        : "text-on-surface/70 hover:text-on-surface"
+    );
+
   return (
     <nav className="fixed top-0 w-full z-50 glass-nav">
       <div className="flex justify-between items-center px-8 py-4 max-w-7xl mx-auto">
-        <span
-          className="text-2xl font-headline tracking-tighter text-on-surface cursor-pointer"
-          onClick={() => onPageChange('home')}
+        <Link
+          to="/"
+          className="text-2xl font-headline tracking-tighter text-on-surface"
         >
           branham.no
-        </span>
+        </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          <button
-            className={cn(
-              "font-headline tracking-tight transition-colors duration-300",
-              currentPage === 'home' ? "text-primary font-bold border-b-2 border-primary pb-1" : "text-on-surface/70 hover:text-on-surface"
-            )}
-            onClick={() => onPageChange('home')}
-          >
+          <NavLink to="/" end className={navLinkClass}>
             {t('nav.home')}
-          </button>
-          <button
-            className={cn(
-              "font-headline tracking-tight transition-colors duration-300",
-              currentPage === 'archive' ? "text-primary font-bold border-b-2 border-primary pb-1" : "text-on-surface/70 hover:text-on-surface"
-            )}
-            onClick={() => onPageChange('archive')}
-          >
+          </NavLink>
+          <NavLink to="/sermons" className={navLinkClass}>
             {t('nav.sermons')}
-          </button>
-          <button
-            className={cn(
-              "font-headline tracking-tight transition-colors duration-300",
-              currentPage === 'about' ? "text-primary font-bold border-b-2 border-primary pb-1" : "text-on-surface/70 hover:text-on-surface"
-            )}
-            onClick={() => onPageChange('about')}
-          >
+          </NavLink>
+          <NavLink to="/about" className={navLinkClass}>
             {t('nav.about')}
-          </button>
-          <button className="font-headline tracking-tight text-on-surface/70 hover:text-on-surface transition-colors duration-300">
+          </NavLink>
+          <span className="font-headline tracking-tight text-on-surface/70 hover:text-on-surface transition-colors duration-300 cursor-pointer">
             {t('nav.contact')}
-          </button>
+          </span>
         </div>
 
         <div className="flex items-center space-x-4">

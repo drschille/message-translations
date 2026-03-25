@@ -1,51 +1,66 @@
 import { Home, BookOpen, Info, Mail } from "lucide-react";
+import { NavLink } from "react-router";
 import { cn } from "@/src/lib/utils";
 import { useTranslation } from "react-i18next";
 
-interface BottomNavProps {
-  currentPage: string;
-  onPageChange: (page: string) => void;
-}
-
-export default function BottomNav({ currentPage, onPageChange }: BottomNavProps) {
+export default function BottomNav() {
   const { t } = useTranslation();
   return (
     <div className="md:hidden fixed bottom-0 w-full bg-background/90 backdrop-blur-lg border-t border-on-surface/10 z-50">
       <div className="flex justify-around items-center py-4">
-        <button
-          className={cn(
-            "flex flex-col items-center gap-1 transition-colors",
-            currentPage === 'home' ? "text-primary" : "text-on-surface/70"
-          )}
-          onClick={() => onPageChange('home')}
+        <NavLink
+          to="/"
+          end
+          className={({ isActive }) =>
+            cn(
+              "flex flex-col items-center gap-1 transition-colors",
+              isActive ? "text-primary" : "text-on-surface/70"
+            )
+          }
         >
-          <Home size={20} fill={currentPage === 'home' ? "currentColor" : "none"} />
-          <span className="text-[10px]">{t('nav.home')}</span>
-        </button>
-        <button
-          className={cn(
-            "flex flex-col items-center gap-1 transition-colors",
-            currentPage === 'archive' ? "text-primary" : "text-on-surface/70"
+          {({ isActive }) => (
+            <>
+              <Home size={20} fill={isActive ? "currentColor" : "none"} />
+              <span className="text-[10px]">{t('nav.home')}</span>
+            </>
           )}
-          onClick={() => onPageChange('archive')}
+        </NavLink>
+        <NavLink
+          to="/sermons"
+          className={({ isActive }) =>
+            cn(
+              "flex flex-col items-center gap-1 transition-colors",
+              isActive ? "text-primary" : "text-on-surface/70"
+            )
+          }
         >
-          <BookOpen size={20} fill={currentPage === 'archive' ? "currentColor" : "none"} />
-          <span className="text-[10px]">{t('nav.sermons')}</span>
-        </button>
-        <button
-          className={cn(
-            "flex flex-col items-center gap-1 transition-colors",
-            currentPage === 'about' ? "text-primary" : "text-on-surface/70"
+          {({ isActive }) => (
+            <>
+              <BookOpen size={20} fill={isActive ? "currentColor" : "none"} />
+              <span className="text-[10px]">{t('nav.sermons')}</span>
+            </>
           )}
-          onClick={() => onPageChange('about')}
+        </NavLink>
+        <NavLink
+          to="/about"
+          className={({ isActive }) =>
+            cn(
+              "flex flex-col items-center gap-1 transition-colors",
+              isActive ? "text-primary" : "text-on-surface/70"
+            )
+          }
         >
-          <Info size={20} fill={currentPage === 'about' ? "currentColor" : "none"} />
-          <span className="text-[10px]">{t('nav.about')}</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-on-surface/70">
+          {({ isActive }) => (
+            <>
+              <Info size={20} fill={isActive ? "currentColor" : "none"} />
+              <span className="text-[10px]">{t('nav.about')}</span>
+            </>
+          )}
+        </NavLink>
+        <span className="flex flex-col items-center gap-1 text-on-surface/70 cursor-pointer">
           <Mail size={20} />
           <span className="text-[10px]">{t('nav.contact')}</span>
-        </button>
+        </span>
       </div>
     </div>
   );

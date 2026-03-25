@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { ChevronDown, BookOpen, Download, Play } from "lucide-react";
+import { Link } from "react-router";
 import { cn, formatDate } from "@/src/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 
 interface SermonItemProps {
   sermon: any;
-  onReadText?: (sermon: any) => void;
 }
 
-export default function SermonItem({ sermon, onReadText }: SermonItemProps) {
+export default function SermonItem({ sermon }: SermonItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div className="group bg-surface-container-low hover:bg-surface-container transition-all duration-300 overflow-hidden">
-      <div 
+      <div
         className="flex items-center justify-between p-6 cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -25,7 +25,7 @@ export default function SermonItem({ sermon, onReadText }: SermonItemProps) {
             {sermon.title}
           </h3>
         </div>
-        <ChevronDown 
+        <ChevronDown
           className={cn(
             "text-on-surface/30 group-hover:text-on-surface transition-transform duration-300",
             isExpanded && "rotate-180"
@@ -37,7 +37,7 @@ export default function SermonItem({ sermon, onReadText }: SermonItemProps) {
 
       <AnimatePresence>
         {isExpanded && (
-          <motion.div 
+          <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -48,16 +48,14 @@ export default function SermonItem({ sermon, onReadText }: SermonItemProps) {
                 {sermon.description}
               </p>
               <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onReadText?.(sermon);
-                  }}
+                <Link
+                  to={`/sermons/${sermon._id}`}
+                  onClick={(e) => e.stopPropagation()}
                   className="bg-linear-to-tr from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-md font-label text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity"
                 >
                   <BookOpen size={16} />
                   Les Tekst
-                </button>
+                </Link>
                 <button className="bg-surface-container-highest text-on-surface px-6 py-2.5 rounded-md font-label text-sm font-semibold flex items-center gap-2 hover:bg-[#584633]/30 transition-colors">
                   <Download size={16} />
                   Last Ned
