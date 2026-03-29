@@ -5,23 +5,24 @@ import { api } from "@/convex/_generated/api";
 import { useTranslation } from "react-i18next";
 import { formatRelativeTime } from "@/src/lib/ui-labels";
 import type { Id } from "@/convex/_generated/dataModel";
-import type { ParagraphComment, ParagraphId } from "@/src/types/editorial";
+import type { ParagraphId } from "@/src/types/editorial";
 
 interface ParagraphCommentsModalProps {
   paragraphId: ParagraphId | null;
+  languageCode: string;
   open: boolean;
   onClose: () => void;
 }
 
-export default function ParagraphCommentsModal({ paragraphId, open, onClose }: ParagraphCommentsModalProps) {
+export default function ParagraphCommentsModal({ paragraphId, languageCode, open, onClose }: ParagraphCommentsModalProps) {
   const { t } = useTranslation();
   const commentsResult = useQuery(
     api.editorial.listComments,
-    paragraphId ? { paragraphId, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
+    paragraphId ? { paragraphId, languageCode, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
   );
   const addComment = useMutation(api.editorial.addComment);
   const [draftComment, setDraftComment] = useState("");
-  const [replyParentId, setReplyParentId] = useState<Id<"paragraphComments"> | null>(null);
+  const [replyParentId, setReplyParentId] = useState<Id<"paragraphTranslationComments"> | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const comments = useMemo(() => commentsResult?.page ?? [], [commentsResult]);
@@ -30,7 +31,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
     [comments],
   );
   const repliesByParent = useMemo(() => {
-    const grouped: Record<string, ParagraphComment[]> = {};
+    const grouped: Record<string, typeof comments> = {};
     for (const comment of comments) {
       if (!comment.parentCommentId) continue;
       const key = String(comment.parentCommentId);
@@ -51,6 +52,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
     try {
       await addComment({
         paragraphId,
+        languageCode,
         body,
         parentCommentId: replyParentId ?? undefined,
       });

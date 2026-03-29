@@ -1,7 +1,8 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
+import type { Id } from "./_generated/dataModel";
+import type { MutationCtx } from "./_generated/server";
 
 const paragraphStatusValidator = v.union(
   v.literal("draft"),
@@ -51,14 +52,81 @@ function splitTranscript(transcript: string): string[] {
     .filter(Boolean);
 }
 
+function normalizeLanguageCode(languageCode: string) {
+  return languageCode.trim().toLowerCase() || "nb";
+}
+
+async function findTranslationByParagraphAndLanguage(
+  ctx: MutationCtx,
+  paragraphId: Id<"sermonParagraphs">,
+  languageCode: string,
+) {
+  return await ctx.db
+    .query("sermonParagraphTranslations")
+    .withIndex("by_paragraphId_and_languageCode", (q) =>
+      q.eq("paragraphId", paragraphId).eq("languageCode", languageCode),
+    )
+    .unique();
+}
+
+async function ensureTranslationForParagraph(
+  ctx: MutationCtx,
+  paragraph: {
+    _id: Id<"sermonParagraphs">;
+    sourceText: string;
+    translatedText: string;
+    status: "draft" | "drafting" | "needs_review" | "approved";
+    updatedAt: number;
+  },
+  languageCode: string,
+) {
+  const normalized = normalizeLanguageCode(languageCode);
+  const existing = await findTranslationByParagraphAndLanguage(ctx, paragraph._id, normalized);
+  if (existing) {
+    return existing;
+  }
+
+  const translationId = await ctx.db.insert("sermonParagraphTranslations", {
+    paragraphId: paragraph._id,
+    languageCode: normalized,
+    translatedText:
+      normalized === "nb"
+        ? paragraph.translatedText
+        : paragraph.sourceText,
+    status: normalized === "nb" ? paragraph.status : "draft",
+    updatedAt: Date.now(),
+  });
+
+  const created = await ctx.db.get(translationId);
+  if (!created) {
+    throw new Error("Failed to create paragraph translation");
+  }
+  return created;
+}
+
 export const ensureParagraphsForSermon = mutation({
-  args: { sermonId: v.id("sermons") },
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+  },
   handler: async (ctx, args) => {
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+
     const existing = await ctx.db
       .query("sermonParagraphs")
       .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))
       .take(1);
+
     if (existing.length > 0) {
+      const paragraphs = await ctx.db
+        .query("sermonParagraphs")
+        .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))
+        .take(500);
+
+      for (const paragraph of paragraphs) {
+        await ensureTranslationForParagraph(ctx, paragraph, normalizedLanguage);
+      }
+
       return { created: false };
     }
 
@@ -76,19 +144,34 @@ export const ensureParagraphsForSermon = mutation({
     const now = Date.now();
     for (let i = 0; i < paragraphPairs.length; i++) {
       const pair = paragraphPairs[i];
+      const status = i === 1 ? "drafting" : i === 0 ? "approved" : i === 2 ? "needs_review" : "draft";
       const paragraphId = await ctx.db.insert("sermonParagraphs", {
         sermonId: args.sermonId,
         order: i + 1,
         sourceText: pair.sourceText,
         translatedText: pair.translatedText,
-        status: i === 1 ? "drafting" : i === 0 ? "approved" : i === 2 ? "needs_review" : "draft",
+        status,
         updatedAt: now,
       });
 
-      await ctx.db.insert("paragraphRevisions", {
+      const translationId = await ctx.db.insert("sermonParagraphTranslations", {
         paragraphId,
-        snapshotText: pair.translatedText,
-        status: i === 1 ? "drafting" : i === 0 ? "approved" : i === 2 ? "needs_review" : "draft",
+        languageCode: normalizedLanguage,
+        translatedText:
+          normalizedLanguage === "nb"
+            ? pair.translatedText
+            : pair.sourceText,
+        status: normalizedLanguage === "nb" ? status : "draft",
+        updatedAt: now,
+      });
+
+      await ctx.db.insert("paragraphTranslationRevisions", {
+        paragraphTranslationId: translationId,
+        snapshotText:
+          normalizedLanguage === "nb"
+            ? pair.translatedText
+            : pair.sourceText,
+        status: normalizedLanguage === "nb" ? status : "draft",
         kind: "edit",
         reason: "Initial seed",
         authorName: "System",
@@ -103,25 +186,72 @@ export const ensureParagraphsForSermon = mutation({
 export const listParagraphs = query({
   args: {
     sermonId: v.id("sermons"),
+    languageCode: v.string(),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const sourcePage = await ctx.db
       .query("sermonParagraphs")
       .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))
       .paginate(args.paginationOpts);
+
+    const page = await Promise.all(
+      sourcePage.page.map(async (paragraph) => {
+        const translation = await ctx.db
+          .query("sermonParagraphTranslations")
+          .withIndex("by_paragraphId_and_languageCode", (q) =>
+            q.eq("paragraphId", paragraph._id).eq("languageCode", normalizedLanguage),
+          )
+          .unique();
+
+        return {
+          _id: paragraph._id,
+          _creationTime: paragraph._creationTime,
+          sermonId: paragraph.sermonId,
+          order: paragraph.order,
+          sourceText: paragraph.sourceText,
+          translatedText: translation?.translatedText ?? paragraph.sourceText,
+          status: translation?.status ?? "draft",
+          updatedAt: translation?.updatedAt ?? paragraph.updatedAt,
+        };
+      }),
+    );
+
+    return {
+      ...sourcePage,
+      page,
+    };
   },
 });
 
 export const listComments = query({
   args: {
     paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
+    const translation = await ctx.db
+      .query("sermonParagraphTranslations")
+      .withIndex("by_paragraphId_and_languageCode", (q) =>
+        q.eq("paragraphId", args.paragraphId).eq("languageCode", normalizeLanguageCode(args.languageCode)),
+      )
+      .unique();
+
+    if (!translation) {
+      return {
+        page: [],
+        isDone: true,
+        continueCursor: "",
+      };
+    }
+
     return await ctx.db
-      .query("paragraphComments")
-      .withIndex("by_paragraphId_and_createdAt", (q) => q.eq("paragraphId", args.paragraphId))
+      .query("paragraphTranslationComments")
+      .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+        q.eq("paragraphTranslationId", translation._id),
+      )
       .paginate(args.paginationOpts);
   },
 });
@@ -129,12 +259,30 @@ export const listComments = query({
 export const listRevisions = query({
   args: {
     paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
+    const translation = await ctx.db
+      .query("sermonParagraphTranslations")
+      .withIndex("by_paragraphId_and_languageCode", (q) =>
+        q.eq("paragraphId", args.paragraphId).eq("languageCode", normalizeLanguageCode(args.languageCode)),
+      )
+      .unique();
+
+    if (!translation) {
+      return {
+        page: [],
+        isDone: true,
+        continueCursor: "",
+      };
+    }
+
     return await ctx.db
-      .query("paragraphRevisions")
-      .withIndex("by_paragraphId_and_createdAt", (q) => q.eq("paragraphId", args.paragraphId))
+      .query("paragraphTranslationRevisions")
+      .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+        q.eq("paragraphTranslationId", translation._id),
+      )
       .order("desc")
       .paginate(args.paginationOpts);
   },
@@ -143,6 +291,7 @@ export const listRevisions = query({
 export const updateParagraphDraft = mutation({
   args: {
     paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
     translatedText: v.string(),
     reason: v.optional(v.string()),
     submitForReview: v.optional(v.boolean()),
@@ -153,20 +302,22 @@ export const updateParagraphDraft = mutation({
       throw new Error("Paragraph not found");
     }
 
+    const translation = await ensureTranslationForParagraph(ctx, paragraph, args.languageCode);
+
     const identity = await ctx.auth.getUserIdentity();
     const now = Date.now();
     const normalized = args.translatedText.trim();
-    const nextText = normalized.length > 0 ? normalized : paragraph.translatedText;
+    const nextText = normalized.length > 0 ? normalized : translation.translatedText;
     const nextStatus = args.submitForReview ? "needs_review" : "drafting";
 
-    await ctx.db.patch(args.paragraphId, {
+    await ctx.db.patch(translation._id, {
       translatedText: nextText,
       status: nextStatus,
       updatedAt: now,
     });
 
-    await ctx.db.insert("paragraphRevisions", {
-      paragraphId: args.paragraphId,
+    await ctx.db.insert("paragraphTranslationRevisions", {
+      paragraphTranslationId: translation._id,
       snapshotText: nextText,
       status: nextStatus,
       kind: "edit",
@@ -183,6 +334,7 @@ export const updateParagraphDraft = mutation({
 export const updateParagraphStatus = mutation({
   args: {
     paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
     status: paragraphStatusValidator,
     reason: v.optional(v.string()),
   },
@@ -192,17 +344,19 @@ export const updateParagraphStatus = mutation({
       throw new Error("Paragraph not found");
     }
 
+    const translation = await ensureTranslationForParagraph(ctx, paragraph, args.languageCode);
+
     const identity = await ctx.auth.getUserIdentity();
     const now = Date.now();
 
-    await ctx.db.patch(args.paragraphId, {
+    await ctx.db.patch(translation._id, {
       status: args.status,
       updatedAt: now,
     });
 
-    await ctx.db.insert("paragraphRevisions", {
-      paragraphId: args.paragraphId,
-      snapshotText: paragraph.translatedText,
+    await ctx.db.insert("paragraphTranslationRevisions", {
+      paragraphTranslationId: translation._id,
+      snapshotText: translation.translatedText,
       status: args.status,
       kind: "edit",
       reason: args.reason ?? "Status changed",
@@ -218,22 +372,26 @@ export const updateParagraphStatus = mutation({
 export const addComment = mutation({
   args: {
     paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
     body: v.string(),
-    parentCommentId: v.optional(v.id("paragraphComments")),
+    parentCommentId: v.optional(v.id("paragraphTranslationComments")),
   },
   handler: async (ctx, args) => {
     const paragraph = await ctx.db.get(args.paragraphId);
     if (!paragraph) {
       throw new Error("Paragraph not found");
     }
+
+    const translation = await ensureTranslationForParagraph(ctx, paragraph, args.languageCode);
+
     const text = args.body.trim();
     if (!text) {
       throw new Error("Comment cannot be empty");
     }
     const identity = await ctx.auth.getUserIdentity();
     const now = Date.now();
-    const commentId = await ctx.db.insert("paragraphComments", {
-      paragraphId: args.paragraphId,
+    const commentId = await ctx.db.insert("paragraphTranslationComments", {
+      paragraphTranslationId: translation._id,
       parentCommentId: args.parentCommentId,
       body: text,
       authorName: identity?.name ?? identity?.email ?? "Anonymous editor",
@@ -247,7 +405,8 @@ export const addComment = mutation({
 export const restoreRevision = mutation({
   args: {
     paragraphId: v.id("sermonParagraphs"),
-    revisionId: v.id("paragraphRevisions"),
+    languageCode: v.string(),
+    revisionId: v.id("paragraphTranslationRevisions"),
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -256,22 +415,24 @@ export const restoreRevision = mutation({
       throw new Error("Paragraph not found");
     }
 
+    const translation = await ensureTranslationForParagraph(ctx, paragraph, args.languageCode);
+
     const revision = await ctx.db.get(args.revisionId);
-    if (!revision || revision.paragraphId !== args.paragraphId) {
-      throw new Error("Revision not found for paragraph");
+    if (!revision || revision.paragraphTranslationId !== translation._id) {
+      throw new Error("Revision not found for paragraph translation");
     }
 
     const identity = await ctx.auth.getUserIdentity();
     const now = Date.now();
 
-    await ctx.db.patch(args.paragraphId, {
+    await ctx.db.patch(translation._id, {
       translatedText: revision.snapshotText,
       status: revision.status,
       updatedAt: now,
     });
 
-    const createdRevisionId: Id<"paragraphRevisions"> = await ctx.db.insert("paragraphRevisions", {
-      paragraphId: args.paragraphId,
+    const createdRevisionId = await ctx.db.insert("paragraphTranslationRevisions", {
+      paragraphTranslationId: translation._id,
       snapshotText: revision.snapshotText,
       status: revision.status,
       kind: "restore",
@@ -283,5 +444,50 @@ export const restoreRevision = mutation({
     });
 
     return { revisionId: createdRevisionId };
+  },
+});
+
+export const backfillParagraphTranslationsNb = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const paragraphs = await ctx.db.query("sermonParagraphs").collect();
+    let created = 0;
+    let existing = 0;
+
+    for (const paragraph of paragraphs) {
+      const translation = await ctx.db
+        .query("sermonParagraphTranslations")
+        .withIndex("by_paragraphId_and_languageCode", (q) =>
+          q.eq("paragraphId", paragraph._id).eq("languageCode", "nb"),
+        )
+        .unique();
+
+      if (translation) {
+        existing += 1;
+        continue;
+      }
+
+      const translationId = await ctx.db.insert("sermonParagraphTranslations", {
+        paragraphId: paragraph._id,
+        languageCode: "nb",
+        translatedText: paragraph.translatedText,
+        status: paragraph.status,
+        updatedAt: paragraph.updatedAt,
+      });
+
+      await ctx.db.insert("paragraphTranslationRevisions", {
+        paragraphTranslationId: translationId,
+        snapshotText: paragraph.translatedText,
+        status: paragraph.status,
+        kind: "edit",
+        reason: "Backfilled from legacy paragraph",
+        authorName: "System",
+        createdAt: Date.now(),
+      });
+
+      created += 1;
+    }
+
+    return { created, existing };
   },
 });
