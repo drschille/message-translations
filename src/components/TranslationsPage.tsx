@@ -20,6 +20,8 @@ import quoteImage from "@/src/assets/light_over_shoulder.jpg";
 export default function TranslationsPage() {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "nb").toLowerCase();
+  const languageCode = resolvedLanguage === "no" || resolvedLanguage.startsWith("nb") ? "nb" : "en";
   const urlSearchQuery = searchParams.get("q") ?? "";
   const selectedYear = searchParams.get("year") ?? "";
   const selectedSeries = searchParams.get("series") ?? "";
@@ -41,7 +43,7 @@ export default function TranslationsPage() {
       next.delete("q");
     }
     next.delete("page");
-    setSearchParams(next, { replace: true });
+    setSearchParams(next, { replace: true, preventScrollReset: true });
   };
 
   const listResult = useQuery(
@@ -50,14 +52,14 @@ export default function TranslationsPage() {
       search: debouncedSearchQuery || undefined,
       year: selectedYear || undefined,
       series: selectedSeries || undefined,
-      languageCode: i18n.language,
+      languageCode,
       paginationOpts: {
         cursor: page === 1 ? null : String((page - 1) * pageSize),
         numItems: pageSize,
       },
     },
   );
-  const totalKey = `${debouncedSearchQuery.trim()}::${selectedYear}::${selectedSeries}::${i18n.language}`;
+  const totalKey = `${debouncedSearchQuery.trim()}::${selectedYear}::${selectedSeries}::${languageCode}`;
   const availableYearsResult = useQuery((api as any).sermons.listYears, {});
 
   const results = listResult?.page || [];
@@ -111,18 +113,22 @@ export default function TranslationsPage() {
       } else {
         next.set("page", String(totalPages));
       }
-      setSearchParams(next, { replace: true });
+      setSearchParams(next, { replace: true, preventScrollReset: true });
     }
   }, [listResult, totalCount, page, totalPages, searchParams, setSearchParams]);
 
   const goToPage = (nextPage: number) => {
+    const currentScrollY = window.scrollY;
     const next = new URLSearchParams(searchParams);
     if (nextPage <= 1) {
       next.delete("page");
     } else {
       next.set("page", String(nextPage));
     }
-    setSearchParams(next);
+    setSearchParams(next, { preventScrollReset: true });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: currentScrollY, behavior: "auto" });
+    });
   };
 
   useEffect(() => {
@@ -211,7 +217,7 @@ export default function TranslationsPage() {
                   next.delete("year");
                 }
                 next.delete("page");
-                setSearchParams(next, { replace: true });
+                setSearchParams(next, { replace: true, preventScrollReset: true });
               }}
             >
               <option value="">{t("common.year")}</option>
@@ -233,7 +239,7 @@ export default function TranslationsPage() {
                   next.delete("series");
                 }
                 next.delete("page");
-                setSearchParams(next, { replace: true });
+                setSearchParams(next, { replace: true, preventScrollReset: true });
               }}
             >
               <option value="">{t("common.series")}</option>
@@ -252,7 +258,7 @@ export default function TranslationsPage() {
                   next.delete("year");
                   next.delete("series");
                   next.delete("page");
-                  setSearchParams(next, { replace: true });
+                  setSearchParams(next, { replace: true, preventScrollReset: true });
                 }}
                 className="px-3 py-2 bg-primary text-on-primary rounded-md text-xs font-semibold whitespace-nowrap"
               >
@@ -287,7 +293,7 @@ export default function TranslationsPage() {
                   }}
                 >
                   <span className="text-[11px] tracking-[0.16em] uppercase text-secondary/80 shrink-0">
-                    {formatDate(sermon.date, i18n.language)}
+                          {formatDate(sermon.date, languageCode)}
                   </span>
                   <h2 className={`font-headline text-lg md:text-xl ${index === 0 ? "text-primary" : "text-on-surface"}`}>
                     {sermon.title}
