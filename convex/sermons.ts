@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
-import type { QueryCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 
 const sermonTranslationValidator = v.object({
   languageCode: v.string(),
@@ -23,8 +23,48 @@ const branhamSermonValidator = v.object({
   translations: v.optional(v.array(sermonTranslationValidator)),
 });
 
+const SERMONS_TOTAL_KEY = "sermons_total";
+
 function normalizeLanguageCode(languageCode: string) {
   return languageCode.trim().toLowerCase() || "nb";
+}
+
+async function getStoredSermonCount(ctx: QueryCtx) {
+  const metric = await ctx.db
+    .query("appMetrics")
+    .withIndex("by_key", (q) => q.eq("key", SERMONS_TOTAL_KEY))
+    .unique();
+  return metric?.value;
+}
+
+async function ensureSermonCountMetric(ctx: MutationCtx) {
+  const existing = await ctx.db
+    .query("appMetrics")
+    .withIndex("by_key", (q) => q.eq("key", SERMONS_TOTAL_KEY))
+    .unique();
+
+  if (existing) return existing;
+
+  const total = (await ctx.db.query("sermons").collect()).length;
+  const metricId = await ctx.db.insert("appMetrics", {
+    key: SERMONS_TOTAL_KEY,
+    value: total,
+    updatedAt: Date.now(),
+  });
+  const created = await ctx.db.get(metricId);
+  if (!created) {
+    throw new Error("Failed to initialize sermons total metric");
+  }
+  return created;
+}
+
+async function bumpSermonCount(ctx: MutationCtx, delta: number) {
+  const metric = await ensureSermonCountMetric(ctx);
+  if (delta === 0) return;
+  await ctx.db.patch(metric._id, {
+    value: metric.value + delta,
+    updatedAt: Date.now(),
+  });
 }
 
 async function resolveLocalizedMetadata(
@@ -70,6 +110,7 @@ export const list = query({
   },
   handler: async (ctx, args) => {
     const languageCode = args.languageCode ?? "nb";
+    const hasFilters = Boolean(args.search || args.year || args.series);
     const all = await ctx.db.query("sermons").order("desc").collect();
 
     const localized = await Promise.all(
@@ -100,12 +141,42 @@ export const list = query({
     const page = filtered.slice(start, start + numItems);
     const next = start + page.length;
     const isDone = next >= filtered.length;
+    const storedCount = await getStoredSermonCount(ctx);
+    const totalCount = !hasFilters && typeof storedCount === "number"
+      ? storedCount
+      : filtered.length;
 
     return {
       page,
       isDone,
       continueCursor: isDone ? "" : String(next),
+      totalCount,
     };
+  },
+});
+
+function extractYearFromDate(date: string) {
+  const trimmed = date.trim();
+  if (/^\d{4}/.test(trimmed)) {
+    return trimmed.slice(0, 4);
+  }
+
+  const match = trimmed.match(/\b(\d{4})\b/);
+  return match?.[1] ?? null;
+}
+
+export const listYears = query({
+  args: {},
+  handler: async (ctx) => {
+    const years = new Set<string>();
+    for await (const sermon of ctx.db.query("sermons").withIndex("by_date")) {
+      const year = extractYearFromDate(sermon.date);
+      if (year) {
+        years.add(year);
+      }
+    }
+
+    return Array.from(years).sort((a, b) => b.localeCompare(a));
   },
 });
 
@@ -278,6 +349,8 @@ export const importFromBranhamBatch = internalMutation({
       }
     }
 
+    await bumpSermonCount(ctx, inserted);
+
     return {
       inserted,
       updated,
@@ -323,11 +396,27 @@ export const backfillMetadataTranslationsNb = mutation({
   },
 });
 
+export const backfillSermonCount = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const metric = await ensureSermonCountMetric(ctx);
+    const total = (await ctx.db.query("sermons").collect()).length;
+    await ctx.db.patch(metric._id, {
+      value: total,
+      updatedAt: Date.now(),
+    });
+    return { total };
+  },
+});
+
 // Seed data mutation
 export const seed = mutation({
   handler: async (ctx) => {
     const existing = await ctx.db.query("sermons").collect();
-    if (existing.length > 0) return;
+    if (existing.length > 0) {
+      await ensureSermonCountMetric(ctx);
+      return;
+    }
 
     const sermons = [
       {
@@ -377,5 +466,7 @@ export const seed = mutation({
     for (const sermon of sermons) {
       await ctx.db.insert("sermons", sermon);
     }
+
+    await bumpSermonCount(ctx, sermons.length);
   },
 });

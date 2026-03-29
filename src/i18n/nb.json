@@ -133,7 +133,7 @@
     "noDescription": "Ingen beskrivelse tilgjengelig.",
     "quoteText": "\"Den som har øre, han høre hva Ånden sier til menighetene.\"",
     "quoteAuthor": "William Marrion Branham",
-    "pageIndicator": "SIDE 01 / 84",
+    "pageIndicator": "SIDE {{page}} / {{total}}",
     "loadingSermons": "Laster inn taler...",
     "noResults": "Ingen taler funnet for dette søket.",
     "loadMore": "Last inn flere taler",

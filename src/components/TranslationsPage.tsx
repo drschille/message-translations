@@ -9,8 +9,8 @@ import {
   Quote as QuoteIcon,
   Search,
 } from "lucide-react";
-import { Link } from "react-router";
-import { usePaginatedQuery, useMutation } from "convex/react";
+import { Link, useSearchParams } from "react-router";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "@/src/lib/utils";
@@ -19,26 +19,57 @@ import quoteImage from "@/src/assets/light_over_shoulder.jpg";
 
 export default function TranslationsPage() {
   const { t, i18n } = useTranslation();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlSearchQuery = searchParams.get("q") ?? "";
+  const selectedYear = searchParams.get("year") ?? "";
+  const selectedSeries = searchParams.get("series") ?? "";
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const [selectedYear, setSelectedYear] = useState<string | null>(null);
-  const [selectedSeries, setSelectedSeries] = useState<string | null>(null);
   const [expandedSermonId, setExpandedSermonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const pageSize = 100;
+  const parsedPage = Number(searchParams.get("page") || "1");
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
+  const commitSearchToUrl = (value: string) => {
+    const next = new URLSearchParams(searchParams);
+    const normalized = value.trim();
+    if (normalized.length > 0) {
+      next.set("q", normalized);
+    } else {
+      next.delete("q");
+    }
+    next.delete("page");
+    setSearchParams(next, { replace: true });
+  };
 
-  const paginatedResults = usePaginatedQuery(
+  const listResult = useQuery(
     api.sermons.list as any,
     {
       search: debouncedSearchQuery || undefined,
       year: selectedYear || undefined,
       series: selectedSeries || undefined,
       languageCode: i18n.language,
+      paginationOpts: {
+        cursor: page === 1 ? null : String((page - 1) * pageSize),
+        numItems: pageSize,
+      },
     },
-    { initialNumItems: 10 },
   );
+  const availableYearsResult = useQuery((api as any).sermons.listYears, {});
 
-  const results = paginatedResults?.results || [];
-  const status = paginatedResults?.status || "LoadingFirstPage";
+  const results = listResult?.page || [];
+  const totalCount = listResult?.totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const yearsFromDb = availableYearsResult ?? [];
+  const years = selectedYear && !yearsFromDb.includes(selectedYear)
+    ? [selectedYear, ...yearsFromDb]
+    : yearsFromDb;
+  const status = listResult === undefined ? "LoadingFirstPage" : "Done";
+  const hasPrevPage = page > 1;
+  const hasNextPage =
+    typeof listResult?.totalCount === "number"
+      ? page < totalPages
+      : Boolean(listResult && !listResult.isDone);
 
   const seed = useMutation(api.sermons.seed as any);
 
@@ -54,15 +85,31 @@ export default function TranslationsPage() {
   }, [seed, t]);
 
   useEffect(() => {
-    if (status === "LoadingFirstPage" && !paginatedResults && !error) {
-      const timer = setTimeout(() => {
-        if (status === "LoadingFirstPage" && !paginatedResults) {
-          setError(t("errors.timeoutMessage"));
-        }
-      }, 5000);
-      return () => clearTimeout(timer);
+    setSearchQuery(urlSearchQuery);
+  }, [urlSearchQuery]);
+
+  useEffect(() => {
+    if (!listResult || totalCount <= 0) return;
+    if (page > totalPages) {
+      const next = new URLSearchParams(searchParams);
+      if (totalPages <= 1) {
+        next.delete("page");
+      } else {
+        next.set("page", String(totalPages));
+      }
+      setSearchParams(next, { replace: true });
     }
-  }, [status, paginatedResults, error, t]);
+  }, [listResult, totalCount, page, totalPages, searchParams, setSearchParams]);
+
+  const goToPage = (nextPage: number) => {
+    const next = new URLSearchParams(searchParams);
+    if (nextPage <= 1) {
+      next.delete("page");
+    } else {
+      next.set("page", String(nextPage));
+    }
+    setSearchParams(next);
+  };
 
   useEffect(() => {
     if (results.length === 0) {
@@ -98,8 +145,10 @@ export default function TranslationsPage() {
     );
   }
 
-  const years = ["1963", "1964", "1965"];
-  const series = [t("archive.sevenSeals"), t("archive.churchAges")];
+  const seriesOptions = [
+    { value: "The Seven Seals", label: t("archive.sevenSeals") },
+    { value: "Church Ages", label: t("archive.churchAges") },
+  ];
 
   return (
     <main className="pt-30 pb-20 px-6 max-w-7xl mx-auto">
@@ -118,7 +167,14 @@ export default function TranslationsPage() {
               placeholder={t("translations.searchPlaceholder")}
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  commitSearchToUrl(searchQuery);
+                }
+              }}
             />
           </div>
 
@@ -131,8 +187,18 @@ export default function TranslationsPage() {
             </span>
             <select
               className="bg-surface-container-high border border-outline-variant/20 rounded-md px-3 py-2 text-xs font-label tracking-wide text-on-surface min-w-22"
-              value={selectedYear || ""}
-              onChange={(e) => setSelectedYear(e.target.value || null)}
+              value={selectedYear}
+              onChange={(e) => {
+                const next = new URLSearchParams(searchParams);
+                const value = e.target.value;
+                if (value) {
+                  next.set("year", value);
+                } else {
+                  next.delete("year");
+                }
+                next.delete("page");
+                setSearchParams(next, { replace: true });
+              }}
             >
               <option value="">{t("common.year")}</option>
               {years.map((year) => (
@@ -143,22 +209,36 @@ export default function TranslationsPage() {
             </select>
             <select
               className="bg-surface-container-high border border-outline-variant/20 rounded-md px-3 py-2 text-xs font-label tracking-wide text-on-surface min-w-28"
-              value={selectedSeries || ""}
-              onChange={(e) => setSelectedSeries(e.target.value || null)}
+              value={selectedSeries}
+              onChange={(e) => {
+                const next = new URLSearchParams(searchParams);
+                const value = e.target.value;
+                if (value) {
+                  next.set("series", value);
+                } else {
+                  next.delete("series");
+                }
+                next.delete("page");
+                setSearchParams(next, { replace: true });
+              }}
             >
               <option value="">{t("common.series")}</option>
-              {series.map((value) => (
-                <option key={value} value={value}>
-                  {value}
+              {seriesOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
-            {(searchQuery || selectedYear || selectedSeries) && (
+            {(searchQuery || urlSearchQuery || selectedYear || selectedSeries) && (
               <button
                 onClick={() => {
                   setSearchQuery("");
-                  setSelectedYear(null);
-                  setSelectedSeries(null);
+                  const next = new URLSearchParams(searchParams);
+                  next.delete("q");
+                  next.delete("year");
+                  next.delete("series");
+                  next.delete("page");
+                  setSearchParams(next, { replace: true });
                 }}
                 className="px-3 py-2 bg-primary text-on-primary rounded-md text-xs font-semibold whitespace-nowrap"
               >
@@ -291,30 +371,27 @@ export default function TranslationsPage() {
       <section className="mt-6 flex items-center justify-center gap-2 pb-6">
         <button
           type="button"
+          disabled={!hasPrevPage}
+          onClick={() => goToPage(Math.max(1, page - 1))}
           className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-outline-variant/30 text-outline hover:text-on-surface hover:border-outline transition-colors"
         >
           <ChevronLeft size={14} />
         </button>
-        <span className="text-[11px] tracking-[0.25em] uppercase text-secondary px-2">{t("translations.pageIndicator")}</span>
+        <span className="text-[11px] tracking-[0.25em] uppercase text-secondary px-2">
+          {t("translations.pageIndicator", {
+            page: String(page).padStart(2, "0"),
+            total: String(totalPages).padStart(2, "0"),
+          })}
+        </span>
         <button
           type="button"
+          disabled={!hasNextPage}
+          onClick={() => goToPage(page + 1)}
           className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-outline-variant/30 text-outline hover:text-on-surface hover:border-outline transition-colors"
         >
           <ChevronRight size={14} />
         </button>
       </section>
-
-      {status !== "LoadingFirstPage" && results.length > 0 && (
-        <div className="mt-2 flex justify-center items-center gap-4">
-          <button
-            disabled={status === "LoadingMore"}
-            onClick={() => paginatedResults.loadMore(10)}
-            className="px-5 py-2.5 bg-surface-container-high hover:bg-surface-bright text-on-surface rounded-md transition-all text-xs font-bold disabled:opacity-50"
-          >
-            {status === "LoadingMore" ? t("translations.loadingMore") : t("translations.loadMore")}
-          </button>
-        </div>
-      )}
     </main>
   );
 }

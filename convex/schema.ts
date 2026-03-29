@@ -9,6 +9,11 @@ const paragraphStatus = v.union(
 );
 
 export default defineSchema({
+  appMetrics: defineTable({
+    key: v.string(),
+    value: v.number(),
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
   sermons: defineTable({
     title: v.string(),
     date: v.string(), // ISO format or "DD MMM YYYY"

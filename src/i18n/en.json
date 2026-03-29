@@ -133,7 +133,7 @@
     "noDescription": "No description available.",
     "quoteText": "\"He that hath an ear, let him hear what the Spirit saith unto the churches.\"",
     "quoteAuthor": "William Marrion Branham",
-    "pageIndicator": "PAGE 01 / 84",
+    "pageIndicator": "PAGE {{page}} / {{total}}",
     "loadingSermons": "Loading sermons...",
     "noResults": "No sermons found for this search.",
     "loadMore": "Load More Sermons",
