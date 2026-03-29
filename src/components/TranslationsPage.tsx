@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -31,6 +31,9 @@ export default function TranslationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [stableTotalCount, setStableTotalCount] = useState(0);
   const [stableTotalKey, setStableTotalKey] = useState("");
+  const pageCacheRef = useRef<
+    Record<string, { page: any[]; isDone: boolean; continueCursor: string; totalCount: number }>
+  >({});
   const pageSize = 100;
   const parsedPage = Number(searchParams.get("page") || "1");
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
@@ -60,23 +63,26 @@ export default function TranslationsPage() {
     },
   );
   const totalKey = `${debouncedSearchQuery.trim()}::${selectedYear}::${selectedSeries}::${languageCode}`;
+  const pageKey = `${totalKey}::${page}`;
+  const cachedResult = pageCacheRef.current[pageKey];
+  const activeListResult = listResult ?? cachedResult;
   const availableYearsResult = useQuery((api as any).sermons.listYears, {});
 
-  const results = listResult?.page || [];
-  const totalCount = typeof listResult?.totalCount === "number"
-    ? listResult.totalCount
+  const results = activeListResult?.page || [];
+  const totalCount = typeof activeListResult?.totalCount === "number"
+    ? activeListResult.totalCount
     : stableTotalCount;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const yearsFromDb = availableYearsResult ?? [];
   const years = selectedYear && !yearsFromDb.includes(selectedYear)
     ? [selectedYear, ...yearsFromDb]
     : yearsFromDb;
-  const status = listResult === undefined ? "LoadingFirstPage" : "Done";
+  const status = activeListResult === undefined ? "LoadingFirstPage" : "Done";
   const hasPrevPage = page > 1;
   const hasNextPage =
-    typeof listResult?.totalCount === "number"
+    typeof activeListResult?.totalCount === "number"
       ? page < totalPages
-      : Boolean(listResult && !listResult.isDone);
+      : Boolean(activeListResult && !activeListResult.isDone);
 
   const seed = useMutation(api.sermons.seed as any);
 
@@ -96,6 +102,19 @@ export default function TranslationsPage() {
   }, [urlSearchQuery]);
 
   useEffect(() => {
+    if (listResult) {
+      pageCacheRef.current[pageKey] = listResult;
+      const keys = Object.keys(pageCacheRef.current);
+      if (keys.length > 120) {
+        const overflow = keys.length - 120;
+        for (let i = 0; i < overflow; i += 1) {
+          delete pageCacheRef.current[keys[i]];
+        }
+      }
+    }
+  }, [listResult, pageKey]);
+
+  useEffect(() => {
     if (typeof listResult?.totalCount === "number") {
       if (stableTotalKey !== totalKey) {
         setStableTotalKey(totalKey);
@@ -105,7 +124,7 @@ export default function TranslationsPage() {
   }, [listResult, stableTotalKey, totalKey]);
 
   useEffect(() => {
-    if (!listResult || totalCount <= 0) return;
+    if (!activeListResult || totalCount <= 0) return;
     if (page > totalPages) {
       const next = new URLSearchParams(searchParams);
       if (totalPages <= 1) {
@@ -115,7 +134,7 @@ export default function TranslationsPage() {
       }
       setSearchParams(next, { replace: true, preventScrollReset: true });
     }
-  }, [listResult, totalCount, page, totalPages, searchParams, setSearchParams]);
+  }, [activeListResult, totalCount, page, totalPages, searchParams, setSearchParams]);
 
   const goToPage = (nextPage: number) => {
     const currentScrollY = window.scrollY;
