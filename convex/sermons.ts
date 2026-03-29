@@ -1,6 +1,16 @@
-import { query, mutation } from "./_generated/server";
+import { action, internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
+import { internal } from "./_generated/api";
+
+const branhamSermonValidator = v.object({
+  sid: v.optional(v.number()),
+  title: v.string(),
+  title_no: v.optional(v.string()),
+  date: v.string(),
+  location: v.optional(v.string()),
+  tag: v.string(),
+});
 
 export const getById = query({
   args: { id: v.id("sermons") },
@@ -53,6 +63,93 @@ export const list = query({
     }
 
     return await sermonsQuery.paginate(args.paginationOpts);
+  },
+});
+
+export const importFromBranham = action({
+  args: {
+    sermons: v.array(branhamSermonValidator),
+  },
+  handler: async (ctx, args) => {
+    const chunkSize = 200;
+    let inserted = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (let i = 0; i < args.sermons.length; i += chunkSize) {
+      const chunk = args.sermons.slice(i, i + chunkSize);
+      const batchResult: {
+        inserted: number;
+        updated: number;
+        skipped: number;
+      } = await ctx.runMutation(internal.sermons.importFromBranhamBatch, {
+        sermons: chunk,
+      });
+
+      inserted += batchResult.inserted;
+      updated += batchResult.updated;
+      skipped += batchResult.skipped;
+    }
+
+    return {
+      received: args.sermons.length,
+      inserted,
+      updated,
+      skipped,
+      errors: 0,
+    };
+  },
+});
+
+export const importFromBranhamBatch = internalMutation({
+  args: {
+    sermons: v.array(branhamSermonValidator),
+  },
+  handler: async (ctx, args) => {
+    let inserted = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const sermon of args.sermons) {
+      const title = sermon.title.trim();
+      const date = sermon.date.trim();
+      const tag = sermon.tag.trim();
+
+      if (!title || !date || !tag) {
+        skipped += 1;
+        continue;
+      }
+
+      const matches = await ctx.db
+        .query("sermons")
+        .withIndex("by_tag", (q) => q.eq("tag", tag))
+        .take(2);
+
+      if (matches.length > 1) {
+        skipped += 1;
+        continue;
+      }
+
+      if (matches.length === 1) {
+        await ctx.db.patch(matches[0]._id, {
+          title,
+          date,
+          description: "",
+          tag,
+        });
+        updated += 1;
+      } else {
+        await ctx.db.insert("sermons", {
+          title,
+          date,
+          description: "",
+          tag,
+        });
+        inserted += 1;
+      }
+    }
+
+    return { inserted, updated, skipped };
   },
 });
 
