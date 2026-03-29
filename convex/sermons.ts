@@ -2,6 +2,8 @@ import { action, internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 import { internal } from "./_generated/api";
+import type { Doc, Id } from "./_generated/dataModel";
+import type { QueryCtx } from "./_generated/server";
 
 const branhamSermonValidator = v.object({
   sid: v.optional(v.number()),
@@ -12,10 +14,40 @@ const branhamSermonValidator = v.object({
   tag: v.string(),
 });
 
+function normalizeLanguageCode(languageCode: string) {
+  return languageCode.trim().toLowerCase() || "nb";
+}
+
+async function resolveLocalizedMetadata(
+  ctx: QueryCtx,
+  sermon: Doc<"sermons">,
+  languageCode: string,
+) {
+  const normalized = normalizeLanguageCode(languageCode);
+
+  const localized = await ctx.db
+    .query("sermonMetadataTranslations")
+    .withIndex("by_sermonId_and_languageCode", (q) =>
+      q.eq("sermonId", sermon._id).eq("languageCode", normalized),
+    )
+    .unique();
+
+  return {
+    ...sermon,
+    title: localized?.title ?? sermon.title,
+    description: localized?.description ?? sermon.description,
+  };
+}
+
 export const getById = query({
-  args: { id: v.id("sermons") },
+  args: {
+    id: v.id("sermons"),
+    languageCode: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    const sermon = await ctx.db.get(args.id);
+    if (!sermon) return null;
+    return await resolveLocalizedMetadata(ctx, sermon, args.languageCode ?? "nb");
   },
 });
 
@@ -25,44 +57,46 @@ export const list = query({
     search: v.optional(v.string()),
     year: v.optional(v.string()),
     series: v.optional(v.string()),
+    languageCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    let sermonsQuery = ctx.db.query("sermons").order("desc");
+    const languageCode = args.languageCode ?? "nb";
+    const all = await ctx.db.query("sermons").order("desc").collect();
 
-    if (args.search || args.year || args.series) {
-      const all = await sermonsQuery.collect();
-      let filtered = all;
+    const localized = await Promise.all(
+      all.map((sermon) => resolveLocalizedMetadata(ctx, sermon, languageCode)),
+    );
 
-      if (args.search) {
-        const query = args.search.toLowerCase();
-        filtered = filtered.filter(s => 
-          s.title.toLowerCase().includes(query) ||
-          s.description.toLowerCase().includes(query) ||
-          (s.scripture && s.scripture.toLowerCase().includes(query))
-        );
-      }
+    let filtered = localized;
 
-      if (args.year) {
-        filtered = filtered.filter(s => s.date.startsWith(args.year!));
-      }
-
-      if (args.series) {
-        filtered = filtered.filter(s => s.series === args.series);
-      }
-
-      // Manual pagination for filtered results
-      const numItems = args.paginationOpts.numItems;
-      const page = filtered.slice(0, numItems);
-      const isDone = filtered.length <= numItems;
-
-      return { 
-        page, 
-        isDone, 
-        continueCursor: isDone ? "" : "manual_cursor" 
-      };
+    if (args.search) {
+      const search = args.search.toLowerCase();
+      filtered = filtered.filter((s) =>
+        s.title.toLowerCase().includes(search) ||
+        s.description.toLowerCase().includes(search) ||
+        (s.scripture && s.scripture.toLowerCase().includes(search)),
+      );
     }
 
-    return await sermonsQuery.paginate(args.paginationOpts);
+    if (args.year) {
+      filtered = filtered.filter((s) => s.date.startsWith(args.year!));
+    }
+
+    if (args.series) {
+      filtered = filtered.filter((s) => s.series === args.series);
+    }
+
+    const start = args.paginationOpts.cursor ? Number(args.paginationOpts.cursor) : 0;
+    const numItems = args.paginationOpts.numItems;
+    const page = filtered.slice(start, start + numItems);
+    const next = start + page.length;
+    const isDone = next >= filtered.length;
+
+    return {
+      page,
+      isDone,
+      continueCursor: isDone ? "" : String(next),
+    };
   },
 });
 
@@ -114,6 +148,7 @@ export const importFromBranhamBatch = internalMutation({
       const title = sermon.title.trim();
       const date = sermon.date.trim();
       const tag = sermon.tag.trim();
+      const norwegianTitle = sermon.title_no?.trim() || title;
 
       if (!title || !date || !tag) {
         skipped += 1;
@@ -125,13 +160,16 @@ export const importFromBranhamBatch = internalMutation({
         .withIndex("by_tag", (q) => q.eq("tag", tag))
         .take(2);
 
+      let sermonId: Id<"sermons">;
+
       if (matches.length > 1) {
         skipped += 1;
         continue;
       }
 
       if (matches.length === 1) {
-        await ctx.db.patch(matches[0]._id, {
+        sermonId = matches[0]._id;
+        await ctx.db.patch(sermonId, {
           title,
           date,
           description: "",
@@ -139,7 +177,7 @@ export const importFromBranhamBatch = internalMutation({
         });
         updated += 1;
       } else {
-        await ctx.db.insert("sermons", {
+        sermonId = await ctx.db.insert("sermons", {
           title,
           date,
           description: "",
@@ -147,9 +185,66 @@ export const importFromBranhamBatch = internalMutation({
         });
         inserted += 1;
       }
+
+      const nbMetadata = await ctx.db
+        .query("sermonMetadataTranslations")
+        .withIndex("by_sermonId_and_languageCode", (q) =>
+          q.eq("sermonId", sermonId).eq("languageCode", "nb"),
+        )
+        .unique();
+
+      if (nbMetadata) {
+        await ctx.db.patch(nbMetadata._id, {
+          title: norwegianTitle,
+          description: "",
+          updatedAt: Date.now(),
+        });
+      } else {
+        await ctx.db.insert("sermonMetadataTranslations", {
+          sermonId,
+          languageCode: "nb",
+          title: norwegianTitle,
+          description: "",
+          updatedAt: Date.now(),
+        });
+      }
     }
 
     return { inserted, updated, skipped };
+  },
+});
+
+export const backfillMetadataTranslationsNb = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const sermons = await ctx.db.query("sermons").collect();
+    let created = 0;
+    let existing = 0;
+
+    for (const sermon of sermons) {
+      const translation = await ctx.db
+        .query("sermonMetadataTranslations")
+        .withIndex("by_sermonId_and_languageCode", (q) =>
+          q.eq("sermonId", sermon._id).eq("languageCode", "nb"),
+        )
+        .unique();
+
+      if (translation) {
+        existing += 1;
+        continue;
+      }
+
+      await ctx.db.insert("sermonMetadataTranslations", {
+        sermonId: sermon._id,
+        languageCode: "nb",
+        title: sermon.title,
+        description: sermon.description,
+        updatedAt: Date.now(),
+      });
+      created += 1;
+    }
+
+    return { created, existing };
   },
 });
 
@@ -201,11 +296,11 @@ export const seed = mutation({
         description: "The black horse and the rider with the balances, signifying famine and economic judgment.",
         scripture: "Revelation 6:5-6",
         series: "The Seven Seals",
-      }
+      },
     ];
 
-    for (const s of sermons) {
-      await ctx.db.insert("sermons", s);
+    for (const sermon of sermons) {
+      await ctx.db.insert("sermons", sermon);
     }
   },
 });

@@ -32,6 +32,43 @@ export default defineSchema({
   })
     .index("by_sermonId_and_order", ["sermonId", "order"])
     .index("by_sermonId_and_status", ["sermonId", "status"]),
+  sermonMetadataTranslations: defineTable({
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+    title: v.string(),
+    description: v.string(),
+    updatedAt: v.number(),
+  })
+    .index("by_sermonId_and_languageCode", ["sermonId", "languageCode"])
+    .index("by_languageCode", ["languageCode"]),
+  sermonParagraphTranslations: defineTable({
+    paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
+    translatedText: v.string(),
+    status: paragraphStatus,
+    updatedAt: v.number(),
+  })
+    .index("by_paragraphId_and_languageCode", ["paragraphId", "languageCode"])
+    .index("by_languageCode_and_status", ["languageCode", "status"]),
+  paragraphTranslationComments: defineTable({
+    paragraphTranslationId: v.id("sermonParagraphTranslations"),
+    parentCommentId: v.optional(v.id("paragraphTranslationComments")),
+    body: v.string(),
+    authorName: v.string(),
+    authorTokenIdentifier: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_paragraphTranslationId_and_createdAt", ["paragraphTranslationId", "createdAt"]),
+  paragraphTranslationRevisions: defineTable({
+    paragraphTranslationId: v.id("sermonParagraphTranslations"),
+    snapshotText: v.string(),
+    status: paragraphStatus,
+    kind: v.union(v.literal("edit"), v.literal("restore")),
+    reason: v.optional(v.string()),
+    restoredFromRevisionId: v.optional(v.id("paragraphTranslationRevisions")),
+    authorName: v.string(),
+    authorTokenIdentifier: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_paragraphTranslationId_and_createdAt", ["paragraphTranslationId", "createdAt"]),
   paragraphComments: defineTable({
     paragraphId: v.id("sermonParagraphs"),
     parentCommentId: v.optional(v.id("paragraphComments")),

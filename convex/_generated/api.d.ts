@@ -9,6 +9,7 @@
  */
 
 import type * as editorial from "../editorial.js";
+import type * as http from "../http.js";
 import type * as sermons from "../sermons.js";
 
 import type {
@@ -19,6 +20,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   editorial: typeof editorial;
+  http: typeof http;
   sermons: typeof sermons;
 }>;
 

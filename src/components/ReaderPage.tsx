@@ -103,7 +103,7 @@ export default function ReaderPage() {
 
   const sermon = useQuery(
     api.sermons.getById,
-    sermonIdParam ? { id: sermonIdParam as Id<"sermons"> } : "skip",
+    sermonIdParam ? { id: sermonIdParam as Id<"sermons">, languageCode: i18n.language } : "skip",
   );
 
   const sermonId = sermonIdParam as SermonId | undefined;
@@ -112,7 +112,7 @@ export default function ReaderPage() {
   const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
   const paragraphsResult = useQuery(
     api.editorial.listParagraphs,
-    sermonId ? { sermonId, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
+    sermonId ? { sermonId, languageCode: i18n.language, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
   );
 
   const paragraphs = useMemo(() => paragraphsResult?.page ?? [], [paragraphsResult]);
@@ -133,10 +133,10 @@ export default function ReaderPage() {
 
   useEffect(() => {
     if (!sermonId) return;
-    ensureParagraphs({ sermonId }).catch((error) => {
+    ensureParagraphs({ sermonId, languageCode: i18n.language }).catch((error) => {
       console.error("Failed ensuring paragraphs", error);
     });
-  }, [sermonId, ensureParagraphs]);
+  }, [sermonId, ensureParagraphs, i18n.language]);
 
   const segments: ParagraphBlockSegment[] = useMemo(() => {
     if (paragraphs.length > 0) {
@@ -169,10 +169,10 @@ export default function ReaderPage() {
     setEditingKey(segment.key);
     setDraftText(segment.translatedText);
     if (segment.paragraphId && segment.status !== "drafting") {
-      await updateParagraphStatus({ paragraphId: segment.paragraphId, status: "drafting" });
+      await updateParagraphStatus({ paragraphId: segment.paragraphId, languageCode: i18n.language, status: "drafting" });
     }
     setTimeout(() => textareaRef.current?.focus(), 0);
-  }, [updateParagraphStatus]);
+  }, [updateParagraphStatus, i18n.language]);
 
   const saveDraft = useCallback(async (submitForReview = false) => {
     const segment = segments.find((s) => s.key === editingKey);
@@ -181,6 +181,7 @@ export default function ReaderPage() {
     try {
       await updateParagraphDraft({
         paragraphId: segment.paragraphId,
+        languageCode: i18n.language,
         translatedText: draftText,
         reason: submitForReview
           ? "Submitted for review from reader"
@@ -191,7 +192,7 @@ export default function ReaderPage() {
     } finally {
       setSaving(false);
     }
-  }, [editingKey, draftText, segments, updateParagraphDraft]);
+  }, [editingKey, draftText, segments, updateParagraphDraft, i18n.language]);
 
   const discardDraft = useCallback(() => {
     setEditingKey(null);
@@ -472,7 +473,7 @@ export default function ReaderPage() {
                       }
                       onApprove={
                         segment.paragraphId && segment.status === "needs_review"
-                          ? () => updateParagraphStatus({ paragraphId: segment.paragraphId!, status: "approved", reason: "Approved in reader" })
+                          ? () => updateParagraphStatus({ paragraphId: segment.paragraphId!, languageCode: i18n.language, status: "approved", reason: "Approved in reader" })
                           : undefined
                       }
                       onOpenComments={
@@ -624,11 +625,13 @@ export default function ReaderPage() {
 
       <ParagraphCommentsModal
         paragraphId={commentsParagraphId}
+        languageCode={i18n.language}
         open={Boolean(commentsParagraphId)}
         onClose={() => setCommentsParagraphId(null)}
       />
       <VersionHistoryModal
         paragraphId={historyParagraphId}
+        languageCode={i18n.language}
         currentText={historySegment?.translatedText ?? ""}
         open={Boolean(historyParagraphId)}
         onClose={() => setHistoryParagraphId(null)}

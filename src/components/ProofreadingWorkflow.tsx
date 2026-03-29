@@ -86,7 +86,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
   const paragraphsResult = useQuery(
     api.editorial.listParagraphs,
-    sermonId ? { sermonId, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
+    sermonId ? { sermonId, languageCode: i18n.language, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
   );
 
   const segments = useMemo<UiSegment[]>(() => {
@@ -117,10 +117,10 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
 
   useEffect(() => {
     if (!sermonId) return;
-    ensureParagraphs({ sermonId }).catch((error) => {
+    ensureParagraphs({ sermonId, languageCode: i18n.language }).catch((error) => {
       console.error("Failed to seed sermon paragraphs", error);
     });
-  }, [sermonId, ensureParagraphs]);
+  }, [sermonId, ensureParagraphs, i18n.language]);
 
   useEffect(() => {
     if (!segments.length) return;
@@ -165,7 +165,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
     setActiveSegmentId(segment.key);
     if (!segment.paragraphId) return;
     if (segment.status !== "drafting") {
-      await updateParagraphStatus({ paragraphId: segment.paragraphId, status: "drafting" });
+      await updateParagraphStatus({ paragraphId: segment.paragraphId, languageCode: i18n.language, status: "drafting" });
     }
   };
 
@@ -175,6 +175,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
     try {
       await updateParagraphDraft({
         paragraphId: activeSegment.paragraphId,
+        languageCode: i18n.language,
         translatedText: draftText,
         reason: submitForReview
           ? "Submitted for review from proofreading workflow"
@@ -194,6 +195,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   const approveSegment = async (paragraphId: ParagraphId) => {
     await updateParagraphStatus({
       paragraphId,
+      languageCode: i18n.language,
       status: "approved",
       reason: "Approved in proofreading workflow",
     });
@@ -389,11 +391,13 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
 
       <ParagraphCommentsModal
         paragraphId={commentsParagraphId}
+        languageCode={i18n.language}
         open={Boolean(commentsParagraphId)}
         onClose={() => setCommentsParagraphId(null)}
       />
       <VersionHistoryModal
         paragraphId={historyParagraphId}
+        languageCode={i18n.language}
         currentText={historySegment?.translatedText ?? ""}
         open={Boolean(historyParagraphId)}
         onClose={() => setHistoryParagraphId(null)}

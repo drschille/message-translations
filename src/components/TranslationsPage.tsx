@@ -32,6 +32,7 @@ export default function TranslationsPage() {
       search: debouncedSearchQuery || undefined,
       year: selectedYear || undefined,
       series: selectedSeries || undefined,
+      languageCode: i18n.language,
     },
     { initialNumItems: 10 },
   );
