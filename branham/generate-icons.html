@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate App Icons</title>
+    <style>
+        body { 
+            font-family: system-ui; 
+            padding: 40px; 
+            background: #1a1a1a; 
+            color: #fff;
+        }
+        canvas { 
+            border: 1px solid #333; 
+            margin: 10px; 
+            border-radius: 20px;
+        }
+        .icons { display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; }
+        a { 
+            display: inline-block; 
+            margin: 10px; 
+            padding: 12px 24px; 
+            background: #d4a574; 
+            color: #000; 
+            text-decoration: none; 
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        a:hover { background: #e5b685; }
+        h1 { color: #d4a574; }
+    </style>
+</head>
+<body>
+    <h1>Budskapet - App Icons</h1>
+    <p>Klikk på lenkene for å laste ned ikonene, og legg dem i samme mappe som index.html</p>
+    
+    <div class="icons">
+        <div>
+            <canvas id="icon180" width="180" height="180"></canvas>
+            <br><a id="download180" download="apple-touch-icon.png">Last ned 180x180 (Apple)</a>
+        </div>
+        <div>
+            <canvas id="icon192" width="192" height="192"></canvas>
+            <br><a id="download192" download="icon-192.png">Last ned 192x192 (Android)</a>
+        </div>
+        <div>
+            <canvas id="icon512" width="512" height="512"></canvas>
+            <br><a id="download512" download="icon-512.png">Last ned 512x512 (Android)</a>
+        </div>
+    </div>
+
+    <script>
+        function drawIcon(canvas) {
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            const radius = size * 0.15;
+            
+            // Rounded rectangle background
+            ctx.beginPath();
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(size - radius, 0);
+            ctx.quadraticCurveTo(size, 0, size, radius);
+            ctx.lineTo(size, size - radius);
+            ctx.quadraticCurveTo(size, size, size - radius, size);
+            ctx.lineTo(radius, size);
+            ctx.quadraticCurveTo(0, size, 0, size - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+            
+            ctx.fillStyle = '#0a0a0b';
+            ctx.fill();
+            
+            // Text "M"
+            ctx.fillStyle = '#d4a574';
+            ctx.font = `bold ${size * 0.5}px Georgia, serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('M', size/2, size/2 + size*0.02);
+        }
+        
+        // Draw all icons
+        ['icon180', 'icon192', 'icon512'].forEach(id => {
+            const canvas = document.getElementById(id);
+            drawIcon(canvas);
+        });
+        
+        // Set download links
+        document.getElementById('download180').href = document.getElementById('icon180').toDataURL('image/png');
+        document.getElementById('download192').href = document.getElementById('icon192').toDataURL('image/png');
+        document.getElementById('download512').href = document.getElementById('icon512').toDataURL('image/png');
+    </script>
+</body>
+</html>
