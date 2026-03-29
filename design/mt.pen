@@ -5153,15 +5153,36 @@
           ],
           "children": [
             {
-              "type": "text",
-              "id": "t9KM2",
+              "type": "frame",
+              "id": "7rNkq",
               "name": "pageTitle",
-              "fill": "#e5e2e1",
-              "content": "Taler Arkiv",
-              "fontFamily": "Noto Serif",
-              "fontSize": 48,
-              "fontWeight": "700",
-              "letterSpacing": -1
+              "gap": 12,
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Lsy26",
+                  "fill": "#e5e2e1",
+                  "content": "Taler oversatt til",
+                  "lineHeight": 1,
+                  "fontFamily": "Noto Serif",
+                  "fontSize": 64,
+                  "fontWeight": "700",
+                  "letterSpacing": -1
+                },
+                {
+                  "type": "text",
+                  "id": "QckMp",
+                  "fill": "#a8c9f4",
+                  "content": "norsk",
+                  "lineHeight": 1,
+                  "fontFamily": "Noto Serif",
+                  "fontSize": 64,
+                  "fontWeight": "700",
+                  "letterSpacing": -1,
+                  "fontStyle": "italic"
+                }
+              ]
             },
             {
               "type": "frame",
@@ -5200,7 +5221,7 @@
                       "id": "25vqX",
                       "name": "searchPlaceholder",
                       "fill": "#8E9099",
-                      "content": "Search by title, date, or scripture...",
+                      "content": "Søk etter tittel, dato eller skriftsted...",
                       "fontFamily": "Inter",
                       "fontSize": 14,
                       "fontWeight": "normal"
@@ -5235,7 +5256,7 @@
                       "id": "CEozb",
                       "name": "filterText",
                       "fill": "#e5e2e1",
-                      "content": "FILTERS",
+                      "content": "FILTRE",
                       "fontFamily": "Inter",
                       "fontSize": 12,
                       "fontWeight": "500",
@@ -5271,7 +5292,7 @@
                       "id": "Nxlo2",
                       "name": "sortText",
                       "fill": "#e5e2e1",
-                      "content": "LATEST",
+                      "content": "NYESTE",
                       "fontFamily": "Inter",
                       "fontSize": 12,
                       "fontWeight": "500",
@@ -5340,7 +5361,7 @@
                           "id": "org6g",
                           "name": "row1Title",
                           "fill": "#a8c9f4",
-                          "content": "The First Seal",
+                          "content": "Det første seglet",
                           "fontFamily": "Noto Serif",
                           "fontSize": 18,
                           "fontWeight": "500"
@@ -5389,7 +5410,7 @@
                       "fill": "#c3c6cf",
                       "textGrowth": "fixed-width",
                       "width": 700,
-                      "content": "The first sermon of the Seven Seals series. Revelation 6:1-2 is opened as the Lamb breaks the first seal, revealing the rider on the white horse.",
+                      "content": "Den første talen i serien om de syv seglene. Åpenbaringen 6:1-2 åpnes når Lammet bryter det første seglet og rytteren på den hvite hesten blir åpenbart.",
                       "lineHeight": 1.6,
                       "fontFamily": "Inter",
                       "fontSize": 14,
@@ -5406,12 +5427,18 @@
                           "type": "ref",
                           "ref": "NO0Tr",
                           "name": "btn1",
+                          "width": "fit_content",
+                          "height": "fit_content",
                           "descendants": {
                             "2Lelu": {
-                              "content": "Les Tekst"
+                              "content": "Les Tekst",
+                              "x": 28,
+                              "y": 14
                             },
                             "TP7h8": {
-                              "iconFontName": "book-open"
+                              "iconFontName": "book-open",
+                              "x": 101,
+                              "y": 14.5
                             }
                           }
                         },
@@ -5443,7 +5470,7 @@
                               "id": "bqZN1",
                               "name": "btn2text",
                               "fill": "#e5e2e1",
-                              "content": "Last Ned",
+                              "content": "Last ned",
                               "fontFamily": "Inter",
                               "fontSize": 14,
                               "fontWeight": "500"
@@ -5529,7 +5556,7 @@
                       "id": "QfxIy",
                       "name": "row2title",
                       "fill": "#e5e2e1",
-                      "content": "Questions And Answers On The Seals",
+                      "content": "Spørsmål og svar om seglene",
                       "fontFamily": "Noto Serif",
                       "fontSize": 18,
                       "fontWeight": "500"
@@ -5586,7 +5613,7 @@
                       "id": "G2m4J",
                       "name": "row3title",
                       "fill": "#e5e2e1",
-                      "content": "The Sixth Seal",
+                      "content": "Det sjette seglet",
                       "fontFamily": "Noto Serif",
                       "fontSize": 18,
                       "fontWeight": "500"
@@ -5643,7 +5670,7 @@
                       "id": "KGaab",
                       "name": "row4title",
                       "fill": "#e5e2e1",
-                      "content": "The Fifth Seal",
+                      "content": "Det femte seglet",
                       "fontFamily": "Noto Serif",
                       "fontSize": 18,
                       "fontWeight": "500"
@@ -5727,7 +5754,7 @@
                   "fill": "#dcc2a9",
                   "textGrowth": "fixed-width",
                   "width": 500,
-                  "content": "\"He that hath an ear, let him hear what the Spirit saith unto the churches.\"",
+                  "content": "\"Den som har øre, han høre hva Ånden sier til menighetene.\"",
                   "lineHeight": 1.5,
                   "fontFamily": "Noto Serif",
                   "fontSize": 24,
@@ -5774,7 +5801,7 @@
                       "id": "mIZFM",
                       "name": "row5title",
                       "fill": "#e5e2e1",
-                      "content": "The Fourth Seal",
+                      "content": "Det fjerde seglet",
                       "fontFamily": "Noto Serif",
                       "fontSize": 18,
                       "fontWeight": "500"
@@ -5831,7 +5858,7 @@
                       "id": "1RQRP",
                       "name": "row6title",
                       "fill": "#e5e2e1",
-                      "content": "The Third Seal",
+                      "content": "Det tredje seglet",
                       "fontFamily": "Noto Serif",
                       "fontSize": 18,
                       "fontWeight": "500"
@@ -5896,7 +5923,7 @@
               "id": "8YZq9",
               "name": "pageText",
               "fill": "#dcc2a9",
-              "content": "PAGE 01 / 84",
+              "content": "SIDE 01 / 84",
               "fontFamily": "Inter",
               "fontSize": 12,
               "fontWeight": "500",
@@ -6343,7 +6370,7 @@
               "id": "htY8f",
               "name": "sermonTitle",
               "fill": "#e5e2e1",
-              "content": "The First Seal",
+              "content": "Det første seglet",
               "fontFamily": "Noto Serif",
               "fontSize": 36,
               "fontWeight": "700",
@@ -6379,7 +6406,7 @@
                   "id": "37Ijg",
                   "name": "metaSeries",
                   "fill": "#dcc2a9",
-                  "content": "The Seven Seals",
+                  "content": "De syv seglene",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "500"
@@ -6397,7 +6424,7 @@
                   "id": "Jmdef",
                   "name": "metaScripture",
                   "fill": "#a8c9f4",
-                  "content": "Revelation 6:1-2",
+                  "content": "Åpenbaringen 6:1-2",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "normal"
@@ -6448,7 +6475,7 @@
                   "id": "6ntap",
                   "name": "backText",
                   "fill": "#c3c6cf",
-                  "content": "Back to Archive",
+                  "content": "Tilbake til arkivet",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "500"
@@ -6507,7 +6534,7 @@
                       "id": "IWRAl",
                       "name": "m1transT",
                       "fill": "#8E9099",
-                      "content": "Translated",
+                      "content": "Oversatt",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -6531,7 +6558,7 @@
                       "id": "KlOo6",
                       "name": "m1compT",
                       "fill": "#8E9099",
-                      "content": "Comparison",
+                      "content": "Sammenligning",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -6631,7 +6658,7 @@
                       "id": "MsTrM",
                       "name": "notesText",
                       "fill": "#c3c6cf",
-                      "content": "Notes",
+                      "content": "Notater",
                       "fontFamily": "Inter",
                       "fontSize": 12,
                       "fontWeight": "500"
@@ -7063,7 +7090,7 @@
                                   "id": "c6gTF",
                                   "name": "popNoteText",
                                   "fill": "#c3c6cf",
-                                  "content": "Add Note",
+                                  "content": "Legg til notat",
                                   "fontFamily": "Inter",
                                   "fontSize": 13,
                                   "fontWeight": "500"
@@ -7096,7 +7123,7 @@
                                   "id": "nek7A",
                                   "name": "popRemoveText",
                                   "fill": "#f87171",
-                                  "content": "Remove",
+                                  "content": "Fjern",
                                   "fontFamily": "Inter",
                                   "fontSize": 13,
                                   "fontWeight": "500"
@@ -7655,7 +7682,7 @@
                   "id": "WWLS6",
                   "name": "panelTitleText",
                   "fill": "#e5e2e1",
-                  "content": "Notes & Highlights",
+                  "content": "Notater og høydepunkter",
                   "fontFamily": "Inter",
                   "fontSize": 15,
                   "fontWeight": "600"
@@ -7730,7 +7757,7 @@
                   "id": "KCUMO",
                   "name": "tabAllText",
                   "fill": "#a8c9f4",
-                  "content": "All",
+                  "content": "Alle",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "500"
@@ -7760,7 +7787,7 @@
                   "id": "tNn0q",
                   "name": "tabHLText",
                   "fill": "#8E9099",
-                  "content": "Highlights",
+                  "content": "Høydepunkter",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "normal"
@@ -7790,7 +7817,7 @@
                   "id": "nrAr1",
                   "name": "tabNotesText",
                   "fill": "#8E9099",
-                  "content": "Notes",
+                  "content": "Notater",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "normal"
@@ -7847,7 +7874,7 @@
                       "fill": "#c3c6cf",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "\"For instance, if I had something here… I'd show you what I mean. Here is one Seal...\"",
+                      "content": "\"For eksempel, hvis jeg hadde noe her… kunne jeg vist deg hva jeg mener. Her er ett segl...\"",
                       "lineHeight": 1.5,
                       "fontFamily": "Noto Serif",
                       "fontSize": 13,
@@ -7861,7 +7888,7 @@
                       "fill": "#e5e2e1",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "The seals are shown as rolled scroll sections. As each seal is broken, a specific part of the book's mystery is opened.",
+                      "content": "Seglene vises som opprullede deler av en bokrull. Når hvert segl brytes, åpnes en bestemt del av bokens mysterium.",
                       "lineHeight": 1.5,
                       "fontFamily": "Inter",
                       "fontSize": 12,
@@ -7880,7 +7907,7 @@
                           "id": "mLf5F",
                           "name": "card1time",
                           "fill": "#8E9099",
-                          "content": "2 min ago · ¶3",
+                          "content": "2 min siden · ¶3",
                           "fontFamily": "Inter",
                           "fontSize": 11,
                           "fontWeight": "normal"
@@ -7956,7 +7983,7 @@
                       "fill": "#c3c6cf",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "\"It's an eternal Book. Therefore, we just have to kind of hit the high places.\"",
+                      "content": "\"Det er en evig Bok. Derfor må vi nøye oss med å ta for oss de viktigste punktene.\"",
                       "lineHeight": 1.5,
                       "fontFamily": "Noto Serif",
                       "fontSize": 13,
@@ -7970,7 +7997,7 @@
                       "fill": "#e5e2e1",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "Jeremiah's preserved writings are linked to the seal pattern: the revelation is unfolded progressively, not all at once.",
+                      "content": "Jeremias bevarte skrifter er knyttet til mønsteret med seglene: åpenbaringen utfoldes gradvis, ikke alt på én gang.",
                       "lineHeight": 1.5,
                       "fontFamily": "Inter",
                       "fontSize": 12,
@@ -7989,7 +8016,7 @@
                           "id": "HY3o1",
                           "name": "card2time",
                           "fill": "#8E9099",
-                          "content": "5 min ago · ¶4",
+                          "content": "5 min siden · ¶4",
                           "fontFamily": "Inter",
                           "fontSize": 11,
                           "fontWeight": "normal"
@@ -8065,7 +8092,7 @@
                       "fill": "#c3c6cf",
                       "textGrowth": "fixed-width",
                       "width": "fill_container",
-                      "content": "\"Let us bow our heads now for prayer... the Lamb is the only one that can reveal it to us.\"",
+                      "content": "\"La oss bøye våre hoder for bønn... Bare Lammet kan åpenbare det for oss.\"",
                       "lineHeight": 1.5,
                       "fontFamily": "Noto Serif",
                       "fontSize": 13,
@@ -8085,7 +8112,7 @@
                           "id": "qhxPs",
                           "name": "card3time",
                           "fill": "#8E9099",
-                          "content": "12 min ago · ¶1",
+                          "content": "12 min siden · ¶1",
                           "fontFamily": "Inter",
                           "fontSize": 11,
                           "fontWeight": "normal"
@@ -8158,7 +8185,7 @@
                   "id": "8fOjV",
                   "name": "addNoteText",
                   "fill": "#c3c6cf",
-                  "content": "Add Note",
+                  "content": "Legg til notat",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "500"
@@ -8200,7 +8227,7 @@
               "id": "98EWj",
               "name": "sermonTitle",
               "fill": "#e5e2e1",
-              "content": "The First Seal",
+              "content": "Det første seglet",
               "fontFamily": "Noto Serif",
               "fontSize": 36,
               "fontWeight": "700",
@@ -8236,7 +8263,7 @@
                   "id": "su7Yr",
                   "name": "metaSeries",
                   "fill": "#dcc2a9",
-                  "content": "The Seven Seals",
+                  "content": "De syv seglene",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "500"
@@ -8254,7 +8281,7 @@
                   "id": "hXNJv",
                   "name": "metaScripture",
                   "fill": "#a8c9f4",
-                  "content": "Revelation 6:1-2",
+                  "content": "Åpenbaringen 6:1-2",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "normal"
@@ -8305,7 +8332,7 @@
                   "id": "UDhN2",
                   "name": "backText",
                   "fill": "#c3c6cf",
-                  "content": "Back to Archive",
+                  "content": "Tilbake til arkivet",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "500"
@@ -8364,7 +8391,7 @@
                       "id": "6ytMO",
                       "name": "m2transT",
                       "fill": "#093255",
-                      "content": "Translated",
+                      "content": "Oversatt",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "600"
@@ -8388,7 +8415,7 @@
                       "id": "y6T8d",
                       "name": "m2compT",
                       "fill": "#8E9099",
-                      "content": "Comparison",
+                      "content": "Sammenligning",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -8488,7 +8515,7 @@
                       "id": "AbLKO",
                       "name": "notesText",
                       "fill": "#c3c6cf",
-                      "content": "Notes",
+                      "content": "Notater",
                       "fontFamily": "Inter",
                       "fontSize": 12,
                       "fontWeight": "500"
@@ -8922,7 +8949,7 @@
                                   "id": "POcyT",
                                   "name": "popNoteText",
                                   "fill": "#c3c6cf",
-                                  "content": "Add Note",
+                                  "content": "Legg til notat",
                                   "fontFamily": "Inter",
                                   "fontSize": 13,
                                   "fontWeight": "500"
@@ -8955,7 +8982,7 @@
                                   "id": "GIi6J",
                                   "name": "popRemoveText",
                                   "fill": "#f87171",
-                                  "content": "Remove",
+                                  "content": "Fjern",
                                   "fontFamily": "Inter",
                                   "fontSize": 13,
                                   "fontWeight": "500"
@@ -9049,7 +9076,7 @@
                           "id": "J8bup",
                           "name": "titleText",
                           "fill": "#e5e2e1",
-                          "content": "Notes & Highlights",
+                          "content": "Notater og høydepunkter",
                           "fontFamily": "Inter",
                           "fontSize": 15,
                           "fontWeight": "600"
@@ -9124,7 +9151,7 @@
                           "id": "vuBNz",
                           "name": "tabAllT",
                           "fill": "#a8c9f4",
-                          "content": "All",
+                          "content": "Alle",
                           "fontFamily": "Inter",
                           "fontSize": 13,
                           "fontWeight": "500"
@@ -9154,7 +9181,7 @@
                           "id": "GbQpa",
                           "name": "tabHLT",
                           "fill": "#8E9099",
-                          "content": "Highlights",
+                          "content": "Høydepunkter",
                           "fontFamily": "Inter",
                           "fontSize": 13,
                           "fontWeight": "normal"
@@ -9184,7 +9211,7 @@
                           "id": "sMxXC",
                           "name": "tabNT",
                           "fill": "#8E9099",
-                          "content": "Notes",
+                          "content": "Notater",
                           "fontFamily": "Inter",
                           "fontSize": 13,
                           "fontWeight": "normal"
@@ -9274,7 +9301,7 @@
                                   "id": "STEiz",
                                   "name": "c1t",
                                   "fill": "#8E9099",
-                                  "content": "2 min ago · ¶3",
+                                  "content": "2 min siden · ¶3",
                                   "fontFamily": "Inter",
                                   "fontSize": 11,
                                   "fontWeight": "normal"
@@ -9383,7 +9410,7 @@
                                   "id": "rCRMs",
                                   "name": "c2t",
                                   "fill": "#8E9099",
-                                  "content": "5 min ago · ¶4",
+                                  "content": "5 min siden · ¶4",
                                   "fontFamily": "Inter",
                                   "fontSize": 11,
                                   "fontWeight": "normal"
@@ -9479,7 +9506,7 @@
                                   "id": "cVKPN",
                                   "name": "c3t",
                                   "fill": "#8E9099",
-                                  "content": "12 min ago · ¶1",
+                                  "content": "12 min siden · ¶1",
                                   "fontFamily": "Inter",
                                   "fontSize": 11,
                                   "fontWeight": "normal"
@@ -9552,7 +9579,7 @@
                           "id": "uzSKc",
                           "name": "addText",
                           "fill": "#c3c6cf",
-                          "content": "Add Note",
+                          "content": "Legg til notat",
                           "fontFamily": "Inter",
                           "fontSize": 13,
                           "fontWeight": "500"
@@ -9980,7 +10007,7 @@
               "fill": "#e5e2e1",
               "textGrowth": "fixed-width",
               "width": "fill_container",
-              "content": "The Breach Between The Seven Church Ages And The Seven Seals",
+              "content": "Bruddet mellom de syv menighetstidene og de syv seglene",
               "lineHeight": 1.3,
               "fontFamily": "Noto Serif",
               "fontSize": 32,
@@ -10017,7 +10044,7 @@
                   "id": "7z0Im",
                   "name": "metaSeries",
                   "fill": "#dcc2a9",
-                  "content": "The Seven Seals",
+                  "content": "De syv seglene",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "500"
@@ -10086,7 +10113,7 @@
                   "id": "4dUqV",
                   "name": "backText",
                   "fill": "#c3c6cf",
-                  "content": "Back to Archive",
+                  "content": "Tilbake til arkivet",
                   "fontFamily": "Inter",
                   "fontSize": 13,
                   "fontWeight": "500"
@@ -10143,7 +10170,7 @@
                       "id": "Iq3gm",
                       "name": "modeTransT",
                       "fill": "#8E9099",
-                      "content": "Translated",
+                      "content": "Oversatt",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "normal"
@@ -10168,7 +10195,7 @@
                       "id": "ihkwz",
                       "name": "modeCompT",
                       "fill": "#093255",
-                      "content": "Comparison",
+                      "content": "Sammenligning",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "600"
@@ -10268,7 +10295,7 @@
                       "id": "dLQAa",
                       "name": "nText",
                       "fill": "#c3c6cf",
-                      "content": "Notes",
+                      "content": "Notater",
                       "fontFamily": "Inter",
                       "fontSize": 12,
                       "fontWeight": "500"
@@ -10430,7 +10457,7 @@
                           "id": "w89Za",
                           "name": "hdrLeftLabel",
                           "fill": "#e5e2e1",
-                          "content": "English",
+                          "content": "Engelsk",
                           "fontFamily": "Inter",
                           "fontSize": 13,
                           "fontWeight": "600"
