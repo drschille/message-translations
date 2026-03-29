@@ -5,13 +5,22 @@ import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
 
+const sermonTranslationValidator = v.object({
+  languageCode: v.string(),
+  title: v.optional(v.string()),
+  description: v.optional(v.string()),
+});
+
 const branhamSermonValidator = v.object({
   sid: v.optional(v.number()),
   title: v.string(),
+  description: v.optional(v.string()),
   title_no: v.optional(v.string()),
+  description_no: v.optional(v.string()),
   date: v.string(),
   location: v.optional(v.string()),
   tag: v.string(),
+  translations: v.optional(v.array(sermonTranslationValidator)),
 });
 
 function normalizeLanguageCode(languageCode: string) {
@@ -105,10 +114,41 @@ export const importFromBranham = action({
     sermons: v.array(branhamSermonValidator),
   },
   handler: async (ctx, args) => {
+    for (let i = 0; i < args.sermons.length; i += 1) {
+      const sermon = args.sermons[i];
+
+      if (sermon.title_no || sermon.description_no) {
+        throw new Error(
+          `Legacy translation fields (title_no/description_no) are not supported (item index ${i}). Use 'translations: [{ languageCode, title?, description? }]' instead.`,
+        );
+      }
+
+      for (let j = 0; j < (sermon.translations ?? []).length; j += 1) {
+        const translation = sermon.translations![j];
+        const languageCode = normalizeLanguageCode(translation.languageCode);
+        const hasTitle = Boolean(translation.title?.trim());
+        const hasDescription = Boolean(translation.description?.trim());
+
+        if (!languageCode) {
+          throw new Error(
+            `Translation languageCode is required (item index ${i}, translation index ${j}).`,
+          );
+        }
+        if (!hasTitle && !hasDescription) {
+          throw new Error(
+            `Translation must include at least one of title or description (item index ${i}, translation index ${j}).`,
+          );
+        }
+      }
+    }
+
     const chunkSize = 200;
     let inserted = 0;
     let updated = 0;
     let skipped = 0;
+    let translationsInserted = 0;
+    let translationsUpdated = 0;
+    let translationsSkipped = 0;
 
     for (let i = 0; i < args.sermons.length; i += chunkSize) {
       const chunk = args.sermons.slice(i, i + chunkSize);
@@ -116,6 +156,9 @@ export const importFromBranham = action({
         inserted: number;
         updated: number;
         skipped: number;
+        translationsInserted: number;
+        translationsUpdated: number;
+        translationsSkipped: number;
       } = await ctx.runMutation(internal.sermons.importFromBranhamBatch, {
         sermons: chunk,
       });
@@ -123,6 +166,9 @@ export const importFromBranham = action({
       inserted += batchResult.inserted;
       updated += batchResult.updated;
       skipped += batchResult.skipped;
+      translationsInserted += batchResult.translationsInserted;
+      translationsUpdated += batchResult.translationsUpdated;
+      translationsSkipped += batchResult.translationsSkipped;
     }
 
     return {
@@ -130,6 +176,9 @@ export const importFromBranham = action({
       inserted,
       updated,
       skipped,
+      translationsInserted,
+      translationsUpdated,
+      translationsSkipped,
       errors: 0,
     };
   },
@@ -143,12 +192,16 @@ export const importFromBranhamBatch = internalMutation({
     let inserted = 0;
     let updated = 0;
     let skipped = 0;
+    let translationsInserted = 0;
+    let translationsUpdated = 0;
+    let translationsSkipped = 0;
 
     for (const sermon of args.sermons) {
       const title = sermon.title.trim();
+      const description = sermon.description?.trim() ?? "";
       const date = sermon.date.trim();
       const tag = sermon.tag.trim();
-      const norwegianTitle = sermon.title_no?.trim() || title;
+      const location = sermon.location?.trim() || undefined;
 
       if (!title || !date || !tag) {
         skipped += 1;
@@ -172,45 +225,67 @@ export const importFromBranhamBatch = internalMutation({
         await ctx.db.patch(sermonId, {
           title,
           date,
-          description: "",
+          description,
           tag,
+          location,
         });
         updated += 1;
       } else {
         sermonId = await ctx.db.insert("sermons", {
           title,
           date,
-          description: "",
+          description,
           tag,
+          location,
         });
         inserted += 1;
       }
 
-      const nbMetadata = await ctx.db
-        .query("sermonMetadataTranslations")
-        .withIndex("by_sermonId_and_languageCode", (q) =>
-          q.eq("sermonId", sermonId).eq("languageCode", "nb"),
-        )
-        .unique();
+      for (const translation of sermon.translations ?? []) {
+        const languageCode = normalizeLanguageCode(translation.languageCode);
+        const localizedTitle = translation.title?.trim() || undefined;
+        const localizedDescription = translation.description?.trim() || undefined;
 
-      if (nbMetadata) {
-        await ctx.db.patch(nbMetadata._id, {
-          title: norwegianTitle,
-          description: "",
-          updatedAt: Date.now(),
-        });
-      } else {
-        await ctx.db.insert("sermonMetadataTranslations", {
-          sermonId,
-          languageCode: "nb",
-          title: norwegianTitle,
-          description: "",
-          updatedAt: Date.now(),
-        });
+        if (!localizedTitle && !localizedDescription) {
+          translationsSkipped += 1;
+          continue;
+        }
+
+        const existing = await ctx.db
+          .query("sermonMetadataTranslations")
+          .withIndex("by_sermonId_and_languageCode", (q) =>
+            q.eq("sermonId", sermonId).eq("languageCode", languageCode),
+          )
+          .unique();
+
+        if (existing) {
+          await ctx.db.patch(existing._id, {
+            ...(localizedTitle ? { title: localizedTitle } : {}),
+            ...(localizedDescription ? { description: localizedDescription } : {}),
+            updatedAt: Date.now(),
+          });
+          translationsUpdated += 1;
+        } else {
+          await ctx.db.insert("sermonMetadataTranslations", {
+            sermonId,
+            languageCode,
+            title: localizedTitle ?? title,
+            description: localizedDescription ?? description,
+            updatedAt: Date.now(),
+          });
+          translationsInserted += 1;
+        }
       }
     }
 
-    return { inserted, updated, skipped };
+    return {
+      inserted,
+      updated,
+      skipped,
+      translationsInserted,
+      translationsUpdated,
+      translationsSkipped,
+    };
   },
 });
 

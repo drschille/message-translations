@@ -275,7 +275,7 @@ export default function TranslationsPage() {
       <section className="mt-8 rounded-lg overflow-hidden border border-outline-variant/20 bg-surface-container-low">
         <div className="relative min-h-56 md:min-h-64">
           <img src={quoteImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/55 to-black/40" />
+          <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/55 to-black/40" />
           <div className="relative z-10 p-6 md:p-10 max-w-3xl">
             <QuoteIcon className="text-secondary mb-4" size={28} />
             <blockquote className="text-xl md:text-3xl leading-snug italic font-headline text-on-surface">

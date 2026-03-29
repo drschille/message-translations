@@ -14,6 +14,7 @@ export default defineSchema({
     date: v.string(), // ISO format or "DD MMM YYYY"
     description: v.string(),
     tag: v.optional(v.string()),
+    location: v.optional(v.string()),
     scripture: v.optional(v.string()),
     audioUrl: v.optional(v.string()),
     pdfUrl: v.optional(v.string()),

@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "import:sermons": "node scripts/import-sermons.mjs",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy"
   },
