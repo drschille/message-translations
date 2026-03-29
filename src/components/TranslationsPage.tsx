@@ -27,6 +27,8 @@ export default function TranslationsPage() {
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [expandedSermonId, setExpandedSermonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [stableTotalCount, setStableTotalCount] = useState(0);
+  const [stableTotalKey, setStableTotalKey] = useState("");
   const pageSize = 100;
   const parsedPage = Number(searchParams.get("page") || "1");
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
@@ -55,10 +57,13 @@ export default function TranslationsPage() {
       },
     },
   );
+  const totalKey = `${debouncedSearchQuery.trim()}::${selectedYear}::${selectedSeries}::${i18n.language}`;
   const availableYearsResult = useQuery((api as any).sermons.listYears, {});
 
   const results = listResult?.page || [];
-  const totalCount = listResult?.totalCount ?? 0;
+  const totalCount = typeof listResult?.totalCount === "number"
+    ? listResult.totalCount
+    : stableTotalCount;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const yearsFromDb = availableYearsResult ?? [];
   const years = selectedYear && !yearsFromDb.includes(selectedYear)
@@ -87,6 +92,15 @@ export default function TranslationsPage() {
   useEffect(() => {
     setSearchQuery(urlSearchQuery);
   }, [urlSearchQuery]);
+
+  useEffect(() => {
+    if (typeof listResult?.totalCount === "number") {
+      if (stableTotalKey !== totalKey) {
+        setStableTotalKey(totalKey);
+        setStableTotalCount(listResult.totalCount);
+      }
+    }
+  }, [listResult, stableTotalKey, totalKey]);
 
   useEffect(() => {
     if (!listResult || totalCount <= 0) return;
