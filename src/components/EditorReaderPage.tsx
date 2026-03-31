@@ -86,6 +86,7 @@ export default function EditorReaderPage() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [reviewsCollapsed, setReviewsCollapsed] = useState(true);
+  const [suppressBlurSaveKey, setSuppressBlurSaveKey] = useState<string | null>(null);
 
   const sermon = useQuery(
     api.sermons.getById,
@@ -99,10 +100,15 @@ export default function EditorReaderPage() {
     api.editorial.listPublishedVersions as any,
     sermonId ? { sermonId, paginationOpts: { cursor: null, numItems: 20 } } : "skip",
   );
+  const revertBaselinesResult = useQuery(
+    api.editorial.listRevertBaselines as any,
+    sermonId ? { sermonId, languageCode } : "skip",
+  );
 
   const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
   const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
   const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
+  const revertParagraphToLastApproved = useMutation(api.editorial.revertParagraphToLastApproved as any);
   const setSermonProofreadingState = useMutation(api.editorial.setSermonProofreadingState as any);
   const publishSermonVersion = useMutation(api.editorial.publishSermonVersion as any);
 
@@ -162,6 +168,13 @@ export default function EditorReaderPage() {
     () => segments.filter((segment) => segment.status === "needs_review"),
     [segments],
   );
+  const revertBaselineByParagraphId = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const baseline of revertBaselinesResult ?? []) {
+      map.set(String(baseline.paragraphId), baseline.targetText);
+    }
+    return map;
+  }, [revertBaselinesResult]);
 
   const setBusy = (key: string, busy: boolean) => {
     setBusyKeys((prev) => ({ ...prev, [key]: busy }));
@@ -222,6 +235,26 @@ export default function EditorReaderPage() {
       }
     },
     [updateParagraphStatus, languageCode],
+  );
+
+  const revertToLastApproved = useCallback(
+    async (segment: Segment) => {
+      if (!segment.paragraphId) return;
+      setBusy(segment.key, true);
+      try {
+        const result = await revertParagraphToLastApproved({
+          paragraphId: segment.paragraphId,
+          languageCode,
+          reason: "Reverted to last approved translation from editor proofreader",
+        });
+        if (result?.translatedText) {
+          setDrafts((prev) => ({ ...prev, [segment.key]: result.translatedText as string }));
+        }
+      } finally {
+        setBusy(segment.key, false);
+      }
+    },
+    [revertParagraphToLastApproved, languageCode],
   );
 
   const publishCurrentVersion = async () => {
@@ -406,6 +439,11 @@ export default function EditorReaderPage() {
             const dirty = currentText.trim() !== segment.translatedText.trim();
             const lockedApproved = segment.status === "approved";
             const saving = !!busyKeys[segment.key];
+            const revertTargetText =
+              segment.paragraphId
+                ? (revertBaselineByParagraphId.get(String(segment.paragraphId)) ?? segment.translatedText)
+                : segment.translatedText;
+            const canRevert = !!segment.paragraphId && currentText !== revertTargetText;
 
             return (
               <div key={segment.key} className={`border-b border-outline/20 ${rowTone(index)} px-8 py-5`}>
@@ -425,6 +463,10 @@ export default function EditorReaderPage() {
                         disabled={lockedApproved || saving}
                         onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
                         onBlur={() => {
+                          if (suppressBlurSaveKey === segment.key) {
+                            setSuppressBlurSaveKey(null);
+                            return;
+                          }
                           if (!lockedApproved && dirty) {
                             saveDraft(segment, false).catch((e) => console.error(e));
                           }
@@ -455,8 +497,9 @@ export default function EditorReaderPage() {
                               {t("proofreading.requestApproval", "Be om godkjenning")}
                             </button>
                             <button
-                              onClick={() => setDrafts((prev) => ({ ...prev, [segment.key]: segment.translatedText }))}
-                              disabled={saving || !dirty}
+                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                              onClick={() => revertToLastApproved(segment)}
+                              disabled={saving || !canRevert}
                               className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
                             >
                               {t("proofreading.revertDraftChanges", "Tilbakestill endringer")}
@@ -506,6 +549,10 @@ export default function EditorReaderPage() {
                       disabled={lockedApproved || saving}
                       onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
                       onBlur={() => {
+                        if (suppressBlurSaveKey === segment.key) {
+                          setSuppressBlurSaveKey(null);
+                          return;
+                        }
                         if (!lockedApproved && dirty) {
                           saveDraft(segment, false).catch((e) => console.error(e));
                         }
@@ -537,8 +584,9 @@ export default function EditorReaderPage() {
                             {t("proofreading.requestApproval", "Be om godkjenning")}
                           </button>
                           <button
-                            onClick={() => setDrafts((prev) => ({ ...prev, [segment.key]: segment.translatedText }))}
-                            disabled={saving || !dirty}
+                            onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                            onClick={() => revertToLastApproved(segment)}
+                            disabled={saving || !canRevert}
                             className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
                           >
                             {t("proofreading.revertDraftChanges", "Tilbakestill endringer")}

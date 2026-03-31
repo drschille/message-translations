@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 
 const paragraphStatusValidator = v.union(
@@ -290,6 +290,69 @@ export const listRevisions = query({
       )
       .order("desc")
       .paginate(args.paginationOpts);
+  },
+});
+
+export const listRevertBaselines = query({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const paragraphs = await ctx.db
+      .query("sermonParagraphs")
+      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))
+      .take(500);
+
+    const baselines = await Promise.all(
+      paragraphs.map(async (paragraph) => {
+        const translation = await ctx.db
+          .query("sermonParagraphTranslations")
+          .withIndex("by_paragraphId_and_languageCode", (q) =>
+            q.eq("paragraphId", paragraph._id).eq("languageCode", normalizedLanguage),
+          )
+          .unique();
+
+        if (!translation) {
+          return {
+            paragraphId: paragraph._id,
+            targetText: paragraph.translatedText,
+          };
+        }
+
+        const revisionsDesc = ctx.db
+          .query("paragraphTranslationRevisions")
+          .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+            q.eq("paragraphTranslationId", translation._id),
+          )
+          .order("desc");
+
+        for await (const revision of revisionsDesc) {
+          if (revision.status === "approved") {
+            return {
+              paragraphId: paragraph._id,
+              targetText: revision.snapshotText,
+            };
+          }
+        }
+
+        const firstRevision = await ctx.db
+          .query("paragraphTranslationRevisions")
+          .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+            q.eq("paragraphTranslationId", translation._id),
+          )
+          .order("asc")
+          .take(1);
+
+        return {
+          paragraphId: paragraph._id,
+          targetText: firstRevision[0]?.snapshotText ?? translation.translatedText,
+        };
+      }),
+    );
+
+    return baselines;
   },
 });
 
@@ -587,6 +650,80 @@ export const restoreRevision = mutation({
     });
 
     return { revisionId: createdRevisionId };
+  },
+});
+
+export const revertParagraphToLastApproved = mutation({
+  args: {
+    paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const paragraph = await ctx.db.get(args.paragraphId);
+    if (!paragraph) {
+      throw new Error("Paragraph not found");
+    }
+
+    const translation = await ensureTranslationForParagraph(ctx, paragraph, args.languageCode);
+
+    let targetRevision: Doc<"paragraphTranslationRevisions"> | null = null;
+    const revisionsDesc = ctx.db
+      .query("paragraphTranslationRevisions")
+      .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+        q.eq("paragraphTranslationId", translation._id),
+      )
+      .order("desc");
+
+    for await (const revision of revisionsDesc) {
+      if (revision.status === "approved") {
+        targetRevision = revision;
+        break;
+      }
+    }
+
+    if (!targetRevision) {
+      // Fallback: treat the first stored draft snapshot as the approved baseline.
+      const revisionsAsc = ctx.db
+        .query("paragraphTranslationRevisions")
+        .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+          q.eq("paragraphTranslationId", translation._id),
+        )
+        .order("asc");
+      for await (const revision of revisionsAsc) {
+        targetRevision = revision;
+        break;
+      }
+    }
+
+    if (!targetRevision) {
+      throw new Error("No revision history found for paragraph translation");
+    }
+
+    const identity = await ctx.auth.getUserIdentity();
+    const now = Date.now();
+
+    await ctx.db.patch(translation._id, {
+      translatedText: targetRevision.snapshotText,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert("paragraphTranslationRevisions", {
+      paragraphTranslationId: translation._id,
+      snapshotText: targetRevision.snapshotText,
+      status: translation.status,
+      kind: "restore",
+      reason: args.reason ?? "Reverted to last approved translation",
+      restoredFromRevisionId: targetRevision._id,
+      authorName: identity?.name ?? identity?.email ?? "Anonymous editor",
+      authorTokenIdentifier: identity?.tokenIdentifier,
+      createdAt: now,
+    });
+
+    return {
+      ok: true,
+      translatedText: targetRevision.snapshotText,
+    };
   },
 });
 
