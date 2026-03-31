@@ -75,26 +75,27 @@ export default function VersionHistoryModal({
   onClose,
 }: VersionHistoryModalProps) {
   const { t } = useTranslation();
+  const locale = languageCode?.toLowerCase().startsWith("nb") ? "nb" : "en";
   const revisionsResult = useQuery(
-    api.editorial.listRevisions,
-    paragraphId ? { paragraphId, languageCode, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
+    api.history.listTranslationVersions as any,
+    paragraphId ? { segmentId: paragraphId, locale, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
   );
-  const restoreRevision = useMutation(api.editorial.restoreRevision);
-  const [compareRevisionId, setCompareRevisionId] = useState<Id<"paragraphTranslationRevisions"> | null>(null);
+  const restoreRevision = useMutation(api.translations.restoreVersion as any);
+  const [compareRevisionId, setCompareRevisionId] = useState<Id<"translationVersions"> | null>(null);
   const [restoring, setRestoring] = useState(false);
 
   const revisions = useMemo(() => revisionsResult?.page ?? [], [revisionsResult]);
 
   if (!open || !paragraphId) return null;
 
-  const onRestore = async (revisionId: Id<"paragraphTranslationRevisions">) => {
+  const onRestore = async (revisionId: Id<"translationVersions">) => {
     if (!window.confirm(t('editorial.confirmRestore'))) return;
     setRestoring(true);
     try {
       await restoreRevision({
-        paragraphId,
-        languageCode,
-        revisionId,
+        segmentId: paragraphId,
+        locale,
+        versionId: revisionId,
       });
     } finally {
       setRestoring(false);
@@ -131,7 +132,8 @@ export default function VersionHistoryModal({
           ) : (
             revisions.map((revision) => {
               const isComparing = compareRevisionId === revision._id;
-              const tokens = isComparing ? diffWords(revision.snapshotText, currentText) : [];
+              const revisionText = revision.text ?? revision.snapshotText ?? "";
+              const tokens = isComparing ? diffWords(revisionText, currentText) : [];
               return (
                 <div key={revision._id} className="rounded-lg border border-outline/20 bg-surface-container-low p-5">
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -143,7 +145,7 @@ export default function VersionHistoryModal({
                         <span className="text-sm font-semibold text-on-surface">{statusLabel(revision.status, t)}</span>
                       </div>
                       <div className="mt-1 text-xs text-on-surface-variant">
-                        {revision.authorName} • {formatRelativeTime(revision.createdAt, t)}
+                        {(revision.actorUserId?.slice(0, 12) ?? "Anonymous")} • {formatRelativeTime(revision.createdAt, t)}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -165,7 +167,7 @@ export default function VersionHistoryModal({
                   </div>
 
                   <p className="rounded border border-outline/10 bg-surface-container p-4 font-headline leading-relaxed text-on-surface">
-                    {revision.snapshotText}
+                    {revisionText}
                   </p>
 
                   {isComparing && (

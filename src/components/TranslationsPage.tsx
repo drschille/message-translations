@@ -1,174 +1,71 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  FileText,
-  Headphones,
-  Quote as QuoteIcon,
-  Search,
-} from "lucide-react";
-import { Link, useSearchParams } from "react-router";
-import { useMutation, useQuery } from "convex/react";
+import { useState, useEffect } from "react";
+import { Search, Calendar, Filter, Headphones, FileText, Play, ExternalLink, Quote as QuoteIcon, BookOpen } from "lucide-react";
+import { Link } from "react-router";
+import { usePaginatedQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "@/src/lib/utils";
 import { useDebounce } from "@/src/hooks/useDebounce";
-import quoteImage from "@/src/assets/light_over_shoulder.jpg";
 
 export default function TranslationsPage() {
   const { t, i18n } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "nb").toLowerCase();
-  const languageCode = resolvedLanguage === "no" || resolvedLanguage.startsWith("nb") ? "nb" : "en";
-  const urlSearchQuery = searchParams.get("q") ?? "";
-  const selectedYear = searchParams.get("year") ?? "";
-  const selectedSeries = searchParams.get("series") ?? "";
-  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
+  const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const [expandedSermonId, setExpandedSermonId] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [selectedSeries, setSelectedSeries] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [stableTotalCount, setStableTotalCount] = useState(0);
-  const [stableTotalKey, setStableTotalKey] = useState("");
-  const pageCacheRef = useRef<
-    Record<string, { page: any[]; isDone: boolean; continueCursor: string; totalCount: number }>
-  >({});
-  const pageSize = 100;
-  const parsedPage = Number(searchParams.get("page") || "1");
-  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
-  const commitSearchToUrl = (value: string) => {
-    const next = new URLSearchParams(searchParams);
-    const normalized = value.trim();
-    if (normalized.length > 0) {
-      next.set("q", normalized);
-    } else {
-      next.delete("q");
-    }
-    next.delete("page");
-    setSearchParams(next, { replace: true, preventScrollReset: true });
-  };
 
-  const listResult = useQuery(
-    api.sermons.list as any,
+  const paginatedResults = usePaginatedQuery(
+    api.documents.list as any,
     {
+      useCase: "sermon",
       search: debouncedSearchQuery || undefined,
       year: selectedYear || undefined,
-      series: selectedSeries || undefined,
-      languageCode,
-      paginationOpts: {
-        cursor: page === 1 ? null : String((page - 1) * pageSize),
-        numItems: pageSize,
-      },
+      series: selectedSeries || undefined
     },
+    { initialNumItems: 10 }
   );
-  const totalKey = `${debouncedSearchQuery.trim()}::${selectedYear}::${selectedSeries}::${languageCode}`;
-  const pageKey = `${totalKey}::${page}`;
-  const cachedResult = pageCacheRef.current[pageKey];
-  const activeListResult = listResult ?? cachedResult;
-  const availableYearsResult = useQuery((api as any).sermons.listYears, {});
 
-  const results = activeListResult?.page || [];
-  const totalCount = typeof activeListResult?.totalCount === "number"
-    ? activeListResult.totalCount
-    : stableTotalCount;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const yearsFromDb = availableYearsResult ?? [];
-  const years = selectedYear && !yearsFromDb.includes(selectedYear)
-    ? [selectedYear, ...yearsFromDb]
-    : yearsFromDb;
-  const status = activeListResult === undefined ? "LoadingFirstPage" : "Done";
-  const hasPrevPage = page > 1;
-  const hasNextPage =
-    typeof activeListResult?.totalCount === "number"
-      ? page < totalPages
-      : Boolean(activeListResult && !activeListResult.isDone);
+  const results = paginatedResults?.results || [];
+  const status = paginatedResults?.status || "LoadingFirstPage";
 
+  const bootstrap = useMutation(api.admin.bootstrapDefault as any);
   const seed = useMutation(api.sermons.seed as any);
+  const syncLegacySermons = useMutation(api.documents.syncLegacySermons as any);
 
   useEffect(() => {
-    if (seed) {
-      seed().catch((err: any) => {
+    if (bootstrap && seed && syncLegacySermons) {
+      (async () => {
+        try {
+          await bootstrap({});
+          await seed();
+          await syncLegacySermons({ locale: "nb" });
+        } catch (err: any) {
         console.error("Seed failed:", err);
         if (err.message?.includes("Could not find public function")) {
-          setError(t("errors.deploymentMessage"));
+          setError(t('errors.deploymentMessage'));
         }
-      });
-    }
-  }, [seed, t]);
-
-  useEffect(() => {
-    setSearchQuery(urlSearchQuery);
-  }, [urlSearchQuery]);
-
-  useEffect(() => {
-    if (listResult) {
-      pageCacheRef.current[pageKey] = listResult;
-      const keys = Object.keys(pageCacheRef.current);
-      if (keys.length > 120) {
-        const overflow = keys.length - 120;
-        for (let i = 0; i < overflow; i += 1) {
-          delete pageCacheRef.current[keys[i]];
         }
-      }
+      })();
     }
-  }, [listResult, pageKey]);
+  }, [bootstrap, seed, syncLegacySermons, t]);
 
   useEffect(() => {
-    if (typeof listResult?.totalCount === "number") {
-      if (stableTotalKey !== totalKey) {
-        setStableTotalKey(totalKey);
-        setStableTotalCount(listResult.totalCount);
-      }
+    if (status === "LoadingFirstPage" && !paginatedResults && !error) {
+      const timer = setTimeout(() => {
+        if (status === "LoadingFirstPage" && !paginatedResults) {
+          setError(t('errors.timeoutMessage'));
+        }
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-  }, [listResult, stableTotalKey, totalKey]);
-
-  useEffect(() => {
-    if (!activeListResult || totalCount <= 0) return;
-    if (page > totalPages) {
-      const next = new URLSearchParams(searchParams);
-      if (totalPages <= 1) {
-        next.delete("page");
-      } else {
-        next.set("page", String(totalPages));
-      }
-      setSearchParams(next, { replace: true, preventScrollReset: true });
-    }
-  }, [activeListResult, totalCount, page, totalPages, searchParams, setSearchParams]);
-
-  const goToPage = (nextPage: number) => {
-    const currentScrollY = window.scrollY;
-    const next = new URLSearchParams(searchParams);
-    if (nextPage <= 1) {
-      next.delete("page");
-    } else {
-      next.set("page", String(nextPage));
-    }
-    setSearchParams(next, { preventScrollReset: true });
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: currentScrollY, behavior: "auto" });
-    });
-  };
-
-  useEffect(() => {
-    if (results.length === 0) {
-      setExpandedSermonId(null);
-      return;
-    }
-
-    setExpandedSermonId((current) => {
-      if (current && results.some((sermon) => sermon._id === current)) {
-        return current;
-      }
-      return results[0]?._id ?? null;
-    });
-  }, [results]);
+  }, [status, paginatedResults, error, t]);
 
   if (error) {
     return (
       <div className="pt-32 pb-24 px-6 text-center max-w-2xl mx-auto">
         <div className="bg-error-container text-on-error-container p-8 rounded-2xl border border-error/20">
-          <h2 className="text-2xl font-headline mb-4 font-bold">{t("errors.deploymentRequired")}</h2>
+          <h2 className="text-2xl font-headline mb-4 font-bold">{t('errors.deploymentRequired')}</h2>
           <p className="mb-6 opacity-90">{error}</p>
           <div className="bg-surface-container-lowest p-4 rounded font-mono text-sm text-left mb-6 overflow-x-auto">
             <code>npx convex deploy</code>
@@ -177,259 +74,190 @@ export default function TranslationsPage() {
             onClick={() => window.location.reload()}
             className="bg-primary text-on-primary px-8 py-3 rounded-full font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform"
           >
-            {t("errors.retryAfterDeploying")}
+            {t('errors.retryAfterDeploying')}
           </button>
         </div>
       </div>
     );
   }
 
-  const seriesOptions = [
-    { value: "The Seven Seals", label: t("archive.sevenSeals") },
-    { value: "Church Ages", label: t("archive.churchAges") },
-  ];
+  const mapped = results.map((doc: any) => ({
+    _id: doc._id,
+    title: doc.title,
+    description: doc.metadata?.summary ?? "",
+    date: doc.metadata?.date ?? "",
+    series: doc.metadata?.series ?? "",
+  }));
+
+  const featuredSermon = mapped[0];
+  const otherSermons = mapped.slice(1);
+
+  const years = ["1963", "1964", "1965"];
+  const series = [t('archive.sevenSeals'), t('archive.churchAges')];
 
   return (
-    <main className="pt-30 pb-20 px-6 max-w-7xl mx-auto">
-      <header className="mb-10 space-y-5">
+    <main className="pt-32 pb-20 px-6 max-w-7xl mx-auto">
+      <header className="mb-16 space-y-6">
+        <div className="inline-block px-3 py-1 bg-surface-container-high rounded-full">
+          <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-secondary">{t('translations.digitalArchive')}</span>
+        </div>
         <h1 className="text-5xl md:text-7xl font-headline tracking-tight leading-tight max-w-3xl">
-          {t("translations.title")} <span className="italic text-primary">{t("translations.titleHighlight")}</span>
+          {t('translations.title')} <span className="italic text-primary">{t('translations.titleHighlight')}</span>
         </h1>
+        <p className="text-on-surface-variant text-lg max-w-2xl font-light leading-relaxed">
+          {t('translations.subtitle')}
+        </p>
       </header>
 
-      <section className="mb-8 sticky top-16 z-40">
-        <div className="bg-surface-container-low border border-outline-variant/30 rounded-lg p-2 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" size={16} />
+      <section className="mb-12 sticky top-16 z-40">
+        <div className="bg-surface-container-low p-2 rounded-xl flex flex-col md:flex-row gap-2 md:gap-4 items-center shadow-2xl border border-outline-variant/10 w-full max-w-full overflow-hidden">
+          <div className="relative w-full grow group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface/40 group-focus-within:text-primary transition-colors" size={20} />
             <input
-              className="w-full bg-transparent border border-outline-variant/40 rounded-md py-2.5 pl-9 pr-3 text-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary"
-              placeholder={t("translations.searchPlaceholder")}
+              className="w-full bg-surface-container-low border-none focus:ring-1 focus:ring-secondary py-4 pl-12 pr-4 rounded text-on-surface placeholder:text-on-surface/30 font-body transition-all text-sm md:text-base"
+              placeholder={t('translations.searchPlaceholder')}
               type="text"
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  commitSearchToUrl(searchQuery);
-                }
-              }}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <span className="hidden md:inline-flex items-center rounded-md bg-surface-container-high px-3 py-2 text-[11px] tracking-[0.18em] uppercase text-on-surface font-medium">
-              {t("translations.filters")}
-            </span>
-            <span className="hidden md:inline-flex items-center rounded-md bg-surface-container-high px-3 py-2 text-[11px] tracking-[0.18em] uppercase text-on-surface font-medium">
-              {t("translations.latest")}
-            </span>
+          <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar shrink-0">
             <select
-              className="bg-surface-container-high border border-outline-variant/20 rounded-md px-3 py-2 text-xs font-label tracking-wide text-on-surface min-w-22"
-              value={selectedYear}
-              onChange={(e) => {
-                const next = new URLSearchParams(searchParams);
-                const value = e.target.value;
-                if (value) {
-                  next.set("year", value);
-                } else {
-                  next.delete("year");
-                }
-                next.delete("page");
-                setSearchParams(next, { replace: true, preventScrollReset: true });
-              }}
+              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-25"
+              value={selectedYear || ""}
+              onChange={(e) => setSelectedYear(e.target.value || null)}
             >
-              <option value="">{t("common.year")}</option>
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
+              <option value="">{t('common.year')}</option>
+              {years.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
             <select
-              className="bg-surface-container-high border border-outline-variant/20 rounded-md px-3 py-2 text-xs font-label tracking-wide text-on-surface min-w-28"
-              value={selectedSeries}
-              onChange={(e) => {
-                const next = new URLSearchParams(searchParams);
-                const value = e.target.value;
-                if (value) {
-                  next.set("series", value);
-                } else {
-                  next.delete("series");
-                }
-                next.delete("page");
-                setSearchParams(next, { replace: true, preventScrollReset: true });
-              }}
+              className="flex-1 md:flex-none bg-surface-container-high hover:bg-surface-container-highest px-4 md:px-6 py-4 rounded transition-colors text-xs md:text-sm font-label tracking-widest uppercase border-none focus:ring-0 appearance-none min-w-30"
+              value={selectedSeries || ""}
+              onChange={(e) => setSelectedSeries(e.target.value || null)}
             >
-              <option value="">{t("common.series")}</option>
-              {seriesOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
+              <option value="">{t('common.series')}</option>
+              {series.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-            {(searchQuery || urlSearchQuery || selectedYear || selectedSeries) && (
+            {(searchQuery || selectedYear || selectedSeries) && (
               <button
                 onClick={() => {
                   setSearchQuery("");
-                  const next = new URLSearchParams(searchParams);
-                  next.delete("q");
-                  next.delete("year");
-                  next.delete("series");
-                  next.delete("page");
-                  setSearchParams(next, { replace: true, preventScrollReset: true });
+                  setSelectedYear(null);
+                  setSelectedSeries(null);
                 }}
-                className="px-3 py-2 bg-primary text-on-primary rounded-md text-xs font-semibold whitespace-nowrap"
+                className="px-4 md:px-6 py-4 bg-primary text-on-primary rounded transition-colors text-xs md:text-sm font-bold shadow-lg shadow-primary/10 whitespace-nowrap"
               >
-                {t("common.reset")}
+                {t('common.reset')}
               </button>
             )}
           </div>
         </div>
       </section>
 
-      {status === "LoadingFirstPage" ? (
-        <div className="text-center py-20 text-outline">{t("translations.loadingSermons")}</div>
-      ) : results.length === 0 ? (
-        <div className="text-center py-20 text-outline">{t("translations.noResults")}</div>
-      ) : (
-        <section className="border border-outline-variant/25 rounded-lg overflow-hidden bg-surface-container-low">
-          {results.map((sermon, index) => {
-            const isExpanded = expandedSermonId === sermon._id;
-            const hasAudio = Boolean((sermon as any).audioUrl);
-            const hasPdf = Boolean((sermon as any).pdfUrl);
-
-            return (
-              <article
-                key={sermon._id}
-                className={`border-b border-outline-variant/20 last:border-b-0 ${isExpanded ? "bg-surface-container" : "bg-transparent"}`}
-              >
-                <button
-                  type="button"
-                  className="w-full text-left px-4 md:px-6 py-4 flex items-center gap-3"
-                  onClick={() => {
-                    setExpandedSermonId((current) => (current === sermon._id ? null : sermon._id));
-                  }}
-                >
-                  <span className="text-[11px] tracking-[0.16em] uppercase text-secondary/80 shrink-0">
-                          {formatDate(sermon.date, languageCode)}
-                  </span>
-                  <h2 className={`font-headline text-lg md:text-xl ${index === 0 ? "text-primary" : "text-on-surface"}`}>
-                    {sermon.title}
-                  </h2>
-                  <ChevronDown
-                    size={16}
-                    className={`ml-auto text-outline transition-transform ${isExpanded ? "rotate-180" : "rotate-0"}`}
+      <div className="space-y-4">
+        {status === "LoadingFirstPage" ? (
+          <div className="text-center py-20 text-outline">{t('translations.loadingSermons')}</div>
+        ) : results.length === 0 ? (
+          <div className="text-center py-20 text-outline">{t('translations.noResults')}</div>
+        ) : (
+          <>
+            {featuredSermon && (
+              <div className="group relative bg-surface-container border border-outline-variant/10 rounded-xl overflow-hidden hover:bg-surface-container-high transition-all duration-500 p-8 flex flex-col md:flex-row gap-8 items-center">
+                <div className="shrink-0 w-full md:w-64 aspect-square bg-surface-container-highest rounded-lg overflow-hidden relative">
+                  <img
+                    className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                    src="https://picsum.photos/seed/sermon/800/800"
+                    referrerPolicy="no-referrer"
                   />
-                </button>
-
-                <div
-                  className={`grid transition-all duration-300 ease-out ${
-                    isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                  }`}
-                >
-                  <div className="overflow-hidden">
-                    <div
-                      className={`px-4 md:px-6 pb-5 transition-all duration-300 ease-out ${
-                        isExpanded ? "translate-y-0" : "-translate-y-1"
-                      }`}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Play className="text-primary opacity-80 group-hover:scale-110 transition-transform" size={64} fill="currentColor" />
+                  </div>
+                </div>
+                <div className="grow space-y-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs tracking-widest font-bold text-secondary uppercase">Jeffersonville, IN</span>
+                    <span className="text-xs text-outline">•</span>
+                    <span className="text-xs text-outline">{formatDate(featuredSermon.date, i18n.language)}</span>
+                  </div>
+                  <h3 className="text-3xl font-headline text-on-surface group-hover:text-primary transition-colors">
+                    {featuredSermon.title}
+                  </h3>
+                  <p className="text-on-surface-variant leading-relaxed max-w-xl">
+                    {featuredSermon.description}
+                  </p>
+                  <div className="flex flex-wrap gap-4 pt-4">
+                    <button className="flex items-center gap-2 px-6 py-3 bg-linear-to-tr from-primary to-primary-container text-on-primary rounded-md font-bold text-sm hover:opacity-90 transition-opacity">
+                      <Headphones size={18} /> {t('translations.listenNow')}
+                    </button>
+                    <Link
+                      to={`/sermons/${featuredSermon._id}`}
+                      className="flex items-center gap-2 px-6 py-3 bg-surface-container-highest text-on-surface rounded-md font-bold text-sm hover:bg-surface-bright transition-colors"
                     >
-                      <p className="text-on-surface-variant text-sm md:text-base leading-relaxed max-w-4xl">
-                        {sermon.description || t("translations.noDescription")}
-                      </p>
-                      <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-outline">
-                        <span>
-                          {t("translations.scripture")}: {(sermon as any).scripture || "-"}
-                        </span>
-                        <span>
-                          {t("translations.series")}: {(sermon as any).series || "-"}
-                        </span>
+                      <FileText size={18} /> {t('translations.readText')}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {otherSermons.map((sermon) => (
+                <div key={sermon._id} className="group bg-surface-container-low p-6 rounded-xl hover:bg-surface-container transition-all duration-300 flex flex-col justify-between min-h-55">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] tracking-widest text-outline uppercase">62-1231</span>
+                      <div className="flex gap-2">
+                        <Headphones className="text-primary-container" size={18} />
+                        <FileText className="text-secondary" size={18} />
                       </div>
-                      <div className="mt-5 flex flex-wrap gap-2">
-                        <Link
-                          to={`/sermons/${sermon._id}`}
-                          className="inline-flex items-center gap-2 rounded-md bg-surface-container-high px-3 py-2 text-sm text-on-surface hover:bg-surface-container-highest transition-colors"
-                        >
-                          <FileText size={14} />
-                          {t("translations.readText")}
-                        </Link>
-                        <a
-                          href={hasAudio ? (sermon as any).audioUrl : "#"}
-                          target={hasAudio ? "_blank" : undefined}
-                          rel={hasAudio ? "noopener noreferrer" : undefined}
-                          aria-disabled={!hasAudio}
-                          className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-                            hasAudio
-                              ? "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
-                              : "bg-surface-container-high text-outline cursor-not-allowed"
-                          }`}
-                        >
-                          <Headphones size={14} />
-                          {t("translations.listen")}
-                        </a>
-                        <a
-                          href={hasPdf ? (sermon as any).pdfUrl : "#"}
-                          target={hasPdf ? "_blank" : undefined}
-                          rel={hasPdf ? "noopener noreferrer" : undefined}
-                          aria-disabled={!hasPdf}
-                          className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
-                            hasPdf
-                              ? "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
-                              : "bg-surface-container-high text-outline cursor-not-allowed"
-                          }`}
-                        >
-                          <Download size={14} />
-                          {t("translations.download")}
-                        </a>
-                      </div>
+                    </div>
+                    <h4 className="text-xl font-headline group-hover:text-secondary transition-colors">{sermon.title}</h4>
+                    <p className="text-sm text-on-surface-variant line-clamp-2">{sermon.description}</p>
+                  </div>
+                  <div className="flex justify-between items-center mt-6">
+                    <span className="text-xs text-outline-variant">{formatDate(sermon.date, i18n.language)}</span>
+                    <div className="flex gap-2">
+                      <button className="p-2 bg-surface-container-highest hover:bg-primary hover:text-on-primary rounded-md transition-all">
+                        <Play size={14} fill="currentColor" />
+                      </button>
+                      <Link
+                        to={`/sermons/${sermon._id}`}
+                        className="p-2 bg-surface-container-highest hover:bg-secondary hover:text-on-secondary rounded-md transition-all"
+                      >
+                        <FileText size={14} />
+                      </Link>
                     </div>
                   </div>
                 </div>
-              </article>
-            );
-          })}
-        </section>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      {status !== "LoadingFirstPage" && results.length > 0 && (
+        <div className="mt-20 flex justify-center items-center gap-4">
+          <button
+            disabled={status === "LoadingMore"}
+            onClick={() => paginatedResults.loadMore(10)}
+            className="px-8 py-4 bg-surface-container-high hover:bg-surface-bright text-on-surface rounded-lg transition-all text-sm font-bold disabled:opacity-50"
+          >
+            {status === "LoadingMore" ? t('translations.loadingMore') : t('translations.loadMore')}
+          </button>
+        </div>
       )}
 
-      <section className="mt-8 rounded-lg overflow-hidden border border-outline-variant/20 bg-surface-container-low">
-        <div className="relative min-h-56 md:min-h-64">
-          <img src={quoteImage} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" />
-          <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/55 to-black/40" />
-          <div className="relative z-10 p-6 md:p-10 max-w-3xl">
-            <QuoteIcon className="text-secondary mb-4" size={28} />
-            <blockquote className="text-xl md:text-3xl leading-snug italic font-headline text-on-surface">
-              {t("translations.quoteText")}
-            </blockquote>
-            <cite className="mt-4 block text-xs tracking-[0.18em] uppercase text-secondary">
-              {t("translations.quoteAuthor")}
-            </cite>
-          </div>
+      <section className="w-full bg-surface-container-low py-24 px-8 relative overflow-hidden mt-20 -mx-6 md:-mx-12 lg:-mx-24">
+        <div className="absolute inset-0 opacity-[0.03] flex items-center justify-center pointer-events-none">
+          <BookOpen size={640} />
         </div>
-      </section>
-
-      <section className="mt-6 flex items-center justify-center gap-2 pb-6">
-        <button
-          type="button"
-          disabled={!hasPrevPage}
-          onClick={() => goToPage(Math.max(1, page - 1))}
-          className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-outline-variant/30 text-outline hover:text-on-surface hover:border-outline transition-colors"
-        >
-          <ChevronLeft size={14} />
-        </button>
-        <span className="text-[11px] tracking-[0.25em] uppercase text-secondary px-2">
-          {t("translations.pageIndicator", {
-            page: String(page).padStart(2, "0"),
-            total: String(totalPages).padStart(2, "0"),
-          })}
-        </span>
-        <button
-          type="button"
-          disabled={!hasNextPage}
-          onClick={() => goToPage(page + 1)}
-          className="inline-flex items-center justify-center h-8 w-8 rounded-full border border-outline-variant/30 text-outline hover:text-on-surface hover:border-outline transition-colors"
-        >
-          <ChevronRight size={14} />
-        </button>
+        <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
+          <QuoteIcon className="text-secondary mx-auto" size={48} />
+          <blockquote className="text-3xl md:text-5xl font-headline italic text-on-surface leading-snug">
+            "Ikke se på mannen, se på Budskapet. Det er ikke mannen som teller, det er Guds Ord som blir åpenbart gjennom ham."
+          </blockquote>
+          <cite className="block text-secondary font-label tracking-[0.2em] uppercase text-sm font-bold">— William Marrion Branham</cite>
+        </div>
       </section>
     </main>
   );

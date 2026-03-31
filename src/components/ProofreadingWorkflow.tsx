@@ -80,13 +80,13 @@ const fallbackSegments: UiSegment[] = [
 
 export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: ProofreadingWorkflowProps) {
   const { t, i18n } = useTranslation();
+  const locale = (i18n.language || "").toLowerCase().startsWith("nb") ? "nb" : "en";
   const sermonId = sermon?._id as SermonId | undefined;
-  const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
-  const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
-  const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
+  const updateSegmentTranslation = useMutation(api.translations.saveSegmentTranslation as any);
+  const transitionSegmentStatus = useMutation(api.workflow.transitionSegmentStatus as any);
   const paragraphsResult = useQuery(
-    api.editorial.listParagraphs,
-    sermonId ? { sermonId, languageCode: i18n.language, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
+    api.documents.listSegments as any,
+    sermonId ? ({ documentId: sermonId, locale, paginationOpts: { cursor: null, numItems: 500 } } as any) : "skip",
   );
 
   const segments = useMemo<UiSegment[]>(() => {
@@ -114,13 +114,6 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   const sermonTitle = sermon?.title ?? "Det Valgte Hvilested";
   const sermonDate = sermon?.date ? formatDate(sermon.date, i18n.language) : "13. MAI 1965";
   const sermonCode = sermon?._id ?? "65-0221E";
-
-  useEffect(() => {
-    if (!sermonId) return;
-    ensureParagraphs({ sermonId, languageCode: i18n.language }).catch((error) => {
-      console.error("Failed to seed sermon paragraphs", error);
-    });
-  }, [sermonId, ensureParagraphs, i18n.language]);
 
   useEffect(() => {
     if (!segments.length) return;
@@ -165,7 +158,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
     setActiveSegmentId(segment.key);
     if (!segment.paragraphId) return;
     if (segment.status !== "drafting") {
-      await updateParagraphStatus({ paragraphId: segment.paragraphId, languageCode: i18n.language, status: "drafting" });
+      await transitionSegmentStatus({ segmentId: segment.paragraphId, locale, toStatus: "drafting" });
     }
   };
 
@@ -173,10 +166,10 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
     if (!activeSegment?.paragraphId) return;
     setSaving(true);
     try {
-      await updateParagraphDraft({
-        paragraphId: activeSegment.paragraphId,
-        languageCode: i18n.language,
-        translatedText: draftText,
+      await updateSegmentTranslation({
+        segmentId: activeSegment.paragraphId,
+        locale,
+        text: draftText,
         reason: submitForReview
           ? "Submitted for review from proofreading workflow"
           : "Draft saved from proofreading workflow",
@@ -193,12 +186,7 @@ export default function ProofreadingWorkflow({ sermon, onBack, onDirtyChange }: 
   };
 
   const approveSegment = async (paragraphId: ParagraphId) => {
-    await updateParagraphStatus({
-      paragraphId,
-      languageCode: i18n.language,
-      status: "approved",
-      reason: "Approved in proofreading workflow",
-    });
+    await transitionSegmentStatus({ segmentId: paragraphId, locale, toStatus: "approved", reason: "Approved in proofreading workflow" });
   };
 
   const isDirty = useMemo(() => {
