@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import {
+  Bookmark,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -10,6 +12,7 @@ import {
   Columns2,
   FileEdit,
   MessageSquareText,
+  NotebookPen,
   PanelRightClose,
   PanelRightOpen,
 } from "lucide-react";
@@ -21,8 +24,8 @@ import { formatDate } from "@/src/lib/utils";
 import type { ParagraphId, SermonId } from "@/src/types/editorial";
 import type { Id } from "@/convex/_generated/dataModel";
 
-type ProofreadingState = "queued" | "in_progress" | "done";
 type ColumnMode = "one" | "two";
+type HighlightColor = "yellow" | "blue" | "green" | "red";
 
 type Segment = {
   key: string;
@@ -31,6 +34,23 @@ type Segment = {
   sourceText: string;
   translatedText: string;
   status: "draft" | "drafting" | "needs_review" | "approved";
+};
+
+type HighlightEntry = {
+  _id: string;
+  paragraphId: ParagraphId;
+  color: HighlightColor;
+  startOffset: number;
+  endOffset: number;
+  selectedText: string;
+};
+
+type SelectionInfo = {
+  segmentKey: string;
+  paragraphId: ParagraphId;
+  startOffset: number;
+  endOffset: number;
+  selectedText: string;
 };
 
 const fallbackSegments: Segment[] = [
@@ -73,6 +93,50 @@ function rowTone(index: number) {
   return index % 2 === 0 ? "bg-background" : "bg-surface-container-low/30";
 }
 
+function highlightBgClass(color: HighlightColor) {
+  if (color === "yellow") return "bg-yellow-300/35";
+  if (color === "blue") return "bg-blue-300/30";
+  if (color === "green") return "bg-emerald-300/30";
+  return "bg-red-300/30";
+}
+
+function renderHighlightedText(text: string, highlights: HighlightEntry[]) {
+  if (highlights.length === 0) return [<span key="plain">{text}</span>];
+
+  const sorted = highlights
+    .filter((h) => h.startOffset >= 0 && h.endOffset > h.startOffset && h.endOffset <= text.length)
+    .sort((a, b) => a.startOffset - b.startOffset || a.endOffset - b.endOffset);
+  const merged: HighlightEntry[] = [];
+
+  for (const h of sorted) {
+    const last = merged[merged.length - 1];
+    if (!last || h.startOffset >= last.endOffset) {
+      merged.push(h);
+      continue;
+    }
+    if (h.endOffset > last.endOffset) {
+      merged[merged.length - 1] = { ...last, endOffset: h.endOffset };
+    }
+  }
+
+  const out: ReactNode[] = [];
+  let cursor = 0;
+  for (let i = 0; i < merged.length; i += 1) {
+    const h = merged[i];
+    if (h.startOffset > cursor) {
+      out.push(<span key={`t-${i}`}>{text.slice(cursor, h.startOffset)}</span>);
+    }
+    out.push(
+      <mark key={`h-${i}`} className={`${highlightBgClass(h.color)} rounded-[2px] px-[1px] text-inherit`}>
+        {text.slice(h.startOffset, h.endOffset)}
+      </mark>,
+    );
+    cursor = h.endOffset;
+  }
+  if (cursor < text.length) out.push(<span key="t-last">{text.slice(cursor)}</span>);
+  return out;
+}
+
 export default function EditorReaderPage() {
   const { t, i18n } = useTranslation();
   const { sermonId: sermonIdParam } = useParams();
@@ -82,11 +146,15 @@ export default function EditorReaderPage() {
 
   const [columnMode, setColumnMode] = useState<ColumnMode>("two");
   const [compareOpen, setCompareOpen] = useState<Record<string, boolean>>({});
-  const [proofreadingState, setProofreadingStateUi] = useState<ProofreadingState>("queued");
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
   const [reviewsCollapsed, setReviewsCollapsed] = useState(true);
   const [suppressBlurSaveKey, setSuppressBlurSaveKey] = useState<string | null>(null);
+  const [fontSizePx, setFontSizePx] = useState(16);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [activeSelection, setActiveSelection] = useState<SelectionInfo | null>(null);
+  const [selectedHighlightColor, setSelectedHighlightColor] = useState<HighlightColor | null>(null);
+  const [localHighlights, setLocalHighlights] = useState<HighlightEntry[]>([]);
 
   const sermon = useQuery(
     api.sermons.getById,
@@ -104,13 +172,22 @@ export default function EditorReaderPage() {
     api.editorial.listRevertBaselines as any,
     sermonId ? { sermonId, languageCode } : "skip",
   );
+  const toolbarPrefsResult = useQuery(
+    api.editorial.getEditorToolbarPrefs as any,
+    sermonId ? { sermonId, languageCode } : "skip",
+  );
+  const selectionHighlightsResult = useQuery(
+    api.editorial.listSelectionHighlights as any,
+    sermonId ? { sermonId, languageCode } : "skip",
+  );
 
   const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
   const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
   const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
   const revertParagraphToLastApproved = useMutation(api.editorial.revertParagraphToLastApproved as any);
-  const setSermonProofreadingState = useMutation(api.editorial.setSermonProofreadingState as any);
-  const publishSermonVersion = useMutation(api.editorial.publishSermonVersion as any);
+  const setEditorToolbarPrefs = useMutation(api.editorial.setEditorToolbarPrefs as any);
+  const createSelectionHighlight = useMutation(api.editorial.createSelectionHighlight as any);
+  const deleteSelectionHighlight = useMutation(api.editorial.deleteSelectionHighlight as any);
 
   useEffect(() => {
     if (!sermonId) return;
@@ -118,11 +195,6 @@ export default function EditorReaderPage() {
       console.error("Failed ensuring paragraphs", error);
     });
   }, [sermonId, ensureParagraphs, languageCode]);
-
-  useEffect(() => {
-    const state = (sermon?.proofreadingState ?? "queued") as ProofreadingState;
-    setProofreadingStateUi(state);
-  }, [sermon]);
 
   const segments = useMemo<Segment[]>(() => {
     if (!paragraphsResult?.page || paragraphsResult.page.length === 0) return fallbackSegments;
@@ -148,6 +220,32 @@ export default function EditorReaderPage() {
     });
   }, [segments]);
 
+  useEffect(() => {
+    if (typeof toolbarPrefsResult?.fontSizePx === "number") {
+      setFontSizePx(toolbarPrefsResult.fontSizePx);
+    }
+    if (typeof toolbarPrefsResult?.bookmarked === "boolean") {
+      setBookmarked(toolbarPrefsResult.bookmarked);
+    }
+  }, [toolbarPrefsResult]);
+
+  const canPersistToolbar = Boolean(toolbarPrefsResult?.canPersist);
+  const canPersistHighlights = Boolean(selectionHighlightsResult?.canPersist);
+
+  const highlights: HighlightEntry[] = useMemo(() => {
+    if (canPersistHighlights) {
+      return (selectionHighlightsResult?.highlights ?? []).map((h: any) => ({
+        _id: String(h._id),
+        paragraphId: h.paragraphId as ParagraphId,
+        color: h.color as HighlightColor,
+        startOffset: h.startOffset,
+        endOffset: h.endOffset,
+        selectedText: h.selectedText,
+      }));
+    }
+    return localHighlights;
+  }, [canPersistHighlights, selectionHighlightsResult, localHighlights]);
+
   const counts = useMemo(() => {
     const total = segments.length || 1;
     const approved = segments.filter((s) => s.status === "approved").length;
@@ -168,6 +266,7 @@ export default function EditorReaderPage() {
     () => segments.filter((segment) => segment.status === "needs_review"),
     [segments],
   );
+
   const revertBaselineByParagraphId = useMemo(() => {
     const map = new Map<string, string>();
     for (const baseline of revertBaselinesResult ?? []) {
@@ -176,9 +275,39 @@ export default function EditorReaderPage() {
     return map;
   }, [revertBaselinesResult]);
 
+  const paragraphHighlightColors = useMemo(() => {
+    const map = new Map<string, HighlightColor[]>();
+    for (const highlight of highlights) {
+      const key = String(highlight.paragraphId);
+      const existing = map.get(key) ?? [];
+      if (!existing.includes(highlight.color)) {
+        existing.push(highlight.color);
+      }
+      map.set(key, existing);
+    }
+    return map;
+  }, [highlights]);
+
   const setBusy = (key: string, busy: boolean) => {
     setBusyKeys((prev) => ({ ...prev, [key]: busy }));
   };
+
+  const persistToolbarPrefs = useCallback(
+    async (next: { fontSizePx?: number; bookmarked?: boolean }) => {
+      if (!sermonId || !canPersistToolbar) return;
+      try {
+        await setEditorToolbarPrefs({
+          sermonId,
+          languageCode,
+          fontSizePx: next.fontSizePx,
+          bookmarked: next.bookmarked,
+        });
+      } catch (error) {
+        console.error("Failed persisting toolbar prefs", error);
+      }
+    },
+    [sermonId, canPersistToolbar, setEditorToolbarPrefs, languageCode],
+  );
 
   const ensureDrafting = useCallback(
     async (segment: Segment) => {
@@ -257,24 +386,107 @@ export default function EditorReaderPage() {
     [revertParagraphToLastApproved, languageCode],
   );
 
-  const publishCurrentVersion = async () => {
-    if (!sermonId) return;
-    await publishSermonVersion({
-      sermonId,
-      languageCode,
-      reason: "Published from editor proofreader",
+  const captureSelection = (segment: Segment, element: HTMLTextAreaElement) => {
+    if (!segment.paragraphId) {
+      setActiveSelection(null);
+      return;
+    }
+    const start = element.selectionStart ?? 0;
+    const end = element.selectionEnd ?? 0;
+    if (end <= start) {
+      setActiveSelection(null);
+      return;
+    }
+    const selectedText = element.value.slice(start, end);
+    if (!selectedText.trim()) {
+      setActiveSelection(null);
+      return;
+    }
+    setActiveSelection({
+      segmentKey: segment.key,
+      paragraphId: segment.paragraphId,
+      startOffset: start,
+      endOffset: end,
+      selectedText,
     });
   };
 
-  const setProofreadingState = async (state: ProofreadingState) => {
-    if (!sermonId) return;
-    setProofreadingStateUi(state);
-    try {
-      await setSermonProofreadingState({ sermonId, state });
-    } catch (error) {
-      console.error("Failed updating proofreading state", error);
-      setProofreadingStateUi((sermon?.proofreadingState ?? "queued") as ProofreadingState);
+  const applyHighlight = async (color: HighlightColor) => {
+    setSelectedHighlightColor(color);
+    if (!activeSelection) return;
+
+    const existing = highlights.find(
+      (h) =>
+        h.paragraphId === activeSelection.paragraphId &&
+        h.startOffset === activeSelection.startOffset &&
+        h.endOffset === activeSelection.endOffset,
+    );
+
+    if (existing && existing.color === color) {
+      if (canPersistHighlights) {
+        try {
+          await deleteSelectionHighlight({ highlightId: existing._id });
+        } catch (error) {
+          console.error("Failed removing highlight", error);
+        }
+      } else {
+        setLocalHighlights((prev) => prev.filter((h) => h._id !== existing._id));
+      }
+      return;
     }
+
+    if (existing && existing.color !== color) {
+      if (canPersistHighlights) {
+        try {
+          await deleteSelectionHighlight({ highlightId: existing._id });
+        } catch (error) {
+          console.error("Failed replacing highlight", error);
+        }
+      } else {
+        setLocalHighlights((prev) => prev.filter((h) => h._id !== existing._id));
+      }
+    }
+
+    if (canPersistHighlights) {
+      try {
+        await createSelectionHighlight({
+          paragraphId: activeSelection.paragraphId,
+          languageCode,
+          color,
+          startOffset: activeSelection.startOffset,
+          endOffset: activeSelection.endOffset,
+          selectedText: activeSelection.selectedText,
+        });
+      } catch (error) {
+        console.error("Failed creating highlight", error);
+      }
+      return;
+    }
+
+    const localId = `local-${activeSelection.paragraphId}-${activeSelection.startOffset}-${activeSelection.endOffset}-${color}`;
+    setLocalHighlights((prev) => [
+      ...prev.filter((h) => h._id !== localId),
+      {
+        _id: localId,
+        paragraphId: activeSelection.paragraphId,
+        color,
+        startOffset: activeSelection.startOffset,
+        endOffset: activeSelection.endOffset,
+        selectedText: activeSelection.selectedText,
+      },
+    ]);
+  };
+
+  const adjustFontSize = (delta: number) => {
+    const next = Math.max(12, Math.min(30, fontSizePx + delta));
+    setFontSizePx(next);
+    persistToolbarPrefs({ fontSizePx: next });
+  };
+
+  const toggleBookmark = () => {
+    const next = !bookmarked;
+    setBookmarked(next);
+    persistToolbarPrefs({ bookmarked: next });
   };
 
   if (sermon === undefined) {
@@ -308,77 +520,92 @@ export default function EditorReaderPage() {
         </div>
       </section>
 
-      <section className="sticky top-16 z-40 border-b border-outline/20 bg-surface-container-low/95 backdrop-blur-sm">
+      <section className="sticky top-16 z-40 border-b border-outline/20 bg-[#1c1b1b]/95 backdrop-blur-sm">
         <div className="px-6 md:px-8 py-3 flex items-center justify-between gap-4 flex-wrap">
           <button
             onClick={() => navigate("/editor/sermons")}
-            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-on-surface-variant hover:text-primary"
+            className="inline-flex items-center gap-2 text-[13px] font-medium text-on-surface-variant hover:text-on-surface"
           >
-            <ChevronLeft size={14} />
-            {t("proofreading.backToArchive")}
+            <ChevronLeft size={18} />
+            {t("proofreading.backToArchive", "Tilbake til arkivet")}
           </button>
 
           <div className="rounded-lg bg-surface-container p-1 inline-flex gap-1">
             <button
               onClick={() => setColumnMode("one")}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium ${
+              className={`inline-flex items-center gap-1.5 rounded-md px-5 py-2 text-[13px] font-medium ${
                 columnMode === "one"
-                  ? "bg-primary text-on-primary"
-                  : "text-on-surface-variant hover:text-on-surface"
+                  ? "bg-primary text-[#093255]"
+                  : "bg-surface-container text-on-surface-variant"
               }`}
             >
-              <FileEdit size={13} />
               {t("proofreading.mode.one", "En kolonne")}
             </button>
             <button
               onClick={() => setColumnMode("two")}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium ${
+              className={`inline-flex items-center gap-1.5 rounded-md px-5 py-2 text-[13px] font-medium ${
                 columnMode === "two"
-                  ? "bg-primary text-on-primary"
-                  : "text-on-surface-variant hover:text-on-surface"
+                  ? "bg-primary text-[#093255]"
+                  : "bg-surface-container text-on-surface-variant"
               }`}
             >
-              <Columns2 size={13} />
               {t("proofreading.mode.two", "To kolonner")}
             </button>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setReviewsCollapsed((prev) => !prev)}
-              className="hidden lg:inline-flex items-center gap-1.5 rounded-md border border-outline/30 px-3 py-1.5 text-xs text-on-surface-variant hover:text-on-surface"
-            >
-              {reviewsCollapsed ? <PanelRightOpen size={14} /> : <PanelRightClose size={14} />}
-              {t("editorial.commentsAndReviews", "Kommentarer og vurderinger")}
-            </button>
-            <div className="inline-flex rounded-lg border border-outline/30 overflow-hidden">
-              {(["queued", "in_progress", "done"] as const).map((state) => (
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              {([
+                ["yellow", "#facc15"],
+                ["blue", "#60a5fa"],
+                ["green", "#4ade80"],
+                ["red", "#f87171"],
+              ] as const).map(([color, fill]) => (
                 <button
-                  key={state}
-                  onClick={() => setProofreadingState(state)}
-                  className={`px-3 py-1.5 text-xs font-medium border-r last:border-r-0 border-outline/30 ${
-                    proofreadingState === state
-                      ? "bg-primary text-on-primary"
-                      : "bg-surface-container text-on-surface-variant"
-                  }`}
-                >
-                  {state === "queued"
-                    ? t("proofreading.state.queued", "Queued")
-                    : state === "in_progress"
-                      ? t("proofreading.state.inProgress", "In progress")
-                      : t("proofreading.state.done", "Done")}
-                </button>
+                  key={color}
+                  onClick={() => applyHighlight(color)}
+                  className={`h-[18px] w-[18px] rounded-full ${selectedHighlightColor === color ? "ring-2 ring-[#e5e2e1]" : ""}`}
+                  style={{ backgroundColor: fill }}
+                  aria-label={`Highlight ${color}`}
+                />
               ))}
             </div>
-            <span className="text-[11px] text-on-surface-variant">
-              {t("proofreading.currentVersion", "Version")}: v{sermon.currentVersion ?? 0}
-            </span>
+
+            <div className="h-5 w-px bg-[#43474e]" />
+
             <button
-              disabled={proofreadingState !== "done"}
-              onClick={publishCurrentVersion}
-              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary disabled:opacity-45"
+              onClick={() => setReviewsCollapsed((prev) => !prev)}
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#43474e] px-3 py-1.5 text-xs text-on-surface-variant hover:text-on-surface"
             >
-              {t("proofreading.publishVersion", "Publiser versjon")}
+              <NotebookPen size={16} />
+              <span>{t("editorial.notes", "Notater")}</span>
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[#093255] text-[10px] font-semibold">
+                {pendingSegments.length}
+              </span>
+            </button>
+
+            <button
+              onClick={toggleBookmark}
+              className={`text-on-surface-variant ${bookmarked ? "text-primary" : ""}`}
+              aria-label={t("reader.bookmarkSermon", "Bookmark sermon")}
+            >
+              <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
+            </button>
+
+            <div className="h-5 w-px bg-[#43474e]" />
+
+            <button
+              onClick={() => adjustFontSize(-1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#43474e] text-xs text-on-surface-variant"
+            >
+              A-
+            </button>
+            <span className="text-[13px] text-on-surface">{fontSizePx}px</span>
+            <button
+              onClick={() => adjustFontSize(1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#43474e] text-xs text-on-surface-variant"
+            >
+              A+
             </button>
           </div>
         </div>
@@ -444,39 +671,72 @@ export default function EditorReaderPage() {
                 ? (revertBaselineByParagraphId.get(String(segment.paragraphId)) ?? segment.translatedText)
                 : segment.translatedText;
             const canRevert = !!segment.paragraphId && currentText !== revertTargetText;
+            const colors = segment.paragraphId ? (paragraphHighlightColors.get(String(segment.paragraphId)) ?? []) : [];
 
             return (
-              <div key={segment.key} className={`border-b border-outline/20 ${rowTone(index)} px-8 py-5`}>
+              <div
+                key={segment.key}
+                className={`border-b border-outline/20 ${rowTone(index)} px-8 py-5`}
+              >
                 {columnMode === "two" ? (
                   <div className="grid grid-cols-[auto_1fr_1fr] gap-6">
                     <div className="pt-1 text-[11px] text-outline/70">{segment.order}</div>
                     <div className="pr-4 border-r border-outline/25">
-                      <p className="italic text-on-surface-variant leading-relaxed">{segment.sourceText}</p>
+                      <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
+                        {segment.sourceText}
+                      </p>
                     </div>
                     <div className="space-y-3 pl-2">
                       <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
                         {state.icon}
                         <span>{state.label}</span>
+                        {colors.length > 0 && (
+                          <span className="inline-flex items-center gap-1 ml-2">
+                            {colors.map((c) => (
+                              <span
+                                key={c}
+                                className="h-2 w-2 rounded-full"
+                                style={{
+                                  backgroundColor:
+                                    c === "yellow" ? "#facc15" : c === "blue" ? "#60a5fa" : c === "green" ? "#4ade80" : "#f87171",
+                                }}
+                              />
+                            ))}
+                          </span>
+                        )}
                       </div>
-                      <textarea
-                        value={currentText}
-                        disabled={lockedApproved || saving}
-                        onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
-                        onBlur={() => {
-                          if (suppressBlurSaveKey === segment.key) {
-                            setSuppressBlurSaveKey(null);
-                            return;
-                          }
-                          if (!lockedApproved && dirty) {
-                            saveDraft(segment, false).catch((e) => console.error(e));
-                          }
-                        }}
-                        className={`w-full min-h-20 resize-y bg-transparent rounded px-0 py-0 text-on-surface leading-relaxed ${
-                          lockedApproved
-                            ? "opacity-95 cursor-default"
-                            : "focus:outline-none focus:ring-0"
-                        }`}
-                      />
+                      <div className="relative">
+                        <div
+                          className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-on-surface leading-relaxed"
+                          style={{ fontSize: `${fontSizePx}px` }}
+                        >
+                          {renderHighlightedText(
+                            currentText,
+                            highlights.filter((h) => h.paragraphId === segment.paragraphId),
+                          )}
+                        </div>
+                        <textarea
+                          value={currentText}
+                          readOnly={lockedApproved || saving}
+                          onSelect={(e) => captureSelection(segment, e.currentTarget)}
+                          onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
+                          onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
+                          onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
+                          onBlur={() => {
+                            if (suppressBlurSaveKey === segment.key) {
+                              setSuppressBlurSaveKey(null);
+                              return;
+                            }
+                            if (!lockedApproved && dirty) {
+                              saveDraft(segment, false).catch((e) => console.error(e));
+                            }
+                          }}
+                          className={`relative z-10 w-full min-h-20 resize-y bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
+                            lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
+                          }`}
+                          style={{ fontSize: `${fontSizePx}px` }}
+                        />
+                      </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs">
                         {segment.status === "approved" && (
                           <button
@@ -524,6 +784,20 @@ export default function EditorReaderPage() {
                       <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
                         {state.icon}
                         <span>{state.label}</span>
+                        {colors.length > 0 && (
+                          <span className="inline-flex items-center gap-1 ml-2">
+                            {colors.map((c) => (
+                              <span
+                                key={c}
+                                className="h-2 w-2 rounded-full"
+                                style={{
+                                  backgroundColor:
+                                    c === "yellow" ? "#facc15" : c === "blue" ? "#60a5fa" : c === "green" ? "#4ade80" : "#f87171",
+                                }}
+                              />
+                            ))}
+                          </span>
+                        )}
                       </div>
                       <button
                         onClick={() => setCompareOpen((prev) => ({ ...prev, [segment.key]: !compareIsOpen }))}
@@ -539,30 +813,45 @@ export default function EditorReaderPage() {
                         <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
                           {t("reader.original", "Original")}
                         </div>
-                        <p className="italic text-on-surface-variant leading-relaxed">{segment.sourceText}</p>
+                        <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
+                          {segment.sourceText}
+                        </p>
                         <div className="h-px bg-outline/35" />
                       </div>
                     )}
 
-                    <textarea
-                      value={currentText}
-                      disabled={lockedApproved || saving}
-                      onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
-                      onBlur={() => {
-                        if (suppressBlurSaveKey === segment.key) {
-                          setSuppressBlurSaveKey(null);
-                          return;
-                        }
-                        if (!lockedApproved && dirty) {
-                          saveDraft(segment, false).catch((e) => console.error(e));
-                        }
-                      }}
-                      className={`w-full min-h-20 resize-y bg-transparent rounded px-0 py-0 text-on-surface leading-relaxed ${
-                        lockedApproved
-                          ? "opacity-95 cursor-default"
-                          : "focus:outline-none focus:ring-0"
-                      }`}
-                    />
+                    <div className="relative">
+                      <div
+                        className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-on-surface leading-relaxed"
+                        style={{ fontSize: `${fontSizePx}px` }}
+                      >
+                        {renderHighlightedText(
+                          currentText,
+                          highlights.filter((h) => h.paragraphId === segment.paragraphId),
+                        )}
+                      </div>
+                      <textarea
+                        value={currentText}
+                        readOnly={lockedApproved || saving}
+                        onSelect={(e) => captureSelection(segment, e.currentTarget)}
+                        onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
+                        onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
+                        onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
+                        onBlur={() => {
+                          if (suppressBlurSaveKey === segment.key) {
+                            setSuppressBlurSaveKey(null);
+                            return;
+                          }
+                          if (!lockedApproved && dirty) {
+                            saveDraft(segment, false).catch((e) => console.error(e));
+                          }
+                        }}
+                        className={`relative z-10 w-full min-h-20 resize-y bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
+                          lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
+                        }`}
+                        style={{ fontSize: `${fontSizePx}px` }}
+                      />
+                    </div>
 
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       {segment.status === "approved" && (

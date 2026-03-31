@@ -13,6 +13,12 @@ const sermonProofreadingState = v.union(
   v.literal("in_progress"),
   v.literal("done"),
 );
+const highlightColor = v.union(
+  v.literal("yellow"),
+  v.literal("blue"),
+  v.literal("green"),
+  v.literal("red"),
+);
 
 export default defineSchema({
   appMetrics: defineTable({
@@ -126,4 +132,37 @@ export default defineSchema({
     translatedText: v.string(),
     status: paragraphStatus,
   }).index("by_publishedVersionId_and_order", ["publishedVersionId", "order"]),
+  editorToolbarPrefs: defineTable({
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+    userTokenIdentifier: v.string(),
+    fontSizePx: v.number(),
+    bookmarked: v.boolean(),
+    updatedAt: v.number(),
+  }).index("by_sermonId_and_languageCode_and_userTokenIdentifier", [
+    "sermonId",
+    "languageCode",
+    "userTokenIdentifier",
+  ]),
+  paragraphSelectionHighlights: defineTable({
+    sermonId: v.id("sermons"),
+    paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
+    userTokenIdentifier: v.string(),
+    color: highlightColor,
+    startOffset: v.number(),
+    endOffset: v.number(),
+    selectedText: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_sermonId_and_languageCode_and_userTokenIdentifier", [
+      "sermonId",
+      "languageCode",
+      "userTokenIdentifier",
+    ])
+    .index("by_paragraphId_and_languageCode_and_userTokenIdentifier", [
+      "paragraphId",
+      "languageCode",
+      "userTokenIdentifier",
+    ]),
 });

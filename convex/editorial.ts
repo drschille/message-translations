@@ -15,6 +15,12 @@ const sermonProofreadingStateValidator = v.union(
   v.literal("in_progress"),
   v.literal("done"),
 );
+const highlightColorValidator = v.union(
+  v.literal("yellow"),
+  v.literal("blue"),
+  v.literal("green"),
+  v.literal("red"),
+);
 
 const fallbackParagraphPairs = [
   {
@@ -59,6 +65,14 @@ function splitTranscript(transcript: string): string[] {
 
 function normalizeLanguageCode(languageCode: string) {
   return languageCode.trim().toLowerCase() || "nb";
+}
+
+async function requireIdentity(ctx: MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity?.tokenIdentifier) {
+    throw new Error("Authentication required");
+  }
+  return identity;
 }
 
 async function findTranslationByParagraphAndLanguage(
@@ -353,6 +367,209 @@ export const listRevertBaselines = query({
     );
 
     return baselines;
+  },
+});
+
+export const getEditorToolbarPrefs = query({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.tokenIdentifier) {
+      return {
+        canPersist: false,
+        fontSizePx: null,
+        bookmarked: null,
+      };
+    }
+
+    const prefs = await ctx.db
+      .query("editorToolbarPrefs")
+      .withIndex("by_sermonId_and_languageCode_and_userTokenIdentifier", (q) =>
+        q
+          .eq("sermonId", args.sermonId)
+          .eq("languageCode", normalizeLanguageCode(args.languageCode))
+          .eq("userTokenIdentifier", identity.tokenIdentifier),
+      )
+      .unique();
+
+    return {
+      canPersist: true,
+      fontSizePx: prefs?.fontSizePx ?? null,
+      bookmarked: prefs?.bookmarked ?? null,
+    };
+  },
+});
+
+export const setEditorToolbarPrefs = mutation({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+    fontSizePx: v.optional(v.number()),
+    bookmarked: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await requireIdentity(ctx);
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const now = Date.now();
+
+    const existing = await ctx.db
+      .query("editorToolbarPrefs")
+      .withIndex("by_sermonId_and_languageCode_and_userTokenIdentifier", (q) =>
+        q
+          .eq("sermonId", args.sermonId)
+          .eq("languageCode", normalizedLanguage)
+          .eq("userTokenIdentifier", identity.tokenIdentifier),
+      )
+      .unique();
+
+    const nextFontSize = args.fontSizePx ?? existing?.fontSizePx ?? 16;
+    const nextBookmarked = args.bookmarked ?? existing?.bookmarked ?? false;
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        fontSizePx: nextFontSize,
+        bookmarked: nextBookmarked,
+        updatedAt: now,
+      });
+      return { ok: true };
+    }
+
+    await ctx.db.insert("editorToolbarPrefs", {
+      sermonId: args.sermonId,
+      languageCode: normalizedLanguage,
+      userTokenIdentifier: identity.tokenIdentifier,
+      fontSizePx: nextFontSize,
+      bookmarked: nextBookmarked,
+      updatedAt: now,
+    });
+
+    return { ok: true };
+  },
+});
+
+export const listSelectionHighlights = query({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.tokenIdentifier) {
+      return {
+        canPersist: false,
+        highlights: [],
+      };
+    }
+
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const highlights = await ctx.db
+      .query("paragraphSelectionHighlights")
+      .withIndex("by_sermonId_and_languageCode_and_userTokenIdentifier", (q) =>
+        q
+          .eq("sermonId", args.sermonId)
+          .eq("languageCode", normalizedLanguage)
+          .eq("userTokenIdentifier", identity.tokenIdentifier),
+      )
+      .take(2000);
+
+    const result: Array<{
+      _id: Id<"paragraphSelectionHighlights">;
+      paragraphId: Id<"sermonParagraphs">;
+      color: "yellow" | "blue" | "green" | "red";
+      startOffset: number;
+      endOffset: number;
+      selectedText: string;
+    }> = [];
+
+    for (const highlight of highlights) {
+      const translation = await ctx.db
+        .query("sermonParagraphTranslations")
+        .withIndex("by_paragraphId_and_languageCode", (q) =>
+          q.eq("paragraphId", highlight.paragraphId).eq("languageCode", normalizedLanguage),
+        )
+        .unique();
+      const text = translation?.translatedText ?? "";
+      if (
+        highlight.startOffset >= 0 &&
+        highlight.endOffset > highlight.startOffset &&
+        highlight.endOffset <= text.length &&
+        text.slice(highlight.startOffset, highlight.endOffset) === highlight.selectedText
+      ) {
+        result.push({
+          _id: highlight._id,
+          paragraphId: highlight.paragraphId,
+          color: highlight.color,
+          startOffset: highlight.startOffset,
+          endOffset: highlight.endOffset,
+          selectedText: highlight.selectedText,
+        });
+      }
+    }
+
+    return {
+      canPersist: true,
+      highlights: result,
+    };
+  },
+});
+
+export const createSelectionHighlight = mutation({
+  args: {
+    paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
+    color: highlightColorValidator,
+    startOffset: v.number(),
+    endOffset: v.number(),
+    selectedText: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await requireIdentity(ctx);
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const paragraph = await ctx.db.get(args.paragraphId);
+    if (!paragraph) {
+      throw new Error("Paragraph not found");
+    }
+    const translation = await ensureTranslationForParagraph(ctx, paragraph, normalizedLanguage);
+
+    if (args.startOffset < 0 || args.endOffset <= args.startOffset || args.endOffset > translation.translatedText.length) {
+      throw new Error("Invalid text selection offsets");
+    }
+    if (translation.translatedText.slice(args.startOffset, args.endOffset) !== args.selectedText) {
+      throw new Error("Selected text no longer matches paragraph content");
+    }
+
+    const now = Date.now();
+    const highlightId = await ctx.db.insert("paragraphSelectionHighlights", {
+      sermonId: paragraph.sermonId,
+      paragraphId: args.paragraphId,
+      languageCode: normalizedLanguage,
+      userTokenIdentifier: identity.tokenIdentifier,
+      color: args.color,
+      startOffset: args.startOffset,
+      endOffset: args.endOffset,
+      selectedText: args.selectedText,
+      createdAt: now,
+    });
+    return { highlightId };
+  },
+});
+
+export const deleteSelectionHighlight = mutation({
+  args: {
+    highlightId: v.id("paragraphSelectionHighlights"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await requireIdentity(ctx);
+    const highlight = await ctx.db.get(args.highlightId);
+    if (!highlight) return { ok: true };
+    if (highlight.userTokenIdentifier !== identity.tokenIdentifier) {
+      throw new Error("Unauthorized");
+    }
+    await ctx.db.delete(args.highlightId);
+    return { ok: true };
   },
 });
 
