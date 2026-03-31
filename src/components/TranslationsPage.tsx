@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronLeft,
@@ -20,6 +20,8 @@ import quoteImage from "@/src/assets/light_over_shoulder.jpg";
 export default function TranslationsPage() {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const resolvedLanguage = (i18n.resolvedLanguage || i18n.language || "nb").toLowerCase();
+  const languageCode = resolvedLanguage === "no" || resolvedLanguage.startsWith("nb") ? "nb" : "en";
   const urlSearchQuery = searchParams.get("q") ?? "";
   const selectedYear = searchParams.get("year") ?? "";
   const selectedSeries = searchParams.get("series") ?? "";
@@ -27,6 +29,11 @@ export default function TranslationsPage() {
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [expandedSermonId, setExpandedSermonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [stableTotalCount, setStableTotalCount] = useState(0);
+  const [stableTotalKey, setStableTotalKey] = useState("");
+  const pageCacheRef = useRef<
+    Record<string, { page: any[]; isDone: boolean; continueCursor: string; totalCount: number }>
+  >({});
   const pageSize = 100;
   const parsedPage = Number(searchParams.get("page") || "1");
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
@@ -39,7 +46,7 @@ export default function TranslationsPage() {
       next.delete("q");
     }
     next.delete("page");
-    setSearchParams(next, { replace: true });
+    setSearchParams(next, { replace: true, preventScrollReset: true });
   };
 
   const listResult = useQuery(
@@ -48,28 +55,34 @@ export default function TranslationsPage() {
       search: debouncedSearchQuery || undefined,
       year: selectedYear || undefined,
       series: selectedSeries || undefined,
-      languageCode: i18n.language,
+      languageCode,
       paginationOpts: {
         cursor: page === 1 ? null : String((page - 1) * pageSize),
         numItems: pageSize,
       },
     },
   );
+  const totalKey = `${debouncedSearchQuery.trim()}::${selectedYear}::${selectedSeries}::${languageCode}`;
+  const pageKey = `${totalKey}::${page}`;
+  const cachedResult = pageCacheRef.current[pageKey];
+  const activeListResult = listResult ?? cachedResult;
   const availableYearsResult = useQuery((api as any).sermons.listYears, {});
 
-  const results = listResult?.page || [];
-  const totalCount = listResult?.totalCount ?? 0;
+  const results = activeListResult?.page || [];
+  const totalCount = typeof activeListResult?.totalCount === "number"
+    ? activeListResult.totalCount
+    : stableTotalCount;
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const yearsFromDb = availableYearsResult ?? [];
   const years = selectedYear && !yearsFromDb.includes(selectedYear)
     ? [selectedYear, ...yearsFromDb]
     : yearsFromDb;
-  const status = listResult === undefined ? "LoadingFirstPage" : "Done";
+  const status = activeListResult === undefined ? "LoadingFirstPage" : "Done";
   const hasPrevPage = page > 1;
   const hasNextPage =
-    typeof listResult?.totalCount === "number"
+    typeof activeListResult?.totalCount === "number"
       ? page < totalPages
-      : Boolean(listResult && !listResult.isDone);
+      : Boolean(activeListResult && !activeListResult.isDone);
 
   const seed = useMutation(api.sermons.seed as any);
 
@@ -89,7 +102,29 @@ export default function TranslationsPage() {
   }, [urlSearchQuery]);
 
   useEffect(() => {
-    if (!listResult || totalCount <= 0) return;
+    if (listResult) {
+      pageCacheRef.current[pageKey] = listResult;
+      const keys = Object.keys(pageCacheRef.current);
+      if (keys.length > 120) {
+        const overflow = keys.length - 120;
+        for (let i = 0; i < overflow; i += 1) {
+          delete pageCacheRef.current[keys[i]];
+        }
+      }
+    }
+  }, [listResult, pageKey]);
+
+  useEffect(() => {
+    if (typeof listResult?.totalCount === "number") {
+      if (stableTotalKey !== totalKey) {
+        setStableTotalKey(totalKey);
+        setStableTotalCount(listResult.totalCount);
+      }
+    }
+  }, [listResult, stableTotalKey, totalKey]);
+
+  useEffect(() => {
+    if (!activeListResult || totalCount <= 0) return;
     if (page > totalPages) {
       const next = new URLSearchParams(searchParams);
       if (totalPages <= 1) {
@@ -97,18 +132,22 @@ export default function TranslationsPage() {
       } else {
         next.set("page", String(totalPages));
       }
-      setSearchParams(next, { replace: true });
+      setSearchParams(next, { replace: true, preventScrollReset: true });
     }
-  }, [listResult, totalCount, page, totalPages, searchParams, setSearchParams]);
+  }, [activeListResult, totalCount, page, totalPages, searchParams, setSearchParams]);
 
   const goToPage = (nextPage: number) => {
+    const currentScrollY = window.scrollY;
     const next = new URLSearchParams(searchParams);
     if (nextPage <= 1) {
       next.delete("page");
     } else {
       next.set("page", String(nextPage));
     }
-    setSearchParams(next);
+    setSearchParams(next, { preventScrollReset: true });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: currentScrollY, behavior: "auto" });
+    });
   };
 
   useEffect(() => {
@@ -197,7 +236,7 @@ export default function TranslationsPage() {
                   next.delete("year");
                 }
                 next.delete("page");
-                setSearchParams(next, { replace: true });
+                setSearchParams(next, { replace: true, preventScrollReset: true });
               }}
             >
               <option value="">{t("common.year")}</option>
@@ -219,7 +258,7 @@ export default function TranslationsPage() {
                   next.delete("series");
                 }
                 next.delete("page");
-                setSearchParams(next, { replace: true });
+                setSearchParams(next, { replace: true, preventScrollReset: true });
               }}
             >
               <option value="">{t("common.series")}</option>
@@ -238,7 +277,7 @@ export default function TranslationsPage() {
                   next.delete("year");
                   next.delete("series");
                   next.delete("page");
-                  setSearchParams(next, { replace: true });
+                  setSearchParams(next, { replace: true, preventScrollReset: true });
                 }}
                 className="px-3 py-2 bg-primary text-on-primary rounded-md text-xs font-semibold whitespace-nowrap"
               >
@@ -273,7 +312,7 @@ export default function TranslationsPage() {
                   }}
                 >
                   <span className="text-[11px] tracking-[0.16em] uppercase text-secondary/80 shrink-0">
-                    {formatDate(sermon.date, i18n.language)}
+                          {formatDate(sermon.date, languageCode)}
                   </span>
                   <h2 className={`font-headline text-lg md:text-xl ${index === 0 ? "text-primary" : "text-on-surface"}`}>
                     {sermon.title}
