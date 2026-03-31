@@ -11519,7 +11519,7 @@
                       "id": "uWm67",
                       "name": "m1origT",
                       "fill": "#8E9099",
-                      "content": "Lesemodus",
+                      "content": "En kolonne",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "500"
@@ -11572,7 +11572,7 @@
                       "id": "xS47l",
                       "name": "m1compT",
                       "fill": "#093255",
-                      "content": "Korrektur",
+                      "content": "To kolonner",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "600"
@@ -13339,11 +13339,11 @@
                   "type": "text",
                   "id": "dfEMA",
                   "name": "link2",
-                  "fill": "#a8c9f4",
+                  "fill": "#c3c6cf",
                   "content": "Taler",
                   "fontFamily": "Inter",
                   "fontSize": 14,
-                  "fontWeight": "500"
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "text",
@@ -13594,7 +13594,7 @@
                   "type": "frame",
                   "id": "1CQJW",
                   "name": "Mode Original",
-                  "fill": "#201f1f",
+                  "fill": "#a8c9f4",
                   "cornerRadius": 6,
                   "padding": [
                     8,
@@ -13607,11 +13607,11 @@
                       "type": "text",
                       "id": "ttqXr",
                       "name": "m1origT",
-                      "fill": "#8E9099",
-                      "content": "Lesemodus",
+                      "fill": "#093255",
+                      "content": "En kolonne",
                       "fontFamily": "Inter",
                       "fontSize": 13,
-                      "fontWeight": "500"
+                      "fontWeight": "600"
                     }
                   ]
                 },
@@ -13647,7 +13647,7 @@
                   "type": "frame",
                   "id": "vbcbK",
                   "name": "Mode Comparison",
-                  "fill": "#a8c9f4",
+                  "fill": "#201f1f",
                   "cornerRadius": 6,
                   "padding": [
                     8,
@@ -13660,11 +13660,11 @@
                       "type": "text",
                       "id": "k4Xh8",
                       "name": "m1compT",
-                      "fill": "#093255",
-                      "content": "Korrektur",
+                      "fill": "#8E9099",
+                      "content": "To kolonner",
                       "fontFamily": "Inter",
                       "fontSize": 13,
-                      "fontWeight": "600"
+                      "fontWeight": "500"
                     }
                   ]
                 }
@@ -15296,11 +15296,11 @@
                   "type": "text",
                   "id": "t8Ulo",
                   "name": "link2",
-                  "fill": "#a8c9f4",
+                  "fill": "#c3c6cf",
                   "content": "Taler",
                   "fontFamily": "Inter",
                   "fontSize": 14,
-                  "fontWeight": "500"
+                  "fontWeight": "normal"
                 },
                 {
                   "type": "text",
