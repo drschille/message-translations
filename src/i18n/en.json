@@ -102,11 +102,31 @@
     "commentOnSegment": "Comment on segment {{key}}"
   },
   "footer": {
-    "copyright": "© 2024 branham.no. All rights reserved.",
+    "copyright": "© 2026 Budskapet. All rights reserved.",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "archiveGuidelines": "Archive Guidelines",
-    "digitalArchive": "The Digital Archive"
+    "digitalArchive": "The Digital Archive",
+    "brand": {
+      "title": "Budskapet",
+      "tagline": "The Norwegian archive for Budskapet"
+    },
+    "navigation": {
+      "title": "Navigation",
+      "home": "Home",
+      "sermons": "Sermons",
+      "about": "About Us"
+    },
+    "resources": {
+      "title": "Resources",
+      "audio": "Audio Recordings",
+      "translations": "Translations",
+      "contact": "Contact"
+    },
+    "social": {
+      "youtube": "YouTube",
+      "email": "Email"
+    }
   },
   "errors": {
     "deploymentRequired": "Backend Deployment Required",
