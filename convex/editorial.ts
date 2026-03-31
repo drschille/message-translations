@@ -10,6 +10,11 @@ const paragraphStatusValidator = v.union(
   v.literal("needs_review"),
   v.literal("approved"),
 );
+const sermonProofreadingStateValidator = v.union(
+  v.literal("queued"),
+  v.literal("in_progress"),
+  v.literal("done"),
+);
 
 const fallbackParagraphPairs = [
   {
@@ -366,6 +371,144 @@ export const updateParagraphStatus = mutation({
     });
 
     return { ok: true };
+  },
+});
+
+export const setSermonProofreadingState = mutation({
+  args: {
+    sermonId: v.id("sermons"),
+    state: sermonProofreadingStateValidator,
+  },
+  handler: async (ctx, args) => {
+    const sermon = await ctx.db.get(args.sermonId);
+    if (!sermon) {
+      throw new Error("Sermon not found");
+    }
+
+    await ctx.db.patch(args.sermonId, {
+      proofreadingState: args.state,
+    });
+
+    return { ok: true };
+  },
+});
+
+export const publishSermonVersion = mutation({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const sermon = await ctx.db.get(args.sermonId);
+    if (!sermon) {
+      throw new Error("Sermon not found");
+    }
+
+    const proofreadingState = sermon.proofreadingState ?? "queued";
+    if (proofreadingState !== "done") {
+      throw new Error("Sermon must be marked as done before publishing");
+    }
+
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const paragraphs = await ctx.db
+      .query("sermonParagraphs")
+      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))
+      .take(2000);
+
+    if (paragraphs.length === 0) {
+      throw new Error("Cannot publish a sermon without paragraphs");
+    }
+
+    const identity = await ctx.auth.getUserIdentity();
+    const publishedAt = Date.now();
+    const version = (sermon.currentVersion ?? 0) + 1;
+
+    const publishedVersionId = await ctx.db.insert("sermonPublishedVersions", {
+      sermonId: args.sermonId,
+      version,
+      languageCode: normalizedLanguage,
+      proofreadingState: "done",
+      publishedAt,
+      reason: args.reason,
+      authorName: identity?.name ?? identity?.email ?? "Anonymous editor",
+      authorTokenIdentifier: identity?.tokenIdentifier,
+    });
+
+    for (const paragraph of paragraphs) {
+      const translation = await ctx.db
+        .query("sermonParagraphTranslations")
+        .withIndex("by_paragraphId_and_languageCode", (q) =>
+          q.eq("paragraphId", paragraph._id).eq("languageCode", normalizedLanguage),
+        )
+        .unique();
+
+      await ctx.db.insert("sermonPublishedParagraphSnapshots", {
+        publishedVersionId,
+        paragraphId: paragraph._id,
+        order: paragraph.order,
+        sourceText: paragraph.sourceText,
+        translatedText: translation?.translatedText ?? paragraph.sourceText,
+        status: translation?.status ?? "draft",
+      });
+    }
+
+    await ctx.db.patch(args.sermonId, {
+      isPublished: true,
+      currentVersion: version,
+      lastPublishedAt: publishedAt,
+    });
+
+    return {
+      sermonId: args.sermonId,
+      version,
+      publishedAt,
+    };
+  },
+});
+
+export const listPublishedVersions = query({
+  args: {
+    sermonId: v.id("sermons"),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("sermonPublishedVersions")
+      .withIndex("by_sermonId_and_version", (q) => q.eq("sermonId", args.sermonId))
+      .order("desc")
+      .paginate(args.paginationOpts);
+  },
+});
+
+export const getPublishedVersion = query({
+  args: {
+    sermonId: v.id("sermons"),
+    version: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const publishedVersion = await ctx.db
+      .query("sermonPublishedVersions")
+      .withIndex("by_sermonId_and_version", (q) =>
+        q.eq("sermonId", args.sermonId).eq("version", args.version),
+      )
+      .unique();
+
+    if (!publishedVersion) {
+      return null;
+    }
+
+    const paragraphs = await ctx.db
+      .query("sermonPublishedParagraphSnapshots")
+      .withIndex("by_publishedVersionId_and_order", (q) =>
+        q.eq("publishedVersionId", publishedVersion._id),
+      )
+      .take(2000);
+
+    return {
+      ...publishedVersion,
+      paragraphs,
+    };
   },
 });
 

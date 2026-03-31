@@ -8,6 +8,12 @@ const paragraphStatus = v.union(
   v.literal("approved"),
 );
 
+const sermonProofreadingState = v.union(
+  v.literal("queued"),
+  v.literal("in_progress"),
+  v.literal("done"),
+);
+
 export default defineSchema({
   appMetrics: defineTable({
     key: v.string(),
@@ -25,9 +31,15 @@ export default defineSchema({
     pdfUrl: v.optional(v.string()),
     transcript: v.optional(v.string()),
     series: v.optional(v.string()),
+    proofreadingState: v.optional(sermonProofreadingState),
+    isPublished: v.optional(v.boolean()),
+    currentVersion: v.optional(v.number()),
+    lastPublishedAt: v.optional(v.number()),
   })
     .index("by_date", ["date"])
-    .index("by_tag", ["tag"]),
+    .index("by_tag", ["tag"])
+    .index("by_proofreadingState", ["proofreadingState"])
+    .index("by_isPublished", ["isPublished"]),
   sermonParagraphs: defineTable({
     sermonId: v.id("sermons"),
     order: v.number(),
@@ -94,4 +106,24 @@ export default defineSchema({
     authorTokenIdentifier: v.optional(v.string()),
     createdAt: v.number(),
   }).index("by_paragraphId_and_createdAt", ["paragraphId", "createdAt"]),
+  sermonPublishedVersions: defineTable({
+    sermonId: v.id("sermons"),
+    version: v.number(),
+    languageCode: v.string(),
+    proofreadingState: sermonProofreadingState,
+    publishedAt: v.number(),
+    reason: v.optional(v.string()),
+    authorName: v.string(),
+    authorTokenIdentifier: v.optional(v.string()),
+  })
+    .index("by_sermonId_and_version", ["sermonId", "version"])
+    .index("by_sermonId_and_publishedAt", ["sermonId", "publishedAt"]),
+  sermonPublishedParagraphSnapshots: defineTable({
+    publishedVersionId: v.id("sermonPublishedVersions"),
+    paragraphId: v.id("sermonParagraphs"),
+    order: v.number(),
+    sourceText: v.string(),
+    translatedText: v.string(),
+    status: paragraphStatus,
+  }).index("by_publishedVersionId_and_order", ["publishedVersionId", "order"]),
 });

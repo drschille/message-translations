@@ -8,6 +8,8 @@ import AboutPage from "./components/AboutPage";
 import TranslationsPage from "./components/TranslationsPage";
 import ReaderPage from "./components/ReaderPage";
 import AnimatedPage from "./components/AnimatedPage";
+import EditorSermonsPage from "./components/EditorSermonsPage";
+import EditorReaderPage from "./components/EditorReaderPage";
 
 export default function App() {
   const location = useLocation();
@@ -25,6 +27,12 @@ export default function App() {
           } />
           <Route path="/sermons/:sermonId" element={
             <AnimatedPage direction="y"><ReaderPage /></AnimatedPage>
+          } />
+          <Route path="/editor/sermons" element={
+            <AnimatedPage><EditorSermonsPage /></AnimatedPage>
+          } />
+          <Route path="/editor/sermons/:sermonId" element={
+            <AnimatedPage direction="y"><EditorReaderPage /></AnimatedPage>
           } />
           <Route path="/about" element={
             <AnimatedPage><AboutPage /></AnimatedPage>
