@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent, ReactNode } from "react";
 import {
   Bookmark,
   Check,
@@ -23,6 +23,15 @@ import { useNavigate, useParams } from "react-router";
 import { formatDate } from "@/src/lib/utils";
 import type { ParagraphId, SermonId } from "@/src/types/editorial";
 import type { Id } from "@/convex/_generated/dataModel";
+import {
+  deletePrivateHighlight,
+  exportPrivateAnnotations,
+  getPrivateToolbarPrefs,
+  importPrivateAnnotations,
+  listPrivateHighlights,
+  setPrivateToolbarPrefs,
+  upsertPrivateHighlight,
+} from "@/src/lib/readerPrivateAnnotations";
 
 type ColumnMode = "one" | "two";
 type HighlightColor = "yellow" | "blue" | "green" | "red";
@@ -155,6 +164,7 @@ export default function EditorReaderPage() {
   const [activeSelection, setActiveSelection] = useState<SelectionInfo | null>(null);
   const [selectedHighlightColor, setSelectedHighlightColor] = useState<HighlightColor | null>(null);
   const [localHighlights, setLocalHighlights] = useState<HighlightEntry[]>([]);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const sermon = useQuery(
     api.sermons.getById,
@@ -172,22 +182,10 @@ export default function EditorReaderPage() {
     api.editorial.listRevertBaselines as any,
     sermonId ? { sermonId, languageCode } : "skip",
   );
-  const toolbarPrefsResult = useQuery(
-    api.editorial.getEditorToolbarPrefs as any,
-    sermonId ? { sermonId, languageCode } : "skip",
-  );
-  const selectionHighlightsResult = useQuery(
-    api.editorial.listSelectionHighlights as any,
-    sermonId ? { sermonId, languageCode } : "skip",
-  );
-
   const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
   const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
   const updateParagraphStatus = useMutation(api.editorial.updateParagraphStatus);
   const revertParagraphToLastApproved = useMutation(api.editorial.revertParagraphToLastApproved as any);
-  const setEditorToolbarPrefs = useMutation(api.editorial.setEditorToolbarPrefs as any);
-  const createSelectionHighlight = useMutation(api.editorial.createSelectionHighlight as any);
-  const deleteSelectionHighlight = useMutation(api.editorial.deleteSelectionHighlight as any);
 
   useEffect(() => {
     if (!sermonId) return;
@@ -221,30 +219,38 @@ export default function EditorReaderPage() {
   }, [segments]);
 
   useEffect(() => {
-    if (typeof toolbarPrefsResult?.fontSizePx === "number") {
-      setFontSizePx(toolbarPrefsResult.fontSizePx);
-    }
-    if (typeof toolbarPrefsResult?.bookmarked === "boolean") {
-      setBookmarked(toolbarPrefsResult.bookmarked);
-    }
-  }, [toolbarPrefsResult]);
+    if (!sermonId) return;
+    let cancelled = false;
+    Promise.all([
+      getPrivateToolbarPrefs({ sermonId, languageCode }),
+      listPrivateHighlights({ sermonId, languageCode }),
+    ])
+      .then(([prefs, highlights]) => {
+        if (cancelled) return;
+        if (prefs) {
+          setFontSizePx(prefs.fontSizePx);
+          setBookmarked(prefs.bookmarked);
+        }
+        setLocalHighlights(
+          highlights.map((h) => ({
+            _id: h.id,
+            paragraphId: h.paragraphId as ParagraphId,
+            color: h.color,
+            startOffset: h.startOffset,
+            endOffset: h.endOffset,
+            selectedText: h.selectedText,
+          })),
+        );
+      })
+      .catch((error) => {
+        console.error("Failed loading local annotations", error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sermonId, languageCode]);
 
-  const canPersistToolbar = Boolean(toolbarPrefsResult?.canPersist);
-  const canPersistHighlights = Boolean(selectionHighlightsResult?.canPersist);
-
-  const highlights: HighlightEntry[] = useMemo(() => {
-    if (canPersistHighlights) {
-      return (selectionHighlightsResult?.highlights ?? []).map((h: any) => ({
-        _id: String(h._id),
-        paragraphId: h.paragraphId as ParagraphId,
-        color: h.color as HighlightColor,
-        startOffset: h.startOffset,
-        endOffset: h.endOffset,
-        selectedText: h.selectedText,
-      }));
-    }
-    return localHighlights;
-  }, [canPersistHighlights, selectionHighlightsResult, localHighlights]);
+  const highlights: HighlightEntry[] = useMemo(() => localHighlights, [localHighlights]);
 
   const counts = useMemo(() => {
     const total = segments.length || 1;
@@ -294,19 +300,19 @@ export default function EditorReaderPage() {
 
   const persistToolbarPrefs = useCallback(
     async (next: { fontSizePx?: number; bookmarked?: boolean }) => {
-      if (!sermonId || !canPersistToolbar) return;
+      if (!sermonId) return;
       try {
-        await setEditorToolbarPrefs({
+        await setPrivateToolbarPrefs({
           sermonId,
           languageCode,
-          fontSizePx: next.fontSizePx,
-          bookmarked: next.bookmarked,
+          fontSizePx: next.fontSizePx ?? fontSizePx,
+          bookmarked: next.bookmarked ?? bookmarked,
         });
       } catch (error) {
-        console.error("Failed persisting toolbar prefs", error);
+        console.error("Failed persisting local toolbar prefs", error);
       }
     },
-    [sermonId, canPersistToolbar, setEditorToolbarPrefs, languageCode],
+    [sermonId, languageCode, fontSizePx, bookmarked],
   );
 
   const ensureDrafting = useCallback(
@@ -412,6 +418,7 @@ export default function EditorReaderPage() {
   };
 
   const applyHighlight = async (color: HighlightColor) => {
+    if (!sermonId) return;
     setSelectedHighlightColor(color);
     if (!activeSelection) return;
 
@@ -423,58 +430,59 @@ export default function EditorReaderPage() {
     );
 
     if (existing && existing.color === color) {
-      if (canPersistHighlights) {
-        try {
-          await deleteSelectionHighlight({ highlightId: existing._id });
-        } catch (error) {
-          console.error("Failed removing highlight", error);
-        }
-      } else {
+      try {
+        await deletePrivateHighlight(existing._id);
         setLocalHighlights((prev) => prev.filter((h) => h._id !== existing._id));
+      } catch (error) {
+        console.error("Failed removing local highlight", error);
       }
       return;
     }
 
     if (existing && existing.color !== color) {
-      if (canPersistHighlights) {
-        try {
-          await deleteSelectionHighlight({ highlightId: existing._id });
-        } catch (error) {
-          console.error("Failed replacing highlight", error);
-        }
-      } else {
-        setLocalHighlights((prev) => prev.filter((h) => h._id !== existing._id));
-      }
-    }
-
-    if (canPersistHighlights) {
       try {
-        await createSelectionHighlight({
-          paragraphId: activeSelection.paragraphId,
-          languageCode,
-          color,
-          startOffset: activeSelection.startOffset,
-          endOffset: activeSelection.endOffset,
-          selectedText: activeSelection.selectedText,
-        });
+        await deletePrivateHighlight(existing._id);
+        setLocalHighlights((prev) => prev.filter((h) => h._id !== existing._id));
       } catch (error) {
-        console.error("Failed creating highlight", error);
+        console.error("Failed replacing local highlight", error);
       }
-      return;
     }
 
-    const localId = `local-${activeSelection.paragraphId}-${activeSelection.startOffset}-${activeSelection.endOffset}-${color}`;
-    setLocalHighlights((prev) => [
-      ...prev.filter((h) => h._id !== localId),
-      {
-        _id: localId,
+    try {
+      const saved = await upsertPrivateHighlight({
+        sermonId,
         paragraphId: activeSelection.paragraphId,
+        languageCode,
         color,
         startOffset: activeSelection.startOffset,
         endOffset: activeSelection.endOffset,
         selectedText: activeSelection.selectedText,
-      },
-    ]);
+      });
+      setLocalHighlights((prev) => [
+        ...prev.filter((h) => h._id !== saved.id),
+        {
+          _id: saved.id,
+          paragraphId: saved.paragraphId as ParagraphId,
+          color: saved.color,
+          startOffset: saved.startOffset,
+          endOffset: saved.endOffset,
+          selectedText: saved.selectedText,
+        },
+      ]);
+    } catch (error) {
+      console.error("Failed creating local highlight", error);
+      setLocalHighlights((prev) => [
+        ...prev,
+        {
+          _id: `local-${activeSelection.paragraphId}-${activeSelection.startOffset}-${activeSelection.endOffset}-${color}`,
+          paragraphId: activeSelection.paragraphId,
+          color,
+          startOffset: activeSelection.startOffset,
+          endOffset: activeSelection.endOffset,
+          selectedText: activeSelection.selectedText,
+        },
+      ]);
+    }
   };
 
   const adjustFontSize = (delta: number) => {
@@ -488,6 +496,63 @@ export default function EditorReaderPage() {
     setBookmarked(next);
     persistToolbarPrefs({ bookmarked: next });
   };
+
+  const handleExportAnnotations = useCallback(async () => {
+    if (!sermonId) return;
+    try {
+      const payload = await exportPrivateAnnotations({ sermonId, languageCode });
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `sermon-${sermonId}-${languageCode}-annotations.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed exporting annotations", error);
+    }
+  }, [sermonId, languageCode]);
+
+  const handleImportFile = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      if (!sermonId) return;
+      const file = event.target.files?.[0];
+      event.currentTarget.value = "";
+      if (!file) return;
+      try {
+        const text = await file.text();
+        await importPrivateAnnotations({
+          sermonId,
+          languageCode,
+          jsonText: text,
+          strategy: "merge",
+        });
+        const [prefs, highlights] = await Promise.all([
+          getPrivateToolbarPrefs({ sermonId, languageCode }),
+          listPrivateHighlights({ sermonId, languageCode }),
+        ]);
+        if (prefs) {
+          setFontSizePx(prefs.fontSizePx);
+          setBookmarked(prefs.bookmarked);
+        }
+        setLocalHighlights(
+          highlights.map((h) => ({
+            _id: h.id,
+            paragraphId: h.paragraphId as ParagraphId,
+            color: h.color,
+            startOffset: h.startOffset,
+            endOffset: h.endOffset,
+            selectedText: h.selectedText,
+          })),
+        );
+      } catch (error) {
+        console.error("Failed importing annotations", error);
+      }
+    },
+    [sermonId, languageCode],
+  );
 
   if (sermon === undefined) {
     return (
@@ -591,6 +656,26 @@ export default function EditorReaderPage() {
             >
               <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
             </button>
+
+            <button
+              onClick={handleExportAnnotations}
+              className="rounded border border-[#43474e] px-2.5 py-1.5 text-[11px] text-on-surface-variant hover:text-on-surface"
+            >
+              {t("reader.exportAnnotations", "Eksporter notater")}
+            </button>
+            <button
+              onClick={() => importInputRef.current?.click()}
+              className="rounded border border-[#43474e] px-2.5 py-1.5 text-[11px] text-on-surface-variant hover:text-on-surface"
+            >
+              {t("reader.importAnnotations", "Importer notater")}
+            </button>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept="application/json"
+              onChange={handleImportFile}
+              className="hidden"
+            />
 
             <div className="h-5 w-px bg-[#43474e]" />
 
