@@ -99,6 +99,7 @@ export default function ReaderPage() {
   const [draftText, setDraftText] = useState("");
   const [saving, setSaving] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const locale = (i18n.language || "").toLowerCase().startsWith("nb") ? "nb" : "en";
 
   const bootstrap = useMutation(api.admin.bootstrapDefault as any);
   const syncLegacySermons = useMutation(api.documents.syncLegacySermons as any);
@@ -113,7 +114,7 @@ export default function ReaderPage() {
   const transitionSegmentStatus = useMutation(api.workflow.transitionSegmentStatus as any);
   const paragraphsResult = useQuery(
     api.documents.listSegments as any,
-    sermonId ? { documentId: sermonId, locale: "nb", paginationOpts: { cursor: null, numItems: 500 } } : "skip",
+    sermonId ? { documentId: sermonId, locale, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
   );
 
   const paragraphs = useMemo(() => paragraphsResult?.page ?? [], [paragraphsResult]);
@@ -137,12 +138,12 @@ export default function ReaderPage() {
     (async () => {
       try {
         await bootstrap({});
-        await syncLegacySermons({ locale: "nb" });
+        await syncLegacySermons({ locale });
       } catch {
         // If we are already on a new document id, no legacy bridge call is needed.
       }
       try {
-        const mapped = await ensureFromLegacySermon({ sermonId: sermonIdParam, locale: "nb" });
+        const mapped = await ensureFromLegacySermon({ sermonId: sermonIdParam, locale });
         if (mapped?.documentId && String(mapped.documentId) !== String(sermonIdParam)) {
           navigate(`/sermons/${mapped.documentId}`, { replace: true });
         }
@@ -150,7 +151,7 @@ export default function ReaderPage() {
         // Ignore if current route id is already a generic document id.
       }
     })();
-  }, [bootstrap, ensureFromLegacySermon, navigate, sermonIdParam, syncLegacySermons]);
+  }, [bootstrap, ensureFromLegacySermon, locale, navigate, sermonIdParam, syncLegacySermons]);
 
   const segments: ParagraphBlockSegment[] = useMemo(() => {
     if (paragraphs.length > 0) {
@@ -183,10 +184,10 @@ export default function ReaderPage() {
     setEditingKey(segment.key);
     setDraftText(segment.translatedText);
     if (segment.paragraphId && segment.status !== "drafting") {
-      await transitionSegmentStatus({ segmentId: segment.paragraphId, locale: "nb", toStatus: "drafting" });
+      await transitionSegmentStatus({ segmentId: segment.paragraphId, locale, toStatus: "drafting" });
     }
     setTimeout(() => textareaRef.current?.focus(), 0);
-  }, [transitionSegmentStatus]);
+  }, [locale, transitionSegmentStatus]);
 
   const saveDraft = useCallback(async (submitForReview = false) => {
     const segment = segments.find((s) => s.key === editingKey);
@@ -195,7 +196,7 @@ export default function ReaderPage() {
     try {
       await updateSegmentTranslation({
         segmentId: segment.paragraphId,
-        locale: "nb",
+        locale,
         text: draftText,
         reason: submitForReview
           ? "Submitted for review from reader"
@@ -206,7 +207,7 @@ export default function ReaderPage() {
     } finally {
       setSaving(false);
     }
-  }, [editingKey, draftText, segments, updateSegmentTranslation]);
+  }, [draftText, editingKey, locale, segments, updateSegmentTranslation]);
 
   const discardDraft = useCallback(() => {
     setEditingKey(null);
@@ -490,7 +491,7 @@ export default function ReaderPage() {
                           ? () =>
                               transitionSegmentStatus({
                                 segmentId: segment.paragraphId!,
-                                locale: "nb",
+                                locale,
                                 toStatus: "approved",
                                 reason: "Approved in reader",
                               })
@@ -645,11 +646,13 @@ export default function ReaderPage() {
 
       <ParagraphCommentsModal
         paragraphId={commentsParagraphId}
+        languageCode={i18n.language}
         open={Boolean(commentsParagraphId)}
         onClose={() => setCommentsParagraphId(null)}
       />
       <VersionHistoryModal
         paragraphId={historyParagraphId}
+        languageCode={i18n.language}
         currentText={historySegment?.translatedText ?? ""}
         open={Boolean(historyParagraphId)}
         onClose={() => setHistoryParagraphId(null)}

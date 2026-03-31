@@ -14,12 +14,19 @@ i18n
     },
     fallbackLng: 'nb',
     supportedLngs: ['nb', 'en'],
+    load: 'languageOnly',
     interpolation: {
       escapeValue: false,
     },
     detection: {
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
+      convertDetectedLanguage: (lng: string) => {
+        const normalized = (lng || '').toLowerCase();
+        if (normalized === 'no' || normalized.startsWith('nb')) return 'nb';
+        if (normalized.startsWith('en')) return 'en';
+        return 'nb';
+      },
     },
   });
 

@@ -9,11 +9,13 @@
  */
 
 import type * as _lib_platform from "../_lib/platform.js";
+import type * as _lib_workflowUtils from "../_lib/workflowUtils.js";
 import type * as admin from "../admin.js";
 import type * as comments from "../comments.js";
 import type * as documents from "../documents.js";
 import type * as editorial from "../editorial.js";
 import type * as history from "../history.js";
+import type * as http from "../http.js";
 import type * as sermons from "../sermons.js";
 import type * as translations from "../translations.js";
 import type * as workflow from "../workflow.js";
@@ -26,11 +28,13 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   "_lib/platform": typeof _lib_platform;
+  "_lib/workflowUtils": typeof _lib_workflowUtils;
   admin: typeof admin;
   comments: typeof comments;
   documents: typeof documents;
   editorial: typeof editorial;
   history: typeof history;
+  http: typeof http;
   sermons: typeof sermons;
   translations: typeof translations;
   workflow: typeof workflow;

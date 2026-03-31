@@ -15,6 +15,7 @@
     "test:integration:mock": "vitest run tests/integration/mock",
     "test:integration:convex": "vitest run tests/integration/convex",
     "test:all": "npm run test && npm run test:integration:convex",
+    "import:sermons": "node scripts/import-sermons.mjs",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy"
   },

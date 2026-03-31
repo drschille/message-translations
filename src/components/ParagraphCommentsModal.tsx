@@ -5,23 +5,25 @@ import { api } from "@/convex/_generated/api";
 import { useTranslation } from "react-i18next";
 import { formatRelativeTime } from "@/src/lib/ui-labels";
 import type { Id } from "@/convex/_generated/dataModel";
-import type { ParagraphComment, ParagraphId } from "@/src/types/editorial";
+import type { ParagraphId } from "@/src/types/editorial";
 
 interface ParagraphCommentsModalProps {
   paragraphId: ParagraphId | null;
+  languageCode: string;
   open: boolean;
   onClose: () => void;
 }
 
-export default function ParagraphCommentsModal({ paragraphId, open, onClose }: ParagraphCommentsModalProps) {
+export default function ParagraphCommentsModal({ paragraphId, languageCode, open, onClose }: ParagraphCommentsModalProps) {
   const { t } = useTranslation();
+  const locale = languageCode?.toLowerCase().startsWith("nb") ? "nb" : "en";
   const commentsResult = useQuery(
     api.comments.listBySegment as any,
-    paragraphId ? { segmentId: paragraphId, locale: "nb", paginationOpts: { cursor: null, numItems: 200 } } : "skip",
+    paragraphId ? { segmentId: paragraphId, locale, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
   );
   const addComment = useMutation(api.comments.add as any);
   const [draftComment, setDraftComment] = useState("");
-  const [replyParentId, setReplyParentId] = useState<Id<"paragraphComments"> | null>(null);
+  const [replyParentId, setReplyParentId] = useState<Id<"comments"> | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const comments = useMemo(() => commentsResult?.page ?? [], [commentsResult]);
@@ -30,7 +32,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
     [comments],
   );
   const repliesByParent = useMemo(() => {
-    const grouped: Record<string, ParagraphComment[]> = {};
+    const grouped: Record<string, typeof comments> = {};
     for (const comment of comments) {
       if (!comment.parentCommentId) continue;
       const key = String(comment.parentCommentId);
@@ -51,7 +53,7 @@ export default function ParagraphCommentsModal({ paragraphId, open, onClose }: P
     try {
       await addComment({
         segmentId: paragraphId,
-        locale: "nb",
+        locale,
         body,
         parentCommentId: replyParentId ?? undefined,
       });

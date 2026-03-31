@@ -9,6 +9,7 @@ import type { ParagraphId } from "@/src/types/editorial";
 
 interface VersionHistoryModalProps {
   paragraphId: ParagraphId | null;
+  languageCode: string;
   currentText: string;
   open: boolean;
   onClose: () => void;
@@ -68,30 +69,32 @@ function diffWords(previous: string, current: string): DiffToken[] {
 
 export default function VersionHistoryModal({
   paragraphId,
+  languageCode,
   currentText,
   open,
   onClose,
 }: VersionHistoryModalProps) {
   const { t } = useTranslation();
+  const locale = languageCode?.toLowerCase().startsWith("nb") ? "nb" : "en";
   const revisionsResult = useQuery(
     api.history.listTranslationVersions as any,
-    paragraphId ? { segmentId: paragraphId, locale: "nb", paginationOpts: { cursor: null, numItems: 200 } } : "skip",
+    paragraphId ? { segmentId: paragraphId, locale, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
   );
   const restoreRevision = useMutation(api.translations.restoreVersion as any);
-  const [compareRevisionId, setCompareRevisionId] = useState<Id<"paragraphRevisions"> | null>(null);
+  const [compareRevisionId, setCompareRevisionId] = useState<Id<"translationVersions"> | null>(null);
   const [restoring, setRestoring] = useState(false);
 
   const revisions = useMemo(() => revisionsResult?.page ?? [], [revisionsResult]);
 
   if (!open || !paragraphId) return null;
 
-  const onRestore = async (revisionId: Id<"paragraphRevisions">) => {
+  const onRestore = async (revisionId: Id<"translationVersions">) => {
     if (!window.confirm(t('editorial.confirmRestore'))) return;
     setRestoring(true);
     try {
       await restoreRevision({
         segmentId: paragraphId,
-        locale: "nb",
+        locale,
         versionId: revisionId,
       });
     } finally {
