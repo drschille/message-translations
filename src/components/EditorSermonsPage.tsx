@@ -14,9 +14,9 @@ function normalizeLanguageCode(i18nLanguage: string) {
 }
 
 function stateLabel(state: ProofreadingState, t: any) {
-  if (state === "in_progress") return t("proofreading.state.inProgress", "Pågår");
-  if (state === "done") return t("proofreading.state.done", "Ferdig");
-  return t("proofreading.state.queued", "Kø");
+  if (state === "in_progress") return t("proofreading.state.inProgress");
+  if (state === "done") return t("proofreading.state.done");
+  return t("proofreading.state.queued");
 }
 
 export default function EditorSermonsPage() {
@@ -62,7 +62,7 @@ export default function EditorSermonsPage() {
     <main className="pt-30 pb-20 px-6 max-w-7xl mx-auto">
       <header className="mb-10 space-y-5">
         <h1 className="text-5xl md:text-7xl font-headline tracking-tight leading-tight max-w-4xl">
-          {t("proofreading.queueTitle", "Taler klar for")} <span className="italic text-primary">{t("nav.proofreading", "korrektur")}</span>
+          {t("proofreading.queueTitle")} <span className="italic text-primary">{t("nav.proofreading")}</span>
         </h1>
       </header>
 
@@ -105,19 +105,19 @@ export default function EditorSermonsPage() {
               onChange={(e) => setParam("proofreadingState", e.target.value)}
               className="bg-surface-container-high border border-outline-variant/20 rounded-md px-3 py-2 text-xs font-label tracking-wide text-on-surface min-w-28"
             >
-              <option value="">{t("proofreading.filter.state", "Status")}</option>
-              <option value="queued">{t("proofreading.state.queued", "Kø")}</option>
-              <option value="in_progress">{t("proofreading.state.inProgress", "Pågår")}</option>
-              <option value="done">{t("proofreading.state.done", "Ferdig")}</option>
+              <option value="">{t("proofreading.filter.state")}</option>
+              <option value="queued">{t("proofreading.state.queued")}</option>
+              <option value="in_progress">{t("proofreading.state.inProgress")}</option>
+              <option value="done">{t("proofreading.state.done")}</option>
             </select>
             <select
               value={published}
               onChange={(e) => setParam("published", e.target.value)}
               className="bg-surface-container-high border border-outline-variant/20 rounded-md px-3 py-2 text-xs font-label tracking-wide text-on-surface min-w-28"
             >
-              <option value="">{t("proofreading.filter.published", "Publisering")}</option>
-              <option value="published">{t("proofreading.published", "Publisert")}</option>
-              <option value="unpublished">{t("proofreading.unpublished", "Upublisert")}</option>
+              <option value="">{t("proofreading.filter.published")}</option>
+              <option value="published">{t("proofreading.published")}</option>
+              <option value="unpublished">{t("proofreading.unpublished")}</option>
             </select>
           </div>
         </div>
@@ -149,13 +149,13 @@ export default function EditorSermonsPage() {
                   <span className="rounded-full border border-outline/40 px-2 py-0.5 text-on-surface-variant">
                     {sermon.isPublished
                       ? `v${sermon.currentVersion ?? 0}`
-                      : t("proofreading.unpublished", "Upublisert")}
+                      : t("proofreading.unpublished")}
                   </span>
                   <Link
                     to={`/editor/sermons/${sermon._id}`}
                     className="ml-auto inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-xs font-semibold text-on-primary"
                   >
-                    {t("proofreading.openProofreader", "Åpne korrektur")}
+                    {t("proofreading.openProofreader")}
                   </Link>
                 </div>
               </article>

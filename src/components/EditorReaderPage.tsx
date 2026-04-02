@@ -633,7 +633,7 @@ export default function EditorReaderPage() {
             className="inline-flex items-center gap-2 text-[13px] font-medium text-on-surface-variant hover:text-on-surface"
           >
             <ChevronLeft size={18} />
-            {t("proofreading.backToArchive", "Tilbake til arkivet")}
+            {t("proofreading.backToArchive")}
           </button>
 
           <div className="rounded-lg bg-surface-container p-1 inline-flex gap-1">
@@ -645,7 +645,7 @@ export default function EditorReaderPage() {
                   : "bg-surface-container text-on-surface-variant"
               }`}
             >
-              {t("proofreading.mode.one", "En kolonne")}
+              {t("proofreading.mode.one")}
             </button>
             <button
               onClick={() => setColumnMode("two")}
@@ -655,7 +655,7 @@ export default function EditorReaderPage() {
                   : "bg-surface-container text-on-surface-variant"
               }`}
             >
-              {t("proofreading.mode.two", "To kolonner")}
+              {t("proofreading.mode.two")}
             </button>
           </div>
 
@@ -672,7 +672,7 @@ export default function EditorReaderPage() {
                   onClick={() => applyHighlight(color)}
                   className={`h-[18px] w-[18px] rounded-full ${selectedHighlightColor === color ? "ring-2 ring-[#e5e2e1]" : ""}`}
                   style={{ backgroundColor: fill }}
-                  aria-label={`Highlight ${color}`}
+                  aria-label={t("editorial.highlightColor", { color })}
                 />
               ))}
             </div>
@@ -684,7 +684,7 @@ export default function EditorReaderPage() {
               className="inline-flex items-center gap-1.5 rounded-md border border-[#43474e] px-3 py-1.5 text-xs text-on-surface-variant hover:text-on-surface"
             >
               <NotebookPen size={16} />
-              <span>{t("editorial.notes", "Notater")}</span>
+              <span>{t("editorial.notes")}</span>
               <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[#093255] text-[10px] font-semibold">
                 {pendingSegments.length}
               </span>
@@ -693,7 +693,7 @@ export default function EditorReaderPage() {
             <button
               onClick={toggleBookmark}
               className={`text-on-surface-variant ${bookmarked ? "text-primary" : ""}`}
-              aria-label={t("reader.bookmarkSermon", "Bookmark sermon")}
+              aria-label={t("reader.bookmarkSermon")}
             >
               <Bookmark size={18} fill={bookmarked ? "currentColor" : "none"} />
             </button>
@@ -702,13 +702,13 @@ export default function EditorReaderPage() {
               onClick={handleExportAnnotations}
               className="rounded border border-[#43474e] px-2.5 py-1.5 text-[11px] text-on-surface-variant hover:text-on-surface"
             >
-              {t("reader.exportAnnotations", "Eksporter notater")}
+              {t("reader.exportAnnotations")}
             </button>
             <button
               onClick={() => importInputRef.current?.click()}
               className="rounded border border-[#43474e] px-2.5 py-1.5 text-[11px] text-on-surface-variant hover:text-on-surface"
             >
-              {t("reader.importAnnotations", "Importer notater")}
+              {t("reader.importAnnotations")}
             </button>
             <input
               ref={importInputRef}
@@ -774,13 +774,13 @@ export default function EditorReaderPage() {
           <div className="px-8 py-3 border-b border-outline/20 bg-surface-container-low/35 text-[11px] uppercase tracking-[0.12em]">
             {columnMode === "two" ? (
               <div className="grid grid-cols-[1fr_1fr] gap-8">
-                <span className="text-outline">English (Original)</span>
-                <span className="text-on-surface-variant">Norsk (Oversettelse)</span>
+                <span className="text-outline">{t("editorial.originalColumnLabel")}</span>
+                <span className="text-on-surface-variant">{t("editorial.translationColumnLabel")}</span>
               </div>
             ) : (
               <div className="flex items-center justify-between gap-4">
-                <span className="text-on-surface-variant">Norsk (Oversatt)</span>
-                <span className="text-outline">{t("proofreading.singleColumnHint", "Kun oversatt tekst vises som standard")}</span>
+                <span className="text-on-surface-variant">{t("editorial.singleColumnTranslationLabel")}</span>
+                <span className="text-outline">{t("proofreading.singleColumnHint")}</span>
               </div>
             )}
           </div>
@@ -877,7 +877,7 @@ export default function EditorReaderPage() {
                             disabled={saving}
                             className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
                           >
-                            {t("editorial.edit", "Rediger")}
+                            {t("editorial.edit")}
                           </button>
                         )}
                         {(segment.status === "draft" || segment.status === "drafting") && (
@@ -887,7 +887,7 @@ export default function EditorReaderPage() {
                               disabled={saving}
                               className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
                             >
-                              {t("proofreading.requestApproval", "Be om godkjenning")}
+                              {t("proofreading.requestApproval")}
                             </button>
                             {canRevert && (
                               <button
@@ -896,7 +896,7 @@ export default function EditorReaderPage() {
                                 disabled={saving}
                                 className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
                               >
-                                {t("proofreading.revertDraftChanges", "Tilbakestill endringer")}
+                                {t("proofreading.revertDraftChanges")}
                               </button>
                             )}
                           </>
@@ -907,7 +907,7 @@ export default function EditorReaderPage() {
                             disabled={saving}
                             className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
                           >
-                            {t("proofreading.approveSegment", "Godkjenn")}
+                            {t("proofreading.approveSegment")}
                           </button>
                         )}
                       </div>
@@ -952,7 +952,7 @@ export default function EditorReaderPage() {
                           >
                             <div className="space-y-2 pb-1">
                               <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                                {t("reader.original", "Original")}
+                                {t("reader.original")}
                               </div>
                               <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
                                 {segment.sourceText}
@@ -1005,7 +1005,7 @@ export default function EditorReaderPage() {
                         onClick={() => setCompareOpen((prev) => ({ ...prev, [segment.key]: !compareIsOpen }))}
                         className="inline-flex items-center gap-1 rounded border border-outline/30 px-2 py-1 text-[11px] text-on-surface-variant"
                       >
-                        {compareIsOpen ? t("editorial.hideCompare", "Skjul original") : t("editorial.compare", "Sammenlign")}
+                        {compareIsOpen ? t("editorial.hideCompare") : t("editorial.compare")}
                         {compareIsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                       </button>
 
@@ -1016,7 +1016,7 @@ export default function EditorReaderPage() {
                             disabled={saving}
                             className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
                           >
-                            {t("editorial.edit", "Rediger")}
+                            {t("editorial.edit")}
                           </button>
                         )}
                         {(segment.status === "draft" || segment.status === "drafting") && (
@@ -1026,7 +1026,7 @@ export default function EditorReaderPage() {
                               disabled={saving}
                               className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
                             >
-                              {t("proofreading.requestApproval", "Be om godkjenning")}
+                              {t("proofreading.requestApproval")}
                             </button>
                             {canRevert && (
                               <button
@@ -1035,7 +1035,7 @@ export default function EditorReaderPage() {
                                 disabled={saving}
                                 className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
                               >
-                                {t("proofreading.revertDraftChanges", "Tilbakestill endringer")}
+                                {t("proofreading.revertDraftChanges")}
                               </button>
                             )}
                           </div>
@@ -1047,7 +1047,7 @@ export default function EditorReaderPage() {
                             className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
                           >
                             <Check size={12} className="mr-1 inline" />
-                            {t("proofreading.approveSegment", "Godkjenn")}
+                            {t("proofreading.approveSegment")}
                           </button>
                         )}
                       </div>
@@ -1064,7 +1064,7 @@ export default function EditorReaderPage() {
             <button
               onClick={() => setReviewsCollapsed(false)}
               className="inline-flex flex-col items-center gap-2 text-on-surface-variant hover:text-on-surface"
-              aria-label={t("editorial.expandReviewsPanel", "Utvid kommentarer og vurderinger")}
+              aria-label={t("editorial.expandReviewsPanel")}
             >
               <MessageSquareText size={18} />
               <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/25 px-1.5 text-[10px] text-primary">
@@ -1077,12 +1077,12 @@ export default function EditorReaderPage() {
           <aside className="hidden lg:block lg:sticky lg:top-32 self-start max-h-[calc(100vh-8rem)] overflow-y-auto bg-surface-container-low/25">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                {t("editorial.commentsAndReviews", "Kommentarer og vurderinger")}
+                {t("editorial.commentsAndReviews")}
               </div>
               <button
                 onClick={() => setReviewsCollapsed(true)}
                 className="rounded border border-outline/30 p-1 text-on-surface-variant hover:text-on-surface"
-                aria-label={t("editorial.collapseReviewsPanel", "Skjul kommentarer og vurderinger")}
+                aria-label={t("editorial.collapseReviewsPanel")}
               >
                 <PanelRightClose size={14} />
               </button>
@@ -1093,7 +1093,7 @@ export default function EditorReaderPage() {
                   {t("reader.statusNeedsReview")}
                 </div>
                 {pendingSegments.length === 0 ? (
-                  <p className="text-xs text-on-surface-variant">{t("editorial.noPendingReviews", "Ingen avsnitt venter på godkjenning.")}</p>
+                  <p className="text-xs text-on-surface-variant">{t("editorial.noPendingReviews")}</p>
                 ) : (
                   <div className="space-y-2">
                     {pendingSegments.map((segment) => (
@@ -1111,7 +1111,7 @@ export default function EditorReaderPage() {
               </div>
               <div className="space-y-2 border-t border-outline/20 pt-4">
                 <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                  {t("editorial.versionHistory", "Versjonshistorikk")}
+                  {t("editorial.versionHistory")}
                 </div>
                 {(versionsResult?.page ?? []).length === 0 ? (
                   <p className="text-xs text-on-surface-variant">{t("editorial.noRevisions")}</p>

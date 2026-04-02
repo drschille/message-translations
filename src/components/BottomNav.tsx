@@ -69,7 +69,7 @@ export default function BottomNav() {
           {({ isActive }) => (
             <>
               <PenSquare size={20} fill={isActive ? "currentColor" : "none"} />
-              <span className="text-[10px]">{t("nav.proofreading", "Korrektur")}</span>
+              <span className="text-[10px]">{t("nav.proofreading")}</span>
             </>
           )}
         </NavLink>

@@ -33,11 +33,11 @@ export default function Navbar() {
           <NavLink to="/sermons" className={navLinkClass}>
             {t('nav.sermons')}
           </NavLink>
+          <NavLink to="/editor/sermons" className={navLinkClass}>
+            {t("nav.proofreading")}
+          </NavLink>
           <NavLink to="/about" className={navLinkClass}>
             {t('nav.about')}
-          </NavLink>
-          <NavLink to="/editor/sermons" className={navLinkClass}>
-            {t("nav.proofreading", "Korrektur")}
           </NavLink>
           <span className="font-headline tracking-tight text-on-surface/70 hover:text-on-surface transition-colors duration-300 cursor-pointer">
             {t('nav.contact')}
