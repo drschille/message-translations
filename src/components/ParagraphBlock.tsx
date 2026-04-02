@@ -21,7 +21,7 @@ interface ParagraphBlockProps {
   segment: ParagraphBlockSegment;
   index: number;
   mode: "read" | "proofread";
-  /** Only used in proofread mode inside ProofreadingWorkflow */
+  /** Only used in proofread mode */
   isActiveEditing?: boolean;
   onOpenComments?: () => void;
   onOpenHistory?: () => void;
