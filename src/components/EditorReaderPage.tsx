@@ -169,7 +169,7 @@ export default function EditorReaderPage() {
   const sermonId = sermonIdParam as SermonId | undefined;
   const languageCode = normalizeLanguageCode(i18n.language);
 
-  const [columnMode, setColumnMode] = useState<ColumnMode>("two");
+  const [columnMode, setColumnMode] = useState<ColumnMode>("one");
   const [compareOpen, setCompareOpen] = useState<Record<string, boolean>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
@@ -386,6 +386,23 @@ export default function EditorReaderPage() {
       }
     },
     [updateParagraphStatus, languageCode],
+  );
+
+  const approveIfClean = useCallback(
+    async (segment: Segment) => {
+      const currentText = (drafts[segment.key] ?? segment.translatedText).trim();
+      const baselineText = segment.translatedText.trim();
+      const hasLocalEdits = currentText !== baselineText;
+
+      // Edits after requesting approval must be re-submitted for approval.
+      if (hasLocalEdits) {
+        await saveDraft(segment, false);
+        return;
+      }
+
+      await approve(segment);
+    },
+    [approve, drafts, saveDraft],
   );
 
   const revertToLastApproved = useCallback(
@@ -769,7 +786,7 @@ export default function EditorReaderPage() {
 
           {segments.map((segment, index) => {
             const state = statusMeta(segment.status, t);
-            const compareIsOpen = compareOpen[segment.key] ?? index === 0;
+            const compareIsOpen = compareOpen[segment.key] ?? false;
             const currentText = drafts[segment.key] ?? segment.translatedText;
             const dirty = currentText.trim() !== segment.translatedText.trim();
             const lockedApproved = segment.status === "approved";
@@ -788,18 +805,10 @@ export default function EditorReaderPage() {
               >
                 {columnMode === "two" ? (
                   <div className="grid grid-cols-[auto_1fr_1fr] gap-6">
-                    <div className="pt-1 text-[11px] text-outline/70">{segment.order}</div>
-                    <div className="pr-4 border-r border-outline/25">
-                      <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
-                        {segment.sourceText}
-                      </p>
-                    </div>
-                    <div className="space-y-3 pl-2">
-                      <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
-                        {state.icon}
-                        <span>{state.label}</span>
+                    <div className="pt-1 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         {colors.length > 0 && (
-                          <span className="inline-flex items-center gap-1 ml-2">
+                          <div className="flex items-center justify-end gap-1">
                             {colors.map((c) => (
                               <span
                                 key={c}
@@ -810,9 +819,21 @@ export default function EditorReaderPage() {
                                 }}
                               />
                             ))}
-                          </span>
+                          </div>
                         )}
+                        <div className="text-[11px] text-outline/70">{segment.order}</div>
                       </div>
+                      <div className="mt-1 inline-flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
+                        {state.icon}
+                        <span>{state.label}</span>
+                      </div>
+                    </div>
+                    <div className="pr-4 border-r border-outline/25">
+                      <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
+                        {segment.sourceText}
+                      </p>
+                    </div>
+                    <div className="space-y-3 pl-2">
                       <div className="relative">
                         <div
                           className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-on-surface leading-relaxed"
@@ -867,19 +888,21 @@ export default function EditorReaderPage() {
                             >
                               {t("proofreading.requestApproval", "Be om godkjenning")}
                             </button>
-                            <button
-                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                              onClick={() => revertToLastApproved(segment)}
-                              disabled={saving || !canRevert}
-                              className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
-                            >
-                              {t("proofreading.revertDraftChanges", "Tilbakestill endringer")}
-                            </button>
+                            {canRevert && (
+                              <button
+                                onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                                onClick={() => revertToLastApproved(segment)}
+                                disabled={saving}
+                                className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
+                              >
+                                {t("proofreading.revertDraftChanges", "Tilbakestill endringer")}
+                              </button>
+                            )}
                           </>
                         )}
                         {segment.status === "needs_review" && (
                           <button
-                            onClick={() => approve(segment)}
+                            onClick={() => approveIfClean(segment)}
                             disabled={saving}
                             className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
                           >
@@ -890,13 +913,11 @@ export default function EditorReaderPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
-                        {state.icon}
-                        <span>{state.label}</span>
+                  <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-4 md:grid-cols-[96px_minmax(0,1fr)_auto]">
+                    <div className="flex flex-col items-end gap-1 pt-1 text-right">
+                      <div className="flex items-center justify-end gap-2">
                         {colors.length > 0 && (
-                          <span className="inline-flex items-center gap-1 ml-2">
+                          <div className="flex items-center justify-end gap-1">
                             {colors.map((c) => (
                               <span
                                 key={c}
@@ -907,9 +928,67 @@ export default function EditorReaderPage() {
                                 }}
                               />
                             ))}
-                          </span>
+                          </div>
                         )}
+                        <div className="text-[11px] text-outline/70">{segment.order}</div>
                       </div>
+                      <div className="flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
+                        {state.icon}
+                        <span>{state.label}</span>
+                      </div>
+                    </div>
+
+                    <div className="min-w-0 space-y-3">
+                      {compareIsOpen && (
+                        <div className="space-y-2">
+                          <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
+                            {t("reader.original", "Original")}
+                          </div>
+                          <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
+                            {segment.sourceText}
+                          </p>
+                          <div className="h-px bg-outline/35" />
+                        </div>
+                      )}
+
+                      <div className="relative">
+                        <div
+                          className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-on-surface leading-relaxed"
+                          style={{ fontSize: `${fontSizePx}px` }}
+                        >
+                          {renderHighlightedText(
+                            currentText,
+                            highlights.filter((h) => h.paragraphId === segment.paragraphId),
+                          )}
+                        </div>
+                        <textarea
+                          id={`editor-reader-translated-text-single-column-${segment.order}`}
+                          data-editor-autogrow="translated"
+                          value={currentText}
+                          readOnly={lockedApproved || saving}
+                          onSelect={(e) => captureSelection(segment, e.currentTarget)}
+                          onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
+                          onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
+                          onInput={(e) => autoResizeTranslatedTextarea(e.currentTarget)}
+                          onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
+                          onBlur={() => {
+                            if (suppressBlurSaveKey === segment.key) {
+                              setSuppressBlurSaveKey(null);
+                              return;
+                            }
+                            if (!lockedApproved && dirty) {
+                              saveDraft(segment, false).catch((e) => console.error(e));
+                            }
+                          }}
+                          className={`relative z-10 block w-full min-h-20 resize-none overflow-hidden bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
+                            lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
+                          }`}
+                          style={{ fontSize: `${fontSizePx}px`, overflowY: "hidden" }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2 md:min-w-56">
                       <button
                         onClick={() => setCompareOpen((prev) => ({ ...prev, [segment.key]: !compareIsOpen }))}
                         className="inline-flex items-center gap-1 rounded border border-outline/30 px-2 py-1 text-[11px] text-on-surface-variant"
@@ -917,95 +996,49 @@ export default function EditorReaderPage() {
                         {compareIsOpen ? t("editorial.hideCompare", "Skjul original") : t("editorial.compare", "Sammenlign")}
                         {compareIsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                       </button>
-                    </div>
 
-                    {compareIsOpen && (
-                      <div className="space-y-2">
-                        <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                          {t("reader.original", "Original")}
-                        </div>
-                        <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
-                          {segment.sourceText}
-                        </p>
-                        <div className="h-px bg-outline/35" />
-                      </div>
-                    )}
-
-                    <div className="relative">
-                      <div
-                        className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-on-surface leading-relaxed"
-                        style={{ fontSize: `${fontSizePx}px` }}
-                      >
-                        {renderHighlightedText(
-                          currentText,
-                          highlights.filter((h) => h.paragraphId === segment.paragraphId),
-                        )}
-                      </div>
-                      <textarea
-                        id={`editor-reader-translated-text-single-column-${segment.order}`}
-                        data-editor-autogrow="translated"
-                        value={currentText}
-                        readOnly={lockedApproved || saving}
-                        onSelect={(e) => captureSelection(segment, e.currentTarget)}
-                        onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
-                        onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
-                        onInput={(e) => autoResizeTranslatedTextarea(e.currentTarget)}
-                        onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
-                        onBlur={() => {
-                          if (suppressBlurSaveKey === segment.key) {
-                            setSuppressBlurSaveKey(null);
-                            return;
-                          }
-                          if (!lockedApproved && dirty) {
-                            saveDraft(segment, false).catch((e) => console.error(e));
-                          }
-                        }}
-                        className={`relative z-10 block w-full min-h-20 resize-none overflow-hidden bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
-                          lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
-                        }`}
-                        style={{ fontSize: `${fontSizePx}px`, overflowY: "hidden" }}
-                      />
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      {segment.status === "approved" && (
-                        <button
-                          onClick={() => ensureDrafting(segment)}
-                          disabled={saving}
-                          className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
-                        >
-                          {t("editorial.edit", "Rediger")}
-                        </button>
-                      )}
-                      {(segment.status === "draft" || segment.status === "drafting") && (
-                        <>
+                      <div className="flex flex-wrap justify-end gap-2 text-xs">
+                        {segment.status === "approved" && (
                           <button
-                            onClick={() => saveDraft(segment, true)}
+                            onClick={() => ensureDrafting(segment)}
                             disabled={saving}
                             className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
                           >
-                            {t("proofreading.requestApproval", "Be om godkjenning")}
+                            {t("editorial.edit", "Rediger")}
                           </button>
+                        )}
+                        {(segment.status === "draft" || segment.status === "drafting") && (
+                          <div className="flex flex-col items-end gap-2">
+                            <button
+                              onClick={() => saveDraft(segment, true)}
+                              disabled={saving}
+                              className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
+                            >
+                              {t("proofreading.requestApproval", "Be om godkjenning")}
+                            </button>
+                            {canRevert && (
+                              <button
+                                onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                                onClick={() => revertToLastApproved(segment)}
+                                disabled={saving}
+                                className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
+                              >
+                                {t("proofreading.revertDraftChanges", "Tilbakestill endringer")}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        {segment.status === "needs_review" && (
                           <button
-                            onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                            onClick={() => revertToLastApproved(segment)}
-                            disabled={saving || !canRevert}
-                            className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
+                            onClick={() => approveIfClean(segment)}
+                            disabled={saving}
+                            className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
                           >
-                            {t("proofreading.revertDraftChanges", "Tilbakestill endringer")}
+                            <Check size={12} className="mr-1 inline" />
+                            {t("proofreading.approveSegment", "Godkjenn")}
                           </button>
-                        </>
-                      )}
-                      {segment.status === "needs_review" && (
-                        <button
-                          onClick={() => approve(segment)}
-                          disabled={saving}
-                          className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
-                        >
-                          <Check size={12} className="inline mr-1" />
-                          {t("proofreading.approveSegment", "Godkjenn")}
-                        </button>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
