@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 import {
   Bookmark,
@@ -144,6 +144,22 @@ function renderHighlightedText(text: string, highlights: HighlightEntry[]) {
   }
   if (cursor < text.length) out.push(<span key="t-last">{text.slice(cursor)}</span>);
   return out;
+}
+
+function useAutoGrowTranslatedTextareas(deps: ReadonlyArray<unknown>) {
+  const autoResizeTranslatedTextarea = useCallback((textarea: HTMLTextAreaElement | null) => {
+    if (!textarea) return;
+    textarea.style.height = "0px";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+    textarea.scrollTop = 0;
+  }, []);
+
+  useLayoutEffect(() => {
+    const textareas = document.querySelectorAll<HTMLTextAreaElement>("[data-editor-autogrow='translated']");
+    textareas.forEach((textarea) => autoResizeTranslatedTextarea(textarea));
+  }, [autoResizeTranslatedTextarea, ...deps]);
+
+  return autoResizeTranslatedTextarea;
 }
 
 export default function EditorReaderPage() {
@@ -416,6 +432,13 @@ export default function EditorReaderPage() {
       selectedText,
     });
   };
+
+  const autoResizeTranslatedTextarea = useAutoGrowTranslatedTextareas([
+    drafts,
+    fontSizePx,
+    columnMode,
+    segments.length,
+  ]);
 
   const applyHighlight = async (color: HighlightColor) => {
     if (!sermonId) return;
@@ -801,11 +824,14 @@ export default function EditorReaderPage() {
                           )}
                         </div>
                         <textarea
+                          id={`editor-reader-translated-text-two-column-${segment.order}`}
+                          data-editor-autogrow="translated"
                           value={currentText}
                           readOnly={lockedApproved || saving}
                           onSelect={(e) => captureSelection(segment, e.currentTarget)}
                           onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
                           onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
+                          onInput={(e) => autoResizeTranslatedTextarea(e.currentTarget)}
                           onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
                           onBlur={() => {
                             if (suppressBlurSaveKey === segment.key) {
@@ -816,10 +842,10 @@ export default function EditorReaderPage() {
                               saveDraft(segment, false).catch((e) => console.error(e));
                             }
                           }}
-                          className={`relative z-10 w-full min-h-20 resize-y bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
+                          className={`relative z-10 block w-full min-h-20 resize-none overflow-hidden bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
                             lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
                           }`}
-                          style={{ fontSize: `${fontSizePx}px` }}
+                          style={{ fontSize: `${fontSizePx}px`, overflowY: "hidden" }}
                         />
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -916,11 +942,14 @@ export default function EditorReaderPage() {
                         )}
                       </div>
                       <textarea
+                        id={`editor-reader-translated-text-single-column-${segment.order}`}
+                        data-editor-autogrow="translated"
                         value={currentText}
                         readOnly={lockedApproved || saving}
                         onSelect={(e) => captureSelection(segment, e.currentTarget)}
                         onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
                         onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
+                        onInput={(e) => autoResizeTranslatedTextarea(e.currentTarget)}
                         onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
                         onBlur={() => {
                           if (suppressBlurSaveKey === segment.key) {
@@ -931,10 +960,10 @@ export default function EditorReaderPage() {
                             saveDraft(segment, false).catch((e) => console.error(e));
                           }
                         }}
-                        className={`relative z-10 w-full min-h-20 resize-y bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
+                        className={`relative z-10 block w-full min-h-20 resize-none overflow-hidden bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
                           lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
                         }`}
-                        style={{ fontSize: `${fontSizePx}px` }}
+                        style={{ fontSize: `${fontSizePx}px`, overflowY: "hidden" }}
                       />
                     </div>
 
