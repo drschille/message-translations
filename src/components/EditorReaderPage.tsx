@@ -63,16 +63,60 @@ type SelectionInfo = {
   selectedText: string;
 };
 
-const fallbackSegments: Segment[] = [
-  {
-    key: "fb-1",
-    paragraphId: null,
-    order: 1,
-    sourceText: "Good evening, friends. It's a privilege to be back here tonight.",
-    translatedText: "God kveld, venner. Det er et privilegium å være tilbake her i kveld.",
-    status: "approved",
-  },
-];
+function ProofreaderShimmerRows({ columnMode }: { columnMode: ColumnMode }) {
+  const rows = [1, 2, 3];
+  return (
+    <div>
+      {rows.map((row) => (
+        <div key={row} className={`border-b border-outline/20 ${rowTone(row)} px-8 py-5 animate-pulse`}>
+          {columnMode === "two" ? (
+            <div className="grid grid-cols-[auto_1fr_1fr] gap-6">
+              <div className="pt-1 text-right space-y-2">
+                <div className="h-3 w-6 rounded bg-surface-container-high ml-auto" />
+                <div className="h-3 w-16 rounded bg-surface-container-high ml-auto" />
+              </div>
+              <div className="pr-4 border-r border-outline/25 space-y-2">
+                <div className="h-3 w-full rounded bg-surface-container-high" />
+                <div className="h-3 w-5/6 rounded bg-surface-container-high" />
+                <div className="h-3 w-4/5 rounded bg-surface-container-high" />
+              </div>
+              <div className="pl-2 space-y-3">
+                <div className="space-y-2">
+                  <div className="h-3 w-full rounded bg-surface-container-high" />
+                  <div className="h-3 w-[92%] rounded bg-surface-container-high" />
+                  <div className="h-3 w-4/5 rounded bg-surface-container-high" />
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-7 w-24 rounded bg-surface-container-high" />
+                  <div className="h-7 w-24 rounded bg-surface-container-high" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-4 md:grid-cols-[96px_minmax(0,1fr)_auto]">
+              <div className="pt-1 text-right space-y-2">
+                <div className="h-3 w-6 rounded bg-surface-container-high ml-auto" />
+                <div className="h-3 w-16 rounded bg-surface-container-high ml-auto" />
+              </div>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <div className="h-3 w-full rounded bg-surface-container-high" />
+                  <div className="h-3 w-[92%] rounded bg-surface-container-high" />
+                  <div className="h-3 w-4/5 rounded bg-surface-container-high" />
+                </div>
+                <div className="h-8 w-full rounded bg-surface-container-high/80" />
+              </div>
+              <div className="hidden md:flex flex-col items-end gap-2">
+                <div className="h-7 w-28 rounded bg-surface-container-high" />
+                <div className="h-7 w-24 rounded bg-surface-container-high" />
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function normalizeLanguageCode(i18nLanguage: string) {
   const v = (i18nLanguage || "nb").toLowerCase();
@@ -223,6 +267,8 @@ export default function EditorReaderPage() {
       ? { sermonId, languageCode: proofreaderLanguageCode, paginationOpts: { cursor: null, numItems: 500 } }
       : "skip",
   );
+  const isLoadingParagraphs = paragraphsResult === undefined;
+  const paragraphs = useMemo(() => paragraphsResult?.page ?? [], [paragraphsResult]);
   const versionsResult = useQuery(
     api.editorial.listPublishedVersions as any,
     sermonId ? { sermonId, paginationOpts: { cursor: null, numItems: 20 } } : "skip",
@@ -244,8 +290,7 @@ export default function EditorReaderPage() {
   }, [sermonId, ensureParagraphs, proofreaderLanguageCode]);
 
   const segments = useMemo<Segment[]>(() => {
-    if (!paragraphsResult?.page || paragraphsResult.page.length === 0) return fallbackSegments;
-    return paragraphsResult.page.map((p: any) => ({
+    return paragraphs.map((p: any) => ({
       key: String(p._id),
       paragraphId: p._id as ParagraphId,
       order: p.order,
@@ -253,7 +298,7 @@ export default function EditorReaderPage() {
       translatedText: p.translatedText,
       status: p.status,
     }));
-  }, [paragraphsResult]);
+  }, [paragraphs]);
 
   useEffect(() => {
     setDrafts((prev) => {
@@ -827,7 +872,16 @@ export default function EditorReaderPage() {
             )}
           </div>
 
-          {segments.map((segment, index) => {
+          {isLoadingParagraphs ? (
+            <ProofreaderShimmerRows columnMode={columnMode} />
+          ) : segments.length === 0 ? (
+            <div className="px-8 py-10">
+              <div className="rounded-lg border border-outline/20 bg-surface-container-low p-6 text-sm text-on-surface-variant">
+                {t("reader.noParagraphs", "No paragraphs available for this sermon yet.")}
+              </div>
+            </div>
+          ) : (
+            segments.map((segment, index) => {
             const state = statusMeta(segment.status, t);
             const compareIsOpen = compareOpen[segment.key] ?? false;
             const currentText = drafts[segment.key] ?? segment.translatedText;
@@ -1106,7 +1160,7 @@ export default function EditorReaderPage() {
                 )}
               </div>
             );
-          })}
+          }))}
         </article>
 
         <AnimatePresence mode="wait" initial={false}>
