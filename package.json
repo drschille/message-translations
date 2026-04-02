@@ -11,6 +11,9 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "import:sermons": "node scripts/import-sermons.mjs",
+    "import:paragraphs": "node scripts/import-sermon-paragraphs.mjs",
+    "integrity:nb": "bash scripts/check-nb-integrity.sh",
+    "integrity:nb:repair": "bash scripts/repair-nb-integrity.sh",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy"
   },

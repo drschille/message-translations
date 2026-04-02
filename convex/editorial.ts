@@ -1,6 +1,7 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { api, internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 
@@ -93,8 +94,6 @@ async function ensureTranslationForParagraph(
   paragraph: {
     _id: Id<"sermonParagraphs">;
     sourceText: string;
-    translatedText: string;
-    status: "draft" | "drafting" | "needs_review" | "approved";
     updatedAt: number;
   },
   languageCode: string,
@@ -105,14 +104,15 @@ async function ensureTranslationForParagraph(
     return existing;
   }
 
+  if (normalized === "nb") {
+    throw new Error(`Missing canonical nb translation for paragraph ${paragraph._id}`);
+  }
+
   const translationId = await ctx.db.insert("sermonParagraphTranslations", {
     paragraphId: paragraph._id,
     languageCode: normalized,
-    translatedText:
-      normalized === "nb"
-        ? paragraph.translatedText
-        : paragraph.sourceText,
-    status: normalized === "nb" ? paragraph.status : "draft",
+    translatedText: paragraph.sourceText,
+    status: "draft",
     updatedAt: Date.now(),
   });
 
@@ -168,29 +168,43 @@ export const ensureParagraphsForSermon = mutation({
         sermonId: args.sermonId,
         order: i + 1,
         sourceText: pair.sourceText,
+        updatedAt: now,
+      });
+
+      const nbTranslationId = await ctx.db.insert("sermonParagraphTranslations", {
+        paragraphId,
+        languageCode: "nb",
         translatedText: pair.translatedText,
         status,
         updatedAt: now,
       });
 
+      await ctx.db.insert("paragraphTranslationRevisions", {
+        paragraphTranslationId: nbTranslationId,
+        snapshotText: pair.translatedText,
+        status,
+        kind: "edit",
+        reason: "Initial seed",
+        authorName: "System",
+        createdAt: now,
+      });
+
+      if (normalizedLanguage === "nb") {
+        continue;
+      }
+
       const translationId = await ctx.db.insert("sermonParagraphTranslations", {
         paragraphId,
         languageCode: normalizedLanguage,
-        translatedText:
-          normalizedLanguage === "nb"
-            ? pair.translatedText
-            : pair.sourceText,
-        status: normalizedLanguage === "nb" ? status : "draft",
+        translatedText: pair.sourceText,
+        status: "draft",
         updatedAt: now,
       });
 
       await ctx.db.insert("paragraphTranslationRevisions", {
         paragraphTranslationId: translationId,
-        snapshotText:
-          normalizedLanguage === "nb"
-            ? pair.translatedText
-            : pair.sourceText,
-        status: normalizedLanguage === "nb" ? status : "draft",
+        snapshotText: pair.sourceText,
+        status: "draft",
         kind: "edit",
         reason: "Initial seed",
         authorName: "System",
@@ -331,7 +345,7 @@ export const listRevertBaselines = query({
         if (!translation) {
           return {
             paragraphId: paragraph._id,
-            targetText: paragraph.translatedText,
+            targetText: paragraph.sourceText,
           };
         }
 
@@ -947,11 +961,39 @@ export const revertParagraphToLastApproved = mutation({
 export const backfillParagraphTranslationsNb = mutation({
   args: {},
   handler: async (ctx) => {
-    const paragraphs = await ctx.db.query("sermonParagraphs").collect();
-    let created = 0;
-    let existing = 0;
+    throw new Error(
+      "Legacy backfill is no longer supported. Run editorial.assertNbTranslationIntegrity instead.",
+    );
+  },
+});
 
-    for (const paragraph of paragraphs) {
+export const listSermonIdsForNbIntegrity = internalQuery({
+  args: {
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    const page = await ctx.db.query("sermons").paginate(args.paginationOpts);
+
+    return {
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+      page: page.page.map((sermon) => sermon._id),
+    };
+  },
+});
+
+export const verifyNbTranslationsForSermon = internalMutation({
+  args: {
+    sermonId: v.id("sermons"),
+    sampleLimit: v.number(),
+  },
+  handler: async (ctx, args) => {
+    let paragraphsChecked = 0;
+    const missingParagraphIds: Id<"sermonParagraphs">[] = [];
+    for await (const paragraph of ctx.db
+      .query("sermonParagraphs")
+      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))) {
+      paragraphsChecked += 1;
       const translation = await ctx.db
         .query("sermonParagraphTranslations")
         .withIndex("by_paragraphId_and_languageCode", (q) =>
@@ -959,32 +1001,365 @@ export const backfillParagraphTranslationsNb = mutation({
         )
         .unique();
 
-      if (translation) {
-        existing += 1;
+      if (!translation) {
+        missingParagraphIds.push(paragraph._id);
+      }
+      if (missingParagraphIds.length >= args.sampleLimit) {
+        break;
+      }
+    }
+
+    return {
+      paragraphsChecked,
+      missingParagraphIds,
+    };
+  },
+});
+
+export const assertNbTranslationIntegrity = action({
+  args: {
+    sampleLimit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const sampleLimit = Math.max(1, Math.min(args.sampleLimit ?? 100, 1000));
+    const missingParagraphIds: Id<"sermonParagraphs">[] = [];
+    let cursor: string | null = null;
+    let sermonsChecked = 0;
+    let paragraphsChecked = 0;
+
+    do {
+      const sermonPage: {
+        isDone: boolean;
+        continueCursor: string;
+        page: Id<"sermons">[];
+      } = await ctx.runQuery(internal.editorial.listSermonIdsForNbIntegrity, {
+        paginationOpts: { cursor, numItems: 100 },
+      });
+
+      for (const sermonId of sermonPage.page) {
+        const verification: {
+          paragraphsChecked: number;
+          missingParagraphIds: Id<"sermonParagraphs">[];
+        } = await ctx.runMutation(internal.editorial.verifyNbTranslationsForSermon, {
+          sermonId,
+          sampleLimit: sampleLimit - missingParagraphIds.length,
+        });
+
+        sermonsChecked += 1;
+        paragraphsChecked += verification.paragraphsChecked;
+        missingParagraphIds.push(...verification.missingParagraphIds);
+
+        if (missingParagraphIds.length >= sampleLimit) {
+          break;
+        }
+      }
+
+      if (missingParagraphIds.length >= sampleLimit || sermonPage.isDone) {
+        break;
+      }
+      cursor = sermonPage.continueCursor;
+    } while (true);
+
+    if (missingParagraphIds.length > 0) {
+      throw new Error(
+        `NB translation integrity failed. Missing paragraph IDs (${missingParagraphIds.length} sample): ${missingParagraphIds.join(", ")}`,
+      );
+    }
+
+    return {
+      ok: true,
+      sermonsChecked,
+      paragraphsChecked,
+      missingCount: 0,
+    };
+  },
+});
+
+export const checkNbTranslationIntegrityChunk = action({
+  args: {
+    cursor: v.optional(v.string()),
+    sermonBatchSize: v.optional(v.number()),
+    sampleLimit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const sermonBatchSize = Math.max(1, Math.min(args.sermonBatchSize ?? 50, 200));
+    const sampleLimit = Math.max(1, Math.min(args.sampleLimit ?? 50, 500));
+
+    const sermonPage: {
+      isDone: boolean;
+      continueCursor: string;
+      page: Id<"sermons">[];
+    } = await ctx.runQuery(internal.editorial.listSermonIdsForNbIntegrity, {
+      paginationOpts: { cursor: args.cursor ?? null, numItems: sermonBatchSize },
+    });
+
+    let paragraphsChecked = 0;
+    const missingParagraphIds: Id<"sermonParagraphs">[] = [];
+
+    for (const sermonId of sermonPage.page) {
+      const verification: {
+        paragraphsChecked: number;
+        missingParagraphIds: Id<"sermonParagraphs">[];
+      } = await ctx.runMutation(internal.editorial.verifyNbTranslationsForSermon, {
+        sermonId,
+        sampleLimit: sampleLimit - missingParagraphIds.length,
+      });
+
+      paragraphsChecked += verification.paragraphsChecked;
+      missingParagraphIds.push(...verification.missingParagraphIds);
+
+      if (missingParagraphIds.length >= sampleLimit) {
+        break;
+      }
+    }
+
+    return {
+      cursor: sermonPage.isDone ? null : sermonPage.continueCursor,
+      isDone: sermonPage.isDone,
+      sermonsChecked: sermonPage.page.length,
+      paragraphsChecked,
+      missingParagraphIds,
+      ok: sermonPage.isDone && missingParagraphIds.length === 0,
+    };
+  },
+});
+
+export const cleanupLegacyParagraphFields = mutation({
+  args: {
+    batchSize: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = Math.max(1, Math.min(args.batchSize ?? 200, 1000));
+    const page = await ctx.db
+      .query("sermonParagraphs")
+      .paginate({ cursor: args.cursor ?? null, numItems: batchSize });
+
+    let cleaned = 0;
+    for (const row of page.page) {
+      await ctx.db.replace(row._id, {
+        sermonId: row.sermonId,
+        order: row.order,
+        sourceText: row.sourceText,
+        updatedAt: row.updatedAt,
+      });
+      cleaned += 1;
+    }
+
+    return {
+      scanned: page.page.length,
+      cleaned,
+      hasMore: !page.isDone,
+      isDone: page.isDone,
+      nextCursor: page.isDone ? null : page.continueCursor,
+    };
+  },
+});
+
+export const cleanupLegacyParagraphFieldsUntilDone = action({
+  args: {
+    batchSize: v.optional(v.number()),
+    maxBatches: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = Math.max(1, Math.min(args.batchSize ?? 1000, 1000));
+    const maxBatches = Math.max(1, Math.min(args.maxBatches ?? 200, 1000));
+
+    let cursor: string | undefined = args.cursor;
+    let batches = 0;
+    let scanned = 0;
+    let cleaned = 0;
+
+    for (let i = 0; i < maxBatches; i += 1) {
+      const result: {
+        scanned: number;
+        cleaned: number;
+        hasMore: boolean;
+        isDone: boolean;
+        nextCursor: string | null;
+      } = await ctx.runMutation(api.editorial.cleanupLegacyParagraphFields as any, {
+        batchSize,
+        cursor,
+      });
+
+      batches += 1;
+      scanned += result.scanned;
+      cleaned += result.cleaned;
+      cursor = result.nextCursor ?? undefined;
+
+      if (result.isDone) {
+        return {
+          done: true,
+          batches,
+          scanned,
+          cleaned,
+          nextCursor: null,
+        };
+      }
+    }
+
+    return {
+      done: false,
+      batches,
+      scanned,
+      cleaned,
+      nextCursor: cursor ?? null,
+    };
+  },
+});
+
+export const repairMissingNbTranslations = mutation({
+  args: {
+    paragraphIds: v.array(v.id("sermonParagraphs")),
+    fromLanguageCode: v.optional(v.string()),
+    allowSourceTextFallback: v.optional(v.boolean()),
+    dryRun: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const dryRun = args.dryRun ?? false;
+    const allowSourceTextFallback = args.allowSourceTextFallback ?? false;
+    const requestedSourceRaw = args.fromLanguageCode?.trim().toLowerCase() ?? null;
+    const useParagraphSource = requestedSourceRaw === "source";
+    const requestedSourceLanguage = requestedSourceRaw && !useParagraphSource
+      ? normalizeLanguageCode(requestedSourceRaw)
+      : null;
+
+    if (requestedSourceLanguage === "nb") {
+      throw new Error("fromLanguageCode cannot be nb");
+    }
+
+    const fallbackSourceLanguages = requestedSourceLanguage
+      ? [requestedSourceLanguage]
+      : ["en", "no", "nn", "sv", "da", "de", "fr", "es"];
+
+    const notFoundParagraphIds: Id<"sermonParagraphs">[] = [];
+    const alreadyPresentParagraphIds: Id<"sermonParagraphs">[] = [];
+    const missingSourceParagraphIds: Id<"sermonParagraphs">[] = [];
+    const missingSourceDetails: Array<{
+      paragraphId: Id<"sermonParagraphs">;
+      sermonId: Id<"sermons">;
+      sermonTag: string | null;
+      order: number;
+      availableLanguages: string[];
+    }> = [];
+    const repairedParagraphIds: Id<"sermonParagraphs">[] = [];
+    const repairedDetails: Array<{
+      paragraphId: Id<"sermonParagraphs">;
+      sermonId: Id<"sermons">;
+      sermonTag: string | null;
+      order: number;
+      sourceLanguage: string;
+    }> = [];
+
+    for (const paragraphId of args.paragraphIds) {
+      const paragraph = await ctx.db.get(paragraphId);
+      if (!paragraph) {
+        notFoundParagraphIds.push(paragraphId);
         continue;
       }
 
-      const translationId = await ctx.db.insert("sermonParagraphTranslations", {
-        paragraphId: paragraph._id,
-        languageCode: "nb",
-        translatedText: paragraph.translatedText,
-        status: paragraph.status,
-        updatedAt: paragraph.updatedAt,
-      });
+      const existingNb = await ctx.db
+        .query("sermonParagraphTranslations")
+        .withIndex("by_paragraphId_and_languageCode", (q) =>
+          q.eq("paragraphId", paragraphId).eq("languageCode", "nb"),
+        )
+        .unique();
+      if (existingNb) {
+        alreadyPresentParagraphIds.push(paragraphId);
+        continue;
+      }
 
-      await ctx.db.insert("paragraphTranslationRevisions", {
-        paragraphTranslationId: translationId,
-        snapshotText: paragraph.translatedText,
-        status: paragraph.status,
-        kind: "edit",
-        reason: "Backfilled from legacy paragraph",
-        authorName: "System",
-        createdAt: Date.now(),
-      });
+      let sourceTranslation:
+        | Doc<"sermonParagraphTranslations">
+        | null = null;
+      let sourceLanguage = "";
 
-      created += 1;
+      if (!useParagraphSource) {
+        for (const languageCode of fallbackSourceLanguages) {
+          const candidate = await ctx.db
+            .query("sermonParagraphTranslations")
+            .withIndex("by_paragraphId_and_languageCode", (q) =>
+              q.eq("paragraphId", paragraphId).eq("languageCode", languageCode),
+            )
+            .unique();
+          if (candidate) {
+            sourceTranslation = candidate;
+            sourceLanguage = languageCode;
+            break;
+          }
+        }
+      }
+
+      if (!sourceTranslation && !useParagraphSource && !allowSourceTextFallback) {
+        missingSourceParagraphIds.push(paragraphId);
+        const availableTranslations = await ctx.db
+          .query("sermonParagraphTranslations")
+          .withIndex("by_paragraphId_and_languageCode", (q) => q.eq("paragraphId", paragraphId))
+          .take(100);
+        const sermon = await ctx.db.get(paragraph.sermonId);
+        missingSourceDetails.push({
+          paragraphId,
+          sermonId: paragraph.sermonId,
+          sermonTag: sermon?.tag ?? null,
+          order: paragraph.order,
+          availableLanguages: availableTranslations.map((row) => row.languageCode),
+        });
+        continue;
+      }
+
+      const sermon = await ctx.db.get(paragraph.sermonId);
+      const translatedText = sourceTranslation?.translatedText ?? paragraph.sourceText;
+      const status = sourceTranslation?.status ?? "draft";
+      sourceLanguage = sourceTranslation ? sourceLanguage : "source";
+
+      if (!dryRun) {
+        const insertedId = await ctx.db.insert("sermonParagraphTranslations", {
+          paragraphId,
+          languageCode: "nb",
+          translatedText,
+          status,
+          updatedAt: now,
+        });
+
+        await ctx.db.insert("paragraphTranslationRevisions", {
+          paragraphTranslationId: insertedId,
+          snapshotText: translatedText,
+          status,
+          kind: "edit",
+          reason: `Backfilled missing nb translation from ${sourceLanguage}`,
+          authorName: "System",
+          createdAt: now,
+        });
+      }
+
+      repairedParagraphIds.push(paragraphId);
+      repairedDetails.push({
+        paragraphId,
+        sermonId: paragraph.sermonId,
+        sermonTag: sermon?.tag ?? null,
+        order: paragraph.order,
+        sourceLanguage,
+      });
     }
 
-    return { created, existing };
+    return {
+      dryRun,
+      requestedCount: args.paragraphIds.length,
+      repairedCount: repairedParagraphIds.length,
+      repairedParagraphIds,
+      repairedDetails,
+      alreadyPresentCount: alreadyPresentParagraphIds.length,
+      alreadyPresentParagraphIds,
+      missingSourceCount: missingSourceParagraphIds.length,
+      missingSourceParagraphIds,
+      missingSourceDetails,
+      notFoundCount: notFoundParagraphIds.length,
+      notFoundParagraphIds,
+      ok:
+        notFoundParagraphIds.length === 0 &&
+        missingSourceParagraphIds.length === 0,
+    };
   },
 });

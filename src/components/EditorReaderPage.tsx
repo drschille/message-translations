@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Bookmark,
@@ -11,6 +11,7 @@ import {
   Circle,
   Clock3,
   Columns2,
+  Eraser,
   FileEdit,
   MessageSquareText,
   NotebookPen,
@@ -63,16 +64,64 @@ type SelectionInfo = {
   selectedText: string;
 };
 
-const fallbackSegments: Segment[] = [
-  {
-    key: "fb-1",
-    paragraphId: null,
-    order: 1,
-    sourceText: "Good evening, friends. It's a privilege to be back here tonight.",
-    translatedText: "God kveld, venner. Det er et privilegium å være tilbake her i kveld.",
-    status: "approved",
-  },
-];
+function rangesOverlap(startA: number, endA: number, startB: number, endB: number) {
+  return startA < endB && endA > startB;
+}
+
+function ProofreaderShimmerRows({ columnMode }: { columnMode: ColumnMode }) {
+  const rows = [1, 2, 3];
+  return (
+    <div>
+      {rows.map((row) => (
+        <div key={row} className={`border-b border-outline/20 ${rowTone(row)} px-8 py-5 animate-pulse`}>
+          {columnMode === "two" ? (
+            <div className="grid grid-cols-[auto_1fr_1fr] gap-6">
+              <div className="pt-1 text-right space-y-2">
+                <div className="h-3 w-6 rounded bg-surface-container-high ml-auto" />
+                <div className="h-3 w-16 rounded bg-surface-container-high ml-auto" />
+              </div>
+              <div className="pr-4 border-r border-outline/25 space-y-2">
+                <div className="h-3 w-full rounded bg-surface-container-high" />
+                <div className="h-3 w-5/6 rounded bg-surface-container-high" />
+                <div className="h-3 w-4/5 rounded bg-surface-container-high" />
+              </div>
+              <div className="pl-2 space-y-3">
+                <div className="space-y-2">
+                  <div className="h-3 w-full rounded bg-surface-container-high" />
+                  <div className="h-3 w-[92%] rounded bg-surface-container-high" />
+                  <div className="h-3 w-4/5 rounded bg-surface-container-high" />
+                </div>
+                <div className="flex gap-2">
+                  <div className="h-7 w-24 rounded bg-surface-container-high" />
+                  <div className="h-7 w-24 rounded bg-surface-container-high" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-4 md:grid-cols-[96px_minmax(0,1fr)_auto]">
+              <div className="pt-1 text-right space-y-2">
+                <div className="h-3 w-6 rounded bg-surface-container-high ml-auto" />
+                <div className="h-3 w-16 rounded bg-surface-container-high ml-auto" />
+              </div>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <div className="h-3 w-full rounded bg-surface-container-high" />
+                  <div className="h-3 w-[92%] rounded bg-surface-container-high" />
+                  <div className="h-3 w-4/5 rounded bg-surface-container-high" />
+                </div>
+                <div className="h-8 w-full rounded bg-surface-container-high/80" />
+              </div>
+              <div className="hidden md:flex flex-col items-end gap-2">
+                <div className="h-7 w-28 rounded bg-surface-container-high" />
+                <div className="h-7 w-24 rounded bg-surface-container-high" />
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function normalizeLanguageCode(i18nLanguage: string) {
   const v = (i18nLanguage || "nb").toLowerCase();
@@ -110,57 +159,172 @@ function highlightBgClass(color: HighlightColor) {
   return "bg-red-300/30";
 }
 
-function renderHighlightedText(text: string, highlights: HighlightEntry[]) {
-  if (highlights.length === 0) return [<span key="plain">{text}</span>];
-
-  const sorted = highlights
-    .filter((h) => h.startOffset >= 0 && h.endOffset > h.startOffset && h.endOffset <= text.length)
-    .sort((a, b) => a.startOffset - b.startOffset || a.endOffset - b.endOffset);
-  const merged: HighlightEntry[] = [];
-
-  for (const h of sorted) {
-    const last = merged[merged.length - 1];
-    if (!last || h.startOffset >= last.endOffset) {
-      merged.push(h);
-      continue;
-    }
-    if (h.endOffset > last.endOffset) {
-      merged[merged.length - 1] = { ...last, endOffset: h.endOffset };
-    }
-  }
-
-  const out: ReactNode[] = [];
-  let cursor = 0;
-  for (let i = 0; i < merged.length; i += 1) {
-    const h = merged[i];
-    if (h.startOffset > cursor) {
-      out.push(<span key={`t-${i}`}>{text.slice(cursor, h.startOffset)}</span>);
-    }
-    out.push(
-      <mark key={`h-${i}`} className={`${highlightBgClass(h.color)} rounded-[2px] px-[1px] text-inherit`}>
-        {text.slice(h.startOffset, h.endOffset)}
-      </mark>,
-    );
-    cursor = h.endOffset;
-  }
-  if (cursor < text.length) out.push(<span key="t-last">{text.slice(cursor)}</span>);
-  return out;
+function renderTextWithLineBreakSpacing(text: string) {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  return (
+    <span className="block space-y-2">
+      {lines.map((line, index) => (
+        <span key={index} className="block break-words">
+          {line.length > 0 ? line : "\u00A0"}
+        </span>
+      ))}
+    </span>
+  );
 }
 
-function useAutoGrowTranslatedTextareas(deps: ReadonlyArray<unknown>) {
-  const autoResizeTranslatedTextarea = useCallback((textarea: HTMLTextAreaElement | null) => {
-    if (!textarea) return;
-    textarea.style.height = "0px";
-    textarea.style.height = `${textarea.scrollHeight}px`;
-    textarea.scrollTop = 0;
-  }, []);
+function mergeHighlights(text: string, highlights: HighlightEntry[]) {
+  return highlights
+    .filter((h) => h.startOffset >= 0 && h.endOffset > h.startOffset && h.endOffset <= text.length)
+    .sort((a, b) => a.startOffset - b.startOffset || a.endOffset - b.endOffset)
+    .reduce<HighlightEntry[]>((acc, h) => {
+      const last = acc[acc.length - 1];
+      if (!last || h.startOffset >= last.endOffset) {
+        acc.push({ ...h });
+        return acc;
+      }
+      if (h.endOffset > last.endOffset) {
+        acc[acc.length - 1] = { ...last, endOffset: h.endOffset };
+      }
+      return acc;
+    }, []);
+}
 
-  useLayoutEffect(() => {
-    const textareas = document.querySelectorAll<HTMLTextAreaElement>("[data-editor-autogrow='translated']");
-    textareas.forEach((textarea) => autoResizeTranslatedTextarea(textarea));
-  }, [autoResizeTranslatedTextarea, ...deps]);
+function findNearestTextRange(text: string, selectedText: string, expectedStart: number) {
+  if (!selectedText) return null;
+  let searchFrom = 0;
+  let bestStart = -1;
+  let bestDistance = Number.POSITIVE_INFINITY;
 
-  return autoResizeTranslatedTextarea;
+  while (searchFrom <= text.length) {
+    const found = text.indexOf(selectedText, searchFrom);
+    if (found === -1) break;
+    const distance = Math.abs(found - expectedStart);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestStart = found;
+    }
+    searchFrom = found + 1;
+  }
+
+  if (bestStart === -1) return null;
+  return { startOffset: bestStart, endOffset: bestStart + selectedText.length };
+}
+
+function resolveSelectionRangeInText(
+  text: string,
+  selectedText: string,
+  fallbackStart: number,
+  fallbackEnd: number,
+) {
+  const selected = normalizeSelectionText(selectedText);
+  if (!selected) {
+    return {
+      startOffset: Math.max(0, Math.min(fallbackStart, text.length)),
+      endOffset: Math.max(0, Math.min(fallbackEnd, text.length)),
+    };
+  }
+  const nearest = findNearestTextRange(text, selected, fallbackStart);
+  if (nearest) return nearest;
+  return {
+    startOffset: Math.max(0, Math.min(fallbackStart, text.length)),
+    endOffset: Math.max(0, Math.min(fallbackEnd, text.length)),
+  };
+}
+
+function normalizeHighlightOffsetsForText(text: string, highlight: HighlightEntry): HighlightEntry {
+  const startOffset = Math.max(0, Math.min(highlight.startOffset, text.length));
+  const endOffset = Math.max(startOffset, Math.min(highlight.endOffset, text.length));
+  const resolved = resolveSelectionRangeInText(text, highlight.selectedText, startOffset, endOffset);
+  const selected = normalizeSelectionText(highlight.selectedText);
+  if (!selected) {
+    return { ...highlight, startOffset, endOffset };
+  }
+  return { ...highlight, startOffset: resolved.startOffset, endOffset: resolved.endOffset };
+}
+
+function renderHighlightedTextWithLineBreakSpacing(text: string, highlights: HighlightEntry[]) {
+  const normalized = text.replace(/\r\n/g, "\n");
+  const merged = mergeHighlights(
+    normalized,
+    highlights.map((highlight) => normalizeHighlightOffsetsForText(normalized, highlight)),
+  );
+  const lines = normalized.split("\n");
+
+  let lineStartOffset = 0;
+
+  return (
+    <span className="block space-y-2">
+      {lines.map((line, lineIndex) => {
+        const lineEndOffset = lineStartOffset + line.length;
+        const pieces: React.ReactNode[] = [];
+        let cursor = 0;
+
+        for (let i = 0; i < merged.length; i += 1) {
+          const h = merged[i];
+          if (h.endOffset <= lineStartOffset || h.startOffset >= lineEndOffset) continue;
+
+          const localStart = Math.max(0, h.startOffset - lineStartOffset);
+          const localEnd = Math.min(line.length, h.endOffset - lineStartOffset);
+          if (localStart > cursor) {
+            pieces.push(<span key={`t-${lineIndex}-${i}`}>{line.slice(cursor, localStart)}</span>);
+          }
+          pieces.push(
+            <mark
+              key={`h-${lineIndex}-${i}`}
+              className={`${highlightBgClass(h.color)} rounded-[2px] px-[1px] text-inherit`}
+            >
+              {line.slice(localStart, localEnd)}
+            </mark>,
+          );
+          cursor = Math.max(cursor, localEnd);
+        }
+
+        if (cursor < line.length) {
+          pieces.push(<span key={`tail-${lineIndex}`}>{line.slice(cursor)}</span>);
+        }
+
+        const node = pieces.length > 0 ? pieces : ["\u00A0"];
+        const rendered = (
+          <span key={`line-${lineIndex}`} className="block break-words">
+            {node}
+          </span>
+        );
+
+        lineStartOffset = lineEndOffset + 1;
+        return rendered;
+      })}
+    </span>
+  );
+}
+
+function escapeHtml(input: string) {
+  return input
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function textToEditorHtml(text: string) {
+  const normalized = text.replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
+  if (lines.length === 0) {
+    return "<div><br></div>";
+  }
+  return lines
+    .map((line) => (line.length > 0 ? `<div>${escapeHtml(line)}</div>` : "<div><br></div>"))
+    .join("");
+}
+
+function readEditorText(editor: HTMLElement) {
+  // For editable content, innerText preserves block boundaries as line breaks.
+  const text = editor.innerText.replace(/\r\n/g, "\n");
+  return text.endsWith("\n") ? text.slice(0, -1) : text;
+}
+
+function normalizeSelectionText(text: string) {
+  return text.replace(/\r\n/g, "\n");
 }
 
 export default function EditorReaderPage() {
@@ -168,7 +332,8 @@ export default function EditorReaderPage() {
   const { sermonId: sermonIdParam } = useParams();
   const navigate = useNavigate();
   const sermonId = sermonIdParam as SermonId | undefined;
-  const languageCode = normalizeLanguageCode(i18n.language);
+  const uiLanguageCode = normalizeLanguageCode(i18n.language);
+  const proofreaderLanguageCode = "nb";
 
   const [columnMode, setColumnMode] = useState<ColumnMode>("one");
   const [compareOpen, setCompareOpen] = useState<Record<string, boolean>>({});
@@ -181,23 +346,29 @@ export default function EditorReaderPage() {
   const [activeSelection, setActiveSelection] = useState<SelectionInfo | null>(null);
   const [selectedHighlightColor, setSelectedHighlightColor] = useState<HighlightColor | null>(null);
   const [localHighlights, setLocalHighlights] = useState<HighlightEntry[]>([]);
+  const savingDraftKeysRef = useRef<Set<string>>(new Set());
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const editableRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const sermon = useQuery(
     api.sermons.getById,
-    sermonId ? { id: sermonId as Id<"sermons">, languageCode } : "skip",
+    sermonId ? { id: sermonId as Id<"sermons">, languageCode: uiLanguageCode } : "skip",
   );
   const paragraphsResult = useQuery(
     api.editorial.listParagraphs,
-    sermonId ? { sermonId, languageCode, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
+    sermonId
+      ? { sermonId, languageCode: proofreaderLanguageCode, paginationOpts: { cursor: null, numItems: 500 } }
+      : "skip",
   );
+  const isLoadingParagraphs = paragraphsResult === undefined;
+  const paragraphs = useMemo(() => paragraphsResult?.page ?? [], [paragraphsResult]);
   const versionsResult = useQuery(
     api.editorial.listPublishedVersions as any,
     sermonId ? { sermonId, paginationOpts: { cursor: null, numItems: 20 } } : "skip",
   );
   const revertBaselinesResult = useQuery(
     api.editorial.listRevertBaselines as any,
-    sermonId ? { sermonId, languageCode } : "skip",
+    sermonId ? { sermonId, languageCode: proofreaderLanguageCode } : "skip",
   );
   const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
   const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
@@ -206,14 +377,13 @@ export default function EditorReaderPage() {
 
   useEffect(() => {
     if (!sermonId) return;
-    ensureParagraphs({ sermonId, languageCode }).catch((error) => {
+    ensureParagraphs({ sermonId, languageCode: proofreaderLanguageCode }).catch((error) => {
       console.error("Failed ensuring paragraphs", error);
     });
-  }, [sermonId, ensureParagraphs, languageCode]);
+  }, [sermonId, ensureParagraphs, proofreaderLanguageCode]);
 
   const segments = useMemo<Segment[]>(() => {
-    if (!paragraphsResult?.page || paragraphsResult.page.length === 0) return fallbackSegments;
-    return paragraphsResult.page.map((p: any) => ({
+    return paragraphs.map((p: any) => ({
       key: String(p._id),
       paragraphId: p._id as ParagraphId,
       order: p.order,
@@ -221,7 +391,7 @@ export default function EditorReaderPage() {
       translatedText: p.translatedText,
       status: p.status,
     }));
-  }, [paragraphsResult]);
+  }, [paragraphs]);
 
   useEffect(() => {
     setDrafts((prev) => {
@@ -239,8 +409,8 @@ export default function EditorReaderPage() {
     if (!sermonId) return;
     let cancelled = false;
     Promise.all([
-      getPrivateToolbarPrefs({ sermonId, languageCode }),
-      listPrivateHighlights({ sermonId, languageCode }),
+      getPrivateToolbarPrefs({ sermonId, languageCode: proofreaderLanguageCode }),
+      listPrivateHighlights({ sermonId, languageCode: proofreaderLanguageCode }),
     ])
       .then(([prefs, highlights]) => {
         if (cancelled) return;
@@ -265,7 +435,7 @@ export default function EditorReaderPage() {
     return () => {
       cancelled = true;
     };
-  }, [sermonId, languageCode]);
+  }, [sermonId, proofreaderLanguageCode]);
 
   const highlights: HighlightEntry[] = useMemo(() => localHighlights, [localHighlights]);
 
@@ -311,6 +481,27 @@ export default function EditorReaderPage() {
     return map;
   }, [highlights]);
 
+  const canClearActiveSelection = useMemo(() => {
+    if (!activeSelection) return false;
+    const selectedSegment = segments.find((segment) => segment.paragraphId === activeSelection.paragraphId);
+    const selectedSegmentText = selectedSegment
+      ? drafts[selectedSegment.key] ?? selectedSegment.translatedText
+      : "";
+    const resolvedSelection = resolveSelectionRangeInText(
+      selectedSegmentText,
+      activeSelection.selectedText,
+      activeSelection.startOffset,
+      activeSelection.endOffset,
+    );
+    return highlights
+      .map((h) => normalizeHighlightOffsetsForText(selectedSegmentText, h))
+      .some(
+        (h) =>
+          h.paragraphId === activeSelection.paragraphId &&
+          rangesOverlap(h.startOffset, h.endOffset, resolvedSelection.startOffset, resolvedSelection.endOffset),
+      );
+  }, [activeSelection, highlights, segments, drafts]);
+
   const setBusy = (key: string, busy: boolean) => {
     setBusyKeys((prev) => ({ ...prev, [key]: busy }));
   };
@@ -321,7 +512,7 @@ export default function EditorReaderPage() {
       try {
         await setPrivateToolbarPrefs({
           sermonId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           fontSizePx: next.fontSizePx ?? fontSizePx,
           bookmarked: next.bookmarked ?? bookmarked,
         });
@@ -329,7 +520,7 @@ export default function EditorReaderPage() {
         console.error("Failed persisting local toolbar prefs", error);
       }
     },
-    [sermonId, languageCode, fontSizePx, bookmarked],
+    [sermonId, proofreaderLanguageCode, fontSizePx, bookmarked],
   );
 
   const ensureDrafting = useCallback(
@@ -339,7 +530,7 @@ export default function EditorReaderPage() {
       try {
         await updateParagraphStatus({
           paragraphId: segment.paragraphId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           status: "drafting",
           reason: "Edit requested in editor proofreader",
         });
@@ -347,17 +538,19 @@ export default function EditorReaderPage() {
         setBusy(segment.key, false);
       }
     },
-    [updateParagraphStatus, languageCode],
+    [updateParagraphStatus, proofreaderLanguageCode],
   );
 
   const saveDraft = useCallback(
     async (segment: Segment, submitForReview = false) => {
       if (!segment.paragraphId) return;
+      if (savingDraftKeysRef.current.has(segment.key)) return;
+      savingDraftKeysRef.current.add(segment.key);
       setBusy(segment.key, true);
       try {
         await updateParagraphDraft({
           paragraphId: segment.paragraphId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           translatedText: drafts[segment.key] ?? segment.translatedText,
           reason: submitForReview
             ? "Submitted for review from editor proofreader"
@@ -366,9 +559,10 @@ export default function EditorReaderPage() {
         });
       } finally {
         setBusy(segment.key, false);
+        savingDraftKeysRef.current.delete(segment.key);
       }
     },
-    [updateParagraphDraft, languageCode, drafts],
+    [updateParagraphDraft, proofreaderLanguageCode, drafts],
   );
 
   const approve = useCallback(
@@ -378,7 +572,7 @@ export default function EditorReaderPage() {
       try {
         await updateParagraphStatus({
           paragraphId: segment.paragraphId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           status: "approved",
           reason: "Approved in editor proofreader",
         });
@@ -386,7 +580,7 @@ export default function EditorReaderPage() {
         setBusy(segment.key, false);
       }
     },
-    [updateParagraphStatus, languageCode],
+    [updateParagraphStatus, proofreaderLanguageCode],
   );
 
   const approveIfClean = useCallback(
@@ -413,7 +607,7 @@ export default function EditorReaderPage() {
       try {
         const result = await revertParagraphToLastApproved({
           paragraphId: segment.paragraphId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           reason: "Reverted to last approved translation from editor proofreader",
         });
         if (result?.translatedText) {
@@ -423,25 +617,52 @@ export default function EditorReaderPage() {
         setBusy(segment.key, false);
       }
     },
-    [revertParagraphToLastApproved, languageCode],
+    [revertParagraphToLastApproved, proofreaderLanguageCode],
   );
 
-  const captureSelection = (segment: Segment, element: HTMLTextAreaElement) => {
+  const captureSelection = (segment: Segment, element: HTMLElement) => {
     if (!segment.paragraphId) {
       setActiveSelection(null);
       return;
     }
-    const start = element.selectionStart ?? 0;
-    const end = element.selectionEnd ?? 0;
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      setActiveSelection(null);
+      return;
+    }
+
+    const range = selection.getRangeAt(0);
+    if (!element.contains(range.startContainer) || !element.contains(range.endContainer)) {
+      setActiveSelection(null);
+      return;
+    }
+
+    const fullRange = range.cloneRange();
+    fullRange.selectNodeContents(element);
+
+    const startRange = range.cloneRange();
+    startRange.selectNodeContents(element);
+    startRange.setEnd(range.startContainer, range.startOffset);
+
+    const endRange = range.cloneRange();
+    endRange.selectNodeContents(element);
+    endRange.setEnd(range.endContainer, range.endOffset);
+
+    const canonical = normalizeSelectionText(fullRange.toString());
+    const start = normalizeSelectionText(startRange.toString()).length;
+    const end = normalizeSelectionText(endRange.toString()).length;
+
     if (end <= start) {
       setActiveSelection(null);
       return;
     }
-    const selectedText = element.value.slice(start, end);
+    const selectedText = canonical.slice(start, end);
     if (!selectedText.trim()) {
       setActiveSelection(null);
       return;
     }
+
     setActiveSelection({
       segmentKey: segment.key,
       paragraphId: segment.paragraphId,
@@ -451,39 +672,88 @@ export default function EditorReaderPage() {
     });
   };
 
-  const autoResizeTranslatedTextarea = useAutoGrowTranslatedTextareas([
-    drafts,
-    fontSizePx,
-    columnMode,
-    segments.length,
-  ]);
+  useEffect(() => {
+    for (const segment of segments) {
+      const editor = editableRefs.current.get(segment.key);
+      if (!editor) continue;
+      if (document.activeElement === editor) continue;
+      const target = drafts[segment.key] ?? segment.translatedText;
+      const current = readEditorText(editor);
+      if (current !== target) {
+        editor.innerHTML = textToEditorHtml(target);
+      }
+    }
+  }, [segments, drafts]);
 
   const applyHighlight = async (color: HighlightColor) => {
     if (!sermonId) return;
     setSelectedHighlightColor(color);
     if (!activeSelection) return;
 
-    const existing = highlights.find(
-      (h) =>
-        h.paragraphId === activeSelection.paragraphId &&
-        h.startOffset === activeSelection.startOffset &&
-        h.endOffset === activeSelection.endOffset,
+    const selectedSegment = segments.find((segment) => segment.paragraphId === activeSelection.paragraphId);
+    const selectedSegmentText = selectedSegment
+      ? drafts[selectedSegment.key] ?? selectedSegment.translatedText
+      : "";
+    const resolvedSelection = resolveSelectionRangeInText(
+      selectedSegmentText,
+      activeSelection.selectedText,
+      activeSelection.startOffset,
+      activeSelection.endOffset,
     );
+    const paragraphHighlights = highlights
+      .filter((h) => h.paragraphId === activeSelection.paragraphId)
+      .map((h) => normalizeHighlightOffsetsForText(selectedSegmentText, h));
+    const overlapping = paragraphHighlights.filter((h) =>
+      rangesOverlap(h.startOffset, h.endOffset, resolvedSelection.startOffset, resolvedSelection.endOffset),
+    );
+    const overlappingSameColor = overlapping.filter((h) => h.color === color);
 
-    if (existing && existing.color === color) {
-      try {
-        await deletePrivateHighlight(existing._id);
-        setLocalHighlights((prev) => prev.filter((h) => h._id !== existing._id));
-      } catch (error) {
-        console.error("Failed removing local highlight", error);
+    if (overlappingSameColor.length > 0) {
+      const mergedRanges = [...overlappingSameColor]
+        .sort((a, b) => a.startOffset - b.startOffset || a.endOffset - b.endOffset)
+        .reduce<Array<{ startOffset: number; endOffset: number }>>((acc, h) => {
+          const last = acc[acc.length - 1];
+          if (!last || h.startOffset > last.endOffset) {
+            acc.push({ startOffset: h.startOffset, endOffset: h.endOffset });
+            return acc;
+          }
+          if (h.endOffset > last.endOffset) {
+            last.endOffset = h.endOffset;
+          }
+          return acc;
+        }, []);
+      const selectionCovered = mergedRanges.some(
+        (h) => h.startOffset <= resolvedSelection.startOffset && h.endOffset >= resolvedSelection.endOffset,
+      );
+
+      // Fast remove when re-applying the same color over an already-highlighted selection.
+      if (selectionCovered) {
+        try {
+          await Promise.all(overlappingSameColor.map((h) => deletePrivateHighlight(h._id)));
+          const deleteIds = new Set(overlappingSameColor.map((h) => h._id));
+          setLocalHighlights((prev) => prev.filter((h) => !deleteIds.has(h._id)));
+        } catch (error) {
+          console.error("Failed removing local highlight", error);
+        }
+        return;
       }
-      return;
     }
 
-    if (existing && existing.color !== color) {
+    const mergedStart = Math.min(
+      resolvedSelection.startOffset,
+      ...overlappingSameColor.map((h) => h.startOffset),
+    );
+    const mergedEnd = Math.max(
+      resolvedSelection.endOffset,
+      ...overlappingSameColor.map((h) => h.endOffset),
+    );
+    const mergedSelectedText = selectedSegmentText.slice(mergedStart, mergedEnd);
+
+    if (overlappingSameColor.length > 0) {
       try {
-        await deletePrivateHighlight(existing._id);
-        setLocalHighlights((prev) => prev.filter((h) => h._id !== existing._id));
+        await Promise.all(overlappingSameColor.map((h) => deletePrivateHighlight(h._id)));
+        const deleteIds = new Set(overlappingSameColor.map((h) => h._id));
+        setLocalHighlights((prev) => prev.filter((h) => !deleteIds.has(h._id)));
       } catch (error) {
         console.error("Failed replacing local highlight", error);
       }
@@ -493,11 +763,11 @@ export default function EditorReaderPage() {
       const saved = await upsertPrivateHighlight({
         sermonId,
         paragraphId: activeSelection.paragraphId,
-        languageCode,
+        languageCode: proofreaderLanguageCode,
         color,
-        startOffset: activeSelection.startOffset,
-        endOffset: activeSelection.endOffset,
-        selectedText: activeSelection.selectedText,
+        startOffset: mergedStart,
+        endOffset: mergedEnd,
+        selectedText: mergedSelectedText || activeSelection.selectedText,
       });
       setLocalHighlights((prev) => [
         ...prev.filter((h) => h._id !== saved.id),
@@ -515,16 +785,48 @@ export default function EditorReaderPage() {
       setLocalHighlights((prev) => [
         ...prev,
         {
-          _id: `local-${activeSelection.paragraphId}-${activeSelection.startOffset}-${activeSelection.endOffset}-${color}`,
+          _id: `local-${activeSelection.paragraphId}-${mergedStart}-${mergedEnd}-${color}`,
           paragraphId: activeSelection.paragraphId,
           color,
-          startOffset: activeSelection.startOffset,
-          endOffset: activeSelection.endOffset,
-          selectedText: activeSelection.selectedText,
+          startOffset: mergedStart,
+          endOffset: mergedEnd,
+          selectedText: mergedSelectedText || activeSelection.selectedText,
         },
       ]);
     }
   };
+
+  const clearSelectionHighlights = useCallback(async () => {
+    if (!activeSelection) return;
+    const selectedSegment = segments.find((segment) => segment.paragraphId === activeSelection.paragraphId);
+    const selectedSegmentText = selectedSegment
+      ? drafts[selectedSegment.key] ?? selectedSegment.translatedText
+      : "";
+    const resolvedSelection = resolveSelectionRangeInText(
+      selectedSegmentText,
+      activeSelection.selectedText,
+      activeSelection.startOffset,
+      activeSelection.endOffset,
+    );
+    const overlapping = highlights
+      .map((h) => normalizeHighlightOffsetsForText(selectedSegmentText, h))
+      .filter(
+        (h) =>
+          h.paragraphId === activeSelection.paragraphId &&
+          rangesOverlap(h.startOffset, h.endOffset, resolvedSelection.startOffset, resolvedSelection.endOffset),
+      );
+    const overlappingIds = new Set(overlapping.map((h) => h._id));
+    const toDelete = highlights.filter((h) => overlappingIds.has(h._id));
+    if (toDelete.length === 0) return;
+
+    try {
+      await Promise.all(toDelete.map((h) => deletePrivateHighlight(h._id)));
+      const deleteIds = new Set(toDelete.map((h) => h._id));
+      setLocalHighlights((prev) => prev.filter((h) => !deleteIds.has(h._id)));
+    } catch (error) {
+      console.error("Failed clearing local highlights", error);
+    }
+  }, [activeSelection, highlights, segments, drafts]);
 
   const adjustFontSize = (delta: number) => {
     const next = Math.max(12, Math.min(30, fontSizePx + delta));
@@ -541,12 +843,15 @@ export default function EditorReaderPage() {
   const handleExportAnnotations = useCallback(async () => {
     if (!sermonId) return;
     try {
-      const payload = await exportPrivateAnnotations({ sermonId, languageCode });
+      const payload = await exportPrivateAnnotations({
+        sermonId,
+        languageCode: proofreaderLanguageCode,
+      });
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `sermon-${sermonId}-${languageCode}-annotations.json`;
+      link.download = `sermon-${sermonId}-${proofreaderLanguageCode}-annotations.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -554,7 +859,7 @@ export default function EditorReaderPage() {
     } catch (error) {
       console.error("Failed exporting annotations", error);
     }
-  }, [sermonId, languageCode]);
+  }, [sermonId, proofreaderLanguageCode]);
 
   const handleImportFile = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -566,13 +871,13 @@ export default function EditorReaderPage() {
         const text = await file.text();
         await importPrivateAnnotations({
           sermonId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           jsonText: text,
           strategy: "merge",
         });
         const [prefs, highlights] = await Promise.all([
-          getPrivateToolbarPrefs({ sermonId, languageCode }),
-          listPrivateHighlights({ sermonId, languageCode }),
+          getPrivateToolbarPrefs({ sermonId, languageCode: proofreaderLanguageCode }),
+          listPrivateHighlights({ sermonId, languageCode: proofreaderLanguageCode }),
         ]);
         if (prefs) {
           setFontSizePx(prefs.fontSizePx);
@@ -592,7 +897,7 @@ export default function EditorReaderPage() {
         console.error("Failed importing annotations", error);
       }
     },
-    [sermonId, languageCode],
+    [sermonId, proofreaderLanguageCode],
   );
 
   if (sermon === undefined) {
@@ -618,7 +923,7 @@ export default function EditorReaderPage() {
       <section className="px-6 md:px-20 pt-10 pb-8 border-b border-outline/20">
         <h1 className="font-headline text-4xl md:text-5xl tracking-tight">{sermon.title}</h1>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-on-surface-variant">
-          <span>{formatDate(sermon.date, languageCode)}</span>
+          <span>{formatDate(sermon.date, uiLanguageCode)}</span>
           <span className="h-1 w-1 rounded-full bg-outline" />
           <span>{sermon.series ?? t("common.series")}</span>
           <span className="h-1 w-1 rounded-full bg-outline" />
@@ -678,6 +983,15 @@ export default function EditorReaderPage() {
                   transition={{ type: "spring", stiffness: 450, damping: 24 }}
                 />
               ))}
+              <button
+                onClick={() => clearSelectionHighlights()}
+                disabled={!canClearActiveSelection}
+                className="ml-1 inline-flex h-[20px] w-[20px] items-center justify-center rounded border border-[#43474e] text-on-surface-variant disabled:opacity-40"
+                aria-label={t("editorial.clearHighlight", "Clear highlight")}
+                title={t("editorial.clearHighlight", "Clear highlight")}
+              >
+                <Eraser size={12} />
+              </button>
             </div>
 
             <div className="h-5 w-px bg-[#43474e]" />
@@ -788,7 +1102,16 @@ export default function EditorReaderPage() {
             )}
           </div>
 
-          {segments.map((segment, index) => {
+          {isLoadingParagraphs ? (
+            <ProofreaderShimmerRows columnMode={columnMode} />
+          ) : segments.length === 0 ? (
+            <div className="px-8 py-10">
+              <div className="rounded-lg border border-outline/20 bg-surface-container-low p-6 text-sm text-on-surface-variant">
+                {t("reader.noParagraphs", "No paragraphs available for this sermon yet.")}
+              </div>
+            </div>
+          ) : (
+            segments.map((segment, index) => {
             const state = statusMeta(segment.status, t);
             const compareIsOpen = compareOpen[segment.key] ?? false;
             const currentText = drafts[segment.key] ?? segment.translatedText;
@@ -833,31 +1156,45 @@ export default function EditorReaderPage() {
                       </div>
                     </div>
                     <div className="pr-4 border-r border-outline/25">
-                      <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
-                        {segment.sourceText}
+                      <p
+                        className="italic text-on-surface-variant leading-relaxed"
+                        style={{ fontSize: `${fontSizePx}px` }}
+                      >
+                        {renderTextWithLineBreakSpacing(segment.sourceText)}
                       </p>
                     </div>
                     <div className="space-y-3 pl-2">
                       <div className="relative">
                         <div
-                          className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-on-surface leading-relaxed"
+                          className="pointer-events-none absolute inset-0 text-on-surface leading-relaxed"
                           style={{ fontSize: `${fontSizePx}px` }}
                         >
-                          {renderHighlightedText(
+                          {renderHighlightedTextWithLineBreakSpacing(
                             currentText,
                             highlights.filter((h) => h.paragraphId === segment.paragraphId),
                           )}
                         </div>
-                        <textarea
-                          id={`editor-reader-translated-text-two-column-${segment.order}`}
-                          data-editor-autogrow="translated"
-                          value={currentText}
-                          readOnly={lockedApproved || saving}
+                        <div
+                          ref={(node) => {
+                            if (node) {
+                              editableRefs.current.set(segment.key, node);
+                              if (!node.innerHTML.trim()) {
+                                node.innerHTML = textToEditorHtml(currentText);
+                              }
+                            } else {
+                              editableRefs.current.delete(segment.key);
+                            }
+                          }}
+                          contentEditable={!lockedApproved && !saving}
+                          suppressContentEditableWarning
+                          spellCheck={false}
                           onSelect={(e) => captureSelection(segment, e.currentTarget)}
                           onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
                           onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
-                          onInput={(e) => autoResizeTranslatedTextarea(e.currentTarget)}
-                          onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
+                          onInput={(e) => {
+                            const nextValue = readEditorText(e.currentTarget);
+                            setDrafts((prev) => ({ ...prev, [segment.key]: nextValue }));
+                          }}
                           onBlur={() => {
                             if (suppressBlurSaveKey === segment.key) {
                               setSuppressBlurSaveKey(null);
@@ -867,10 +1204,10 @@ export default function EditorReaderPage() {
                               saveDraft(segment, false).catch((e) => console.error(e));
                             }
                           }}
-                          className={`relative z-10 block w-full min-h-20 resize-none overflow-hidden bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
+                          className={`relative z-10 block w-full min-h-20 rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
                             lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
                           }`}
-                          style={{ fontSize: `${fontSizePx}px`, overflowY: "hidden" }}
+                          style={{ fontSize: `${fontSizePx}px` }}
                         />
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -886,6 +1223,7 @@ export default function EditorReaderPage() {
                         {(segment.status === "draft" || segment.status === "drafting") && (
                           <>
                             <button
+                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
                               onClick={() => saveDraft(segment, true)}
                               disabled={saving}
                               className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
@@ -957,8 +1295,11 @@ export default function EditorReaderPage() {
                               <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
                                 {t("reader.original")}
                               </div>
-                              <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
-                                {segment.sourceText}
+                              <p
+                                className="italic text-on-surface-variant leading-relaxed"
+                                style={{ fontSize: `${fontSizePx}px` }}
+                              >
+                                {renderTextWithLineBreakSpacing(segment.sourceText)}
                               </p>
                               <div className="h-px bg-outline/35" />
                             </div>
@@ -968,24 +1309,35 @@ export default function EditorReaderPage() {
 
                       <div className="relative">
                         <div
-                          className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-on-surface leading-relaxed"
+                          className="pointer-events-none absolute inset-0 text-on-surface leading-relaxed"
                           style={{ fontSize: `${fontSizePx}px` }}
                         >
-                          {renderHighlightedText(
+                          {renderHighlightedTextWithLineBreakSpacing(
                             currentText,
                             highlights.filter((h) => h.paragraphId === segment.paragraphId),
                           )}
                         </div>
-                        <textarea
-                          id={`editor-reader-translated-text-single-column-${segment.order}`}
-                          data-editor-autogrow="translated"
-                          value={currentText}
-                          readOnly={lockedApproved || saving}
+                        <div
+                          ref={(node) => {
+                            if (node) {
+                              editableRefs.current.set(segment.key, node);
+                              if (!node.innerHTML.trim()) {
+                                node.innerHTML = textToEditorHtml(currentText);
+                              }
+                            } else {
+                              editableRefs.current.delete(segment.key);
+                            }
+                          }}
+                          contentEditable={!lockedApproved && !saving}
+                          suppressContentEditableWarning
+                          spellCheck={false}
                           onSelect={(e) => captureSelection(segment, e.currentTarget)}
                           onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
                           onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
-                          onInput={(e) => autoResizeTranslatedTextarea(e.currentTarget)}
-                          onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
+                          onInput={(e) => {
+                            const nextValue = readEditorText(e.currentTarget);
+                            setDrafts((prev) => ({ ...prev, [segment.key]: nextValue }));
+                          }}
                           onBlur={() => {
                             if (suppressBlurSaveKey === segment.key) {
                               setSuppressBlurSaveKey(null);
@@ -995,10 +1347,10 @@ export default function EditorReaderPage() {
                               saveDraft(segment, false).catch((e) => console.error(e));
                             }
                           }}
-                          className={`relative z-10 block w-full min-h-20 resize-none overflow-hidden bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
+                          className={`relative z-10 block w-full min-h-20 rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
                             lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
                           }`}
-                          style={{ fontSize: `${fontSizePx}px`, overflowY: "hidden" }}
+                          style={{ fontSize: `${fontSizePx}px` }}
                         />
                       </div>
                     </div>
@@ -1025,6 +1377,7 @@ export default function EditorReaderPage() {
                         {(segment.status === "draft" || segment.status === "drafting") && (
                           <div className="flex flex-col items-end gap-2">
                             <button
+                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
                               onClick={() => saveDraft(segment, true)}
                               disabled={saving}
                               className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
@@ -1059,7 +1412,7 @@ export default function EditorReaderPage() {
                 )}
               </div>
             );
-          })}
+          }))}
         </article>
 
         <AnimatePresence mode="wait" initial={false}>

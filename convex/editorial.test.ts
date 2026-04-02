@@ -205,4 +205,80 @@ describe("editorial revert to last approved", () => {
     const row = baselines.find((b: any) => b.paragraphId === paragraphId);
     expect(row?.targetText).toBe(initialTranslatedText);
   });
+
+  test("assertNbTranslationIntegrity succeeds when all paragraphs have nb translations", async () => {
+    const t = convexTest(schema, modules);
+    await t.mutation(api.sermons.seed, {});
+    const sermons = await t.query(api.sermons.list, {
+      paginationOpts: { cursor: null, numItems: 20 },
+      languageCode: "nb",
+    });
+    const sermonId = sermons.page[0]?._id;
+    expect(sermonId).toBeDefined();
+
+    await t.mutation(api.editorial.ensureParagraphsForSermon, {
+      sermonId,
+      languageCode: "nb",
+    });
+
+    const result = await t.action(api.editorial.assertNbTranslationIntegrity as any, {});
+    expect(result.ok).toBe(true);
+    expect(result.missingCount).toBe(0);
+  });
+
+  test("assertNbTranslationIntegrity fails when an nb translation is missing", async () => {
+    const t = convexTest(schema, modules);
+    await t.action(api.sermons.importFromBranham, {
+      sermons: [
+        {
+          title: "Integrity test sermon",
+          date: "1964-01-01",
+          tag: "64-0101-INTEGRITY",
+          location: "Test",
+        },
+      ],
+    });
+
+    await t.action(api.paragraphImports.importSermonParagraphs, {
+      imports: [
+        {
+          sermonTag: "64-0101-INTEGRITY",
+          languageCode: "en",
+          paragraphs: [
+            {
+              paragraphID: 1,
+              text: "Source only paragraph",
+              text_no: "English translation row for test",
+            },
+          ],
+        },
+      ],
+    });
+
+    await expect(
+      t.action(api.editorial.assertNbTranslationIntegrity as any, { sampleLimit: 10 }),
+    ).rejects.toThrow("NB translation integrity failed");
+  });
+
+  test("checkNbTranslationIntegrityChunk cursor advances between chunk calls", async () => {
+    const t = convexTest(schema, modules);
+    await t.mutation(api.sermons.seed, {});
+
+    const first = await t.action(api.editorial.checkNbTranslationIntegrityChunk as any, {
+      sermonBatchSize: 1,
+      sampleLimit: 10,
+    });
+    expect(first.sermonsChecked).toBe(1);
+    expect(first.isDone).toBe(false);
+    expect(typeof first.cursor).toBe("string");
+
+    const second = await t.action(api.editorial.checkNbTranslationIntegrityChunk as any, {
+      cursor: first.cursor,
+      sermonBatchSize: 1,
+      sampleLimit: 10,
+    });
+
+    expect(second.sermonsChecked).toBe(1);
+    expect(second.cursor).not.toBe(first.cursor);
+  });
 });

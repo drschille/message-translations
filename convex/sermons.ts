@@ -120,7 +120,13 @@ export const list = query({
   },
   handler: async (ctx, args) => {
     const languageCode = args.languageCode ?? "nb";
-    const hasFilters = Boolean(args.search || args.year || args.series);
+    const hasFilters = Boolean(
+      args.search ||
+      args.year ||
+      args.series ||
+      args.proofreadingState ||
+      typeof args.isPublished === "boolean",
+    );
     const all = await ctx.db.query("sermons").order("desc").collect();
 
     const localized = await Promise.all(

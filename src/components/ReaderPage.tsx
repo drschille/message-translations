@@ -25,68 +25,39 @@ import type { ParagraphId, SermonId } from "@/src/types/editorial";
 import type { Id } from "@/convex/_generated/dataModel";
 import { exportPrivateAnnotations, importPrivateAnnotations } from "@/src/lib/readerPrivateAnnotations";
 
-const fallbackSegments: ParagraphBlockSegment[] = [
-  {
-    key: "fb-1",
-    paragraphId: null,
-    order: 1,
-    sourceText:
-      '"Good evening, friends. It\'s a privilege to be back here again tonight in the house of the Lord."',
-    translatedText:
-      "Velsignet vaere Herrens Navn. Det er en stor forrett aa vaere her i kveld i Herrens hus. Vi ser frem til hva Herren vil gjore iblant oss naar vi aapner Hans Ord.",
-    status: "approved",
-  },
-  {
-    key: "fb-2",
-    paragraphId: null,
-    order: 2,
-    sourceText:
-      '"Now, we are thinking today of how that the world has come to its place where it is today."',
-    translatedText:
-      "Jeg vil at vi skal vende oss til Skriftene i kveld for aa finne vaart emne. Vi lever i en tid hvor mange soker etter et hvilested, et sted for fred i en urolig verden.",
-    status: "needs_review",
-  },
-  {
-    key: "fb-3",
-    paragraphId: null,
-    order: 3,
-    sourceText:
-      '"Everything is changing. Politics is changing; the world itself is changing. But God\'s Word remains the same."',
-    translatedText:
-      "Da Salomon bygde templet, trodde han kanskje at han hadde bygget et hus for Den Hoyeste. Men profeten sa: Hvilket hus vil dere bygge Meg? sier Herren.",
-    status: "drafting",
-  },
-  {
-    key: "fb-4",
-    paragraphId: null,
-    order: 4,
-    sourceText:
-      '"And we must find that place that God has chosen for us to rest in. Not in some man-made idea, but in Christ."',
-    translatedText:
-      "Vi ser i dag at folk prover aa bygge store organisasjoner, praktfulle katedraler med glassmalerier og hoye spir. De tror at Gud vil bo der.",
-    status: "draft",
-  },
-  {
-    key: "fb-5",
-    paragraphId: null,
-    order: 5,
-    sourceText:
-      '"When we look at the history of Israel, we see how they always wanted something they could see and touch."',
-    translatedText:
-      "Naar vi ser paa Israels historie, ser vi hvordan de alltid onsket noe de kunne se og rore ved. De ville ha en konge som nasjonene rundt dem.",
-    status: "approved",
-  },
-  {
-    key: "fb-6",
-    paragraphId: null,
-    order: 6,
-    sourceText:
-      '"In this last day, God has again sent us a message to call us out of the systems and into the true resting place."',
-    translatedText:
-      "I denne siste tid har Gud igjen sendt oss et budskap for aa kalle oss ut av systemene og inn i det sanne hvilestedet. Det hvilestedet er i Kristus, som er Ordet.",
-    status: "approved",
-  },
-];
+function ParagraphShimmerBlock({ mode }: { mode: "read" | "proofread" }) {
+  if (mode === "proofread") {
+    return (
+      <div className="border-b border-outline/10 py-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-12">
+          <div className="space-y-3 p-6 bg-surface-container-low animate-pulse">
+            <div className="h-3 w-20 rounded bg-surface-container-high" />
+            <div className="h-3 w-full rounded bg-surface-container-high" />
+            <div className="h-3 w-5/6 rounded bg-surface-container-high" />
+            <div className="h-3 w-4/5 rounded bg-surface-container-high" />
+          </div>
+          <div className="space-y-3 p-6 bg-surface-container-low animate-pulse">
+            <div className="h-3 w-28 rounded bg-surface-container-high" />
+            <div className="h-3 w-full rounded bg-surface-container-high" />
+            <div className="h-3 w-[92%] rounded bg-surface-container-high" />
+            <div className="h-3 w-3/4 rounded bg-surface-container-high" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-b border-outline/10 py-8">
+      <div className="space-y-3 p-6 bg-surface-container-low animate-pulse">
+        <div className="h-3 w-24 rounded bg-surface-container-high" />
+        <div className="h-3 w-full rounded bg-surface-container-high" />
+        <div className="h-3 w-5/6 rounded bg-surface-container-high" />
+        <div className="h-3 w-4/5 rounded bg-surface-container-high" />
+      </div>
+    </div>
+  );
+}
 
 export default function ReaderPage() {
   const { t, i18n } = useTranslation();
@@ -118,6 +89,7 @@ export default function ReaderPage() {
     sermonId ? { sermonId, languageCode: i18n.language, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
   );
 
+  const isLoadingParagraphs = paragraphsResult === undefined;
   const paragraphs = useMemo(() => paragraphsResult?.page ?? [], [paragraphsResult]);
 
   useEffect(() => {
@@ -142,17 +114,14 @@ export default function ReaderPage() {
   }, [sermonId, ensureParagraphs, i18n.language]);
 
   const segments: ParagraphBlockSegment[] = useMemo(() => {
-    if (paragraphs.length > 0) {
-      return paragraphs.map((p) => ({
-        key: String(p._id),
-        paragraphId: p._id as ParagraphId,
-        order: p.order,
-        sourceText: p.sourceText,
-        translatedText: p.translatedText,
-        status: p.status,
-      }));
-    }
-    return fallbackSegments;
+    return paragraphs.map((p) => ({
+      key: String(p._id),
+      paragraphId: p._id as ParagraphId,
+      order: p.order,
+      sourceText: p.sourceText,
+      translatedText: p.translatedText,
+      status: p.status,
+    }));
   }, [paragraphs]);
 
   const historySegment = useMemo(
@@ -470,9 +439,15 @@ export default function ReaderPage() {
 
             {/* Paragraph flow */}
             <div className="space-y-0" style={{ fontSize: `${fontScale}rem` }}>
-              {segments.length === 0 ? (
+              {isLoadingParagraphs ? (
+                <div className="space-y-0">
+                  <ParagraphShimmerBlock mode={mode} />
+                  <ParagraphShimmerBlock mode={mode} />
+                  <ParagraphShimmerBlock mode={mode} />
+                </div>
+              ) : segments.length === 0 ? (
                 <div className="rounded-lg border border-outline/20 bg-surface-container-low p-8 text-center text-on-surface-variant">
-                  {t("reader.loadingComparison")}
+                  {t("reader.noParagraphs", "No paragraphs available for this sermon yet.")}
                 </div>
               ) : (
                 segments.map((segment, index) => (
