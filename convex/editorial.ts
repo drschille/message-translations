@@ -1138,13 +1138,6 @@ export const cleanupLegacyParagraphFields = mutation({
 
     let cleaned = 0;
     for (const row of page.page) {
-      const hasLegacyFields =
-        typeof row.translatedText === "string" ||
-        typeof row.status === "string";
-      if (!hasLegacyFields) {
-        continue;
-      }
-
       await ctx.db.replace(row._id, {
         sermonId: row.sermonId,
         order: row.order,

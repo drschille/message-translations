@@ -15,7 +15,7 @@ Options:
   --site-url <url>         Convex site URL (default: VITE_CONVEX_SITE_URL/CONVEX_SITE_URL)
   --paragraphs-dir <path>  Paragraph JSON directory (default: branham/paragraphs)
   --sermons-file <path>    Sermons JSON file with sid->tag map (default: branham/sermons.json)
-  --language <code>        Translation language code for text_no (default: nb)
+  --language <code>        Translation language code for text_no -> sermonParagraphTranslations (default: nb)
   --clean-existing         Delete existing sermon paragraph subtree before import
   --overwrite-existing     Upsert/update existing paragraphs in place
   --from-sid <number>      Optional lower SID bound (inclusive)
@@ -137,6 +137,36 @@ function createPayload({ tag, paragraphs, languageCode, cleanExisting, overwrite
   };
 }
 
+function validateParagraphRows(paragraphs) {
+  if (!Array.isArray(paragraphs)) {
+    return "expected paragraph array";
+  }
+
+  for (let i = 0; i < paragraphs.length; i += 1) {
+    const row = paragraphs[i];
+    if (!row || typeof row !== "object") {
+      return `row ${i}: expected object`;
+    }
+    if (typeof row.paragraphID !== "number" || !Number.isFinite(row.paragraphID)) {
+      return `row ${i}: paragraphID must be a number`;
+    }
+    if (typeof row.text !== "string") {
+      return `row ${i}: text must be a string`;
+    }
+    if (row.text.trim().length === 0) {
+      return `row ${i}: text must be non-empty`;
+    }
+    if (typeof row.text_no !== "string") {
+      return `row ${i}: text_no must be a string`;
+    }
+    if (row.text_no.trim().length === 0) {
+      return `row ${i}: text_no must be non-empty`;
+    }
+  }
+
+  return null;
+}
+
 function normalizeSiteUrl(url) {
   const trimmed = url.trim();
   if (!trimmed) return trimmed;
@@ -181,7 +211,9 @@ function main() {
 
   let totalFiles = 0;
   let successCount = 0;
-  let failedCount = 0;
+  let validationFailedCount = 0;
+  let transportFailedCount = 0;
+  let backendFailedCount = 0;
   let skippedNoTag = 0;
 
   for (const row of allFiles) {
@@ -195,9 +227,10 @@ function main() {
 
     const filePath = path.join(paragraphsDir, row.file);
     const paragraphs = readJsonFile(filePath);
-    if (!Array.isArray(paragraphs)) {
-      failedCount += 1;
-      console.error(`FAIL sid=${row.sid} tag=${tag}: expected paragraph array`);
+    const validationError = validateParagraphRows(paragraphs);
+    if (validationError) {
+      validationFailedCount += 1;
+      console.error(`FAIL sid=${row.sid} tag=${tag}: validation error: ${validationError}`);
       if (args.stopOnError) break;
       continue;
     }
@@ -251,7 +284,7 @@ function main() {
     fs.unlinkSync(tempFile);
 
     if (curl.error || curl.status !== 0) {
-      failedCount += 1;
+      transportFailedCount += 1;
       console.error(
         `FAIL sid=${row.sid} tag=${tag}: curl exited with code ${curl.status ?? "unknown"}`,
       );
@@ -270,7 +303,7 @@ function main() {
     const statusCode = Number(statusText);
 
     if (!Number.isFinite(statusCode) || statusCode < 200 || statusCode >= 300) {
-      failedCount += 1;
+      transportFailedCount += 1;
       const snippet = body.trim().slice(0, 300).replace(/\s+/g, " ");
       console.error(
         `FAIL sid=${row.sid} tag=${tag}: HTTP ${Number.isFinite(statusCode) ? statusCode : "unknown"}${snippet ? ` body=${snippet}` : ""}`,
@@ -283,7 +316,7 @@ function main() {
     try {
       parsed = JSON.parse(body || "{}");
     } catch {
-      failedCount += 1;
+      transportFailedCount += 1;
       const snippet = body.trim().slice(0, 300).replace(/\s+/g, " ");
       console.error(
         `FAIL sid=${row.sid} tag=${tag}: non-JSON response (HTTP ${statusCode})${snippet ? ` body=${snippet}` : ""}`,
@@ -294,7 +327,7 @@ function main() {
 
     const item = Array.isArray(parsed.results) ? parsed.results[0] : null;
     if (parsed.error || (item && item.error)) {
-      failedCount += 1;
+      backendFailedCount += 1;
       const message = item?.error || parsed.message || parsed.error;
       console.error(`FAIL sid=${row.sid} tag=${tag}: ${message}`);
       if (args.stopOnError) break;
@@ -311,10 +344,15 @@ function main() {
   console.log("Summary");
   console.log(`  Files considered: ${totalFiles}`);
   console.log(`  Successful: ${successCount}`);
-  console.log(`  Failed: ${failedCount}`);
+  console.log(`  Failed (validation): ${validationFailedCount}`);
+  console.log(`  Failed (transport): ${transportFailedCount}`);
+  console.log(`  Failed (backend): ${backendFailedCount}`);
+  console.log(
+    `  Failed (total): ${validationFailedCount + transportFailedCount + backendFailedCount}`,
+  );
   console.log(`  Skipped (missing tag): ${skippedNoTag}`);
 
-  if (failedCount > 0) {
+  if (validationFailedCount + transportFailedCount + backendFailedCount > 0) {
     process.exit(1);
   }
 }

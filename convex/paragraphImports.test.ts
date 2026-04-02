@@ -224,4 +224,33 @@ describe("paragraph imports", () => {
     expect(result.results).toHaveLength(1);
     expect(result.results[0].error).toContain("Sermon not found");
   });
+
+  test("returns structured row-level error when text_no is empty", async () => {
+    const t = convexTest(schema, modules);
+    const sermonId = await createSermon(t, "65-TEST-IMPORT-5");
+
+    const result = await t.action(api.paragraphImports.importSermonParagraphs, {
+      imports: [
+        {
+          sermonTag: "65-TEST-IMPORT-5",
+          paragraphs: makeParagraphs([
+            [1, "Valid source", ""],
+            [2, "Another source", "Gyldig oversettelse"],
+          ]),
+        },
+      ],
+    });
+
+    expect(result.errors).toBe(1);
+    expect(result.results).toHaveLength(1);
+    expect(result.results[0].error).toContain("index 0");
+    expect(result.results[0].error).toContain("text_no");
+
+    const paragraphs = await t.query(api.editorial.listParagraphs, {
+      sermonId,
+      languageCode: "nb",
+      paginationOpts: { cursor: null, numItems: 20 },
+    });
+    expect(paragraphs.page).toHaveLength(0);
+  });
 });

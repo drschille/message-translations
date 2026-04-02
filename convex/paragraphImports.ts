@@ -24,21 +24,37 @@ function normalizeLanguageCode(languageCode: string | undefined) {
   return languageCode?.trim().toLowerCase() || "nb";
 }
 
-function normalizeParagraphRows(
+function normalizeAndValidateParagraphRows(
   rows: Array<{
     paragraphID: number;
     text: string;
     text_no: string;
   }>,
+  sermonTag: string,
 ) {
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index];
+    const sourceText = row.text.trim();
+    const translatedText = row.text_no.trim();
+    if (sourceText.length === 0) {
+      throw new Error(
+        `Invalid paragraph row at index ${index} for sermon '${sermonTag}': text must be non-empty`,
+      );
+    }
+    if (translatedText.length === 0) {
+      throw new Error(
+        `Invalid paragraph row at index ${index} for sermon '${sermonTag}': text_no must be non-empty`,
+      );
+    }
+  }
+
   return [...rows]
     .sort((a, b) => a.paragraphID - b.paragraphID)
     .map((row, index) => ({
       order: index + 1,
       sourceText: row.text.trim(),
       translatedText: row.text_no.trim(),
-    }))
-    .filter((row) => row.sourceText.length > 0 && row.translatedText.length > 0);
+    }));
 }
 
 async function upsertTranslationForLanguage(
@@ -340,7 +356,7 @@ export const importSermonParagraphsInternal = internalMutation({
       throw new Error("sermonTag is required");
     }
 
-    const normalizedRows = normalizeParagraphRows(args.paragraphs);
+    const normalizedRows = normalizeAndValidateParagraphRows(args.paragraphs, tag);
     if (normalizedRows.length === 0) {
       throw new Error(`No valid paragraph rows for sermon tag '${tag}'`);
     }

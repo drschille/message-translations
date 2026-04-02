@@ -11,6 +11,10 @@ print_help() {
 Usage: bash scripts/import-paragraphs-clean.sh [options]
 
 Runs paragraph import in clean mode (deletes existing paragraph subtree per sermon before import).
+Schema expectation:
+  - paragraph row "text" maps to sermonParagraphs.sourceText
+  - paragraph row "text_no" maps to sermonParagraphTranslations.translatedText (language defaults to nb)
+  - both fields must be non-empty
 
 Options:
   --site-url <url>   Convex site URL override
