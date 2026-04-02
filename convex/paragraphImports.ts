@@ -1,10 +1,13 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import { action, internalMutation } from "./_generated/server";
+import { action, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 
 const paragraphStatus = "approved" as const;
+const MAX_DELETES_PER_CLEANUP_CHUNK = 250;
+const MAX_CLEANUP_ITERATIONS = 20000;
 
 const paragraphRowValidator = v.object({
   paragraphID: v.number(),
@@ -109,120 +112,306 @@ async function upsertTranslationForLanguage(
   });
 }
 
-async function deleteParagraphSubtree(ctx: MutationCtx, paragraphId: Id<"sermonParagraphs">) {
-  while (true) {
-    const translationComments = await ctx.db
-      .query("paragraphComments")
-      .withIndex("by_paragraphId_and_createdAt", (q) => q.eq("paragraphId", paragraphId))
-      .take(500);
-    if (translationComments.length === 0) break;
-    for (const comment of translationComments) {
-      await ctx.db.delete(comment._id);
-    }
+async function resolveSermonIdByTag(ctx: MutationCtx, sermonTag: string) {
+  const tag = sermonTag.trim();
+  if (!tag) {
+    throw new Error("sermonTag is required");
   }
+  const matches = await ctx.db
+    .query("sermons")
+    .withIndex("by_tag", (q) => q.eq("tag", tag))
+    .take(2);
+  if (matches.length === 0) {
+    throw new Error(`Sermon not found for tag '${tag}'`);
+  }
+  if (matches.length > 1) {
+    throw new Error(`Multiple sermons found for tag '${tag}'`);
+  }
+  return matches[0]._id;
+}
 
-  while (true) {
+async function deleteRowsInBatch<Row extends { _id: string }>(
+  ctx: MutationCtx,
+  rows: Row[],
+  limit: number,
+  deletedCount: { value: number },
+) {
+  const toDelete = rows.slice(0, limit);
+  for (const row of toDelete) {
+    await ctx.db.delete(row._id as any);
+  }
+  deletedCount.value += toDelete.length;
+  return toDelete.length;
+}
+
+async function cleanupParagraphSubtreeChunkInTx(
+  ctx: MutationCtx,
+  paragraphId: Id<"sermonParagraphs">,
+  maxDeletes: number,
+) {
+  const paragraph = await ctx.db.get(paragraphId);
+  if (!paragraph) {
+    return { done: true, paragraphDeleted: false, deletedDocs: 0 };
+  }
+  const deletedCount = { value: 0 };
+  const remaining = () => Math.max(0, maxDeletes - deletedCount.value);
+
+  const paragraphComments = await ctx.db
+    .query("paragraphComments")
+    .withIndex("by_paragraphId_and_createdAt", (q) => q.eq("paragraphId", paragraphId))
+    .take(remaining());
+  await deleteRowsInBatch(ctx, paragraphComments, remaining(), deletedCount);
+
+  if (remaining() > 0) {
     const paragraphRevisions = await ctx.db
       .query("paragraphRevisions")
       .withIndex("by_paragraphId_and_createdAt", (q) => q.eq("paragraphId", paragraphId))
-      .take(500);
-    if (paragraphRevisions.length === 0) break;
-    for (const revision of paragraphRevisions) {
-      await ctx.db.delete(revision._id);
-    }
+      .take(remaining());
+    await deleteRowsInBatch(ctx, paragraphRevisions, remaining(), deletedCount);
   }
 
-  while (true) {
+  if (remaining() > 0) {
     const highlights = await ctx.db
       .query("paragraphSelectionHighlights")
       .withIndex("by_paragraphId", (q) => q.eq("paragraphId", paragraphId))
-      .take(500);
-    if (highlights.length === 0) break;
-    for (const highlight of highlights) {
-      await ctx.db.delete(highlight._id);
-    }
+      .take(remaining());
+    await deleteRowsInBatch(ctx, highlights, remaining(), deletedCount);
   }
 
-  while (true) {
+  if (remaining() > 0) {
     const snapshots = await ctx.db
       .query("sermonPublishedParagraphSnapshots")
       .withIndex("by_paragraphId", (q) => q.eq("paragraphId", paragraphId))
-      .take(500);
-    if (snapshots.length === 0) break;
-    for (const snapshot of snapshots) {
-      await ctx.db.delete(snapshot._id);
-    }
+      .take(remaining());
+    await deleteRowsInBatch(ctx, snapshots, remaining(), deletedCount);
   }
 
-  while (true) {
+  if (remaining() > 0) {
     const translations = await ctx.db
       .query("sermonParagraphTranslations")
       .withIndex("by_paragraphId_and_languageCode", (q) => q.eq("paragraphId", paragraphId))
-      .take(500);
-    if (translations.length === 0) break;
+      .take(Math.max(1, Math.min(remaining(), 100)));
 
     for (const translation of translations) {
-      while (true) {
-        const comments = await ctx.db
+      if (remaining() <= 0) break;
+      const translationComments = await ctx.db
+        .query("paragraphTranslationComments")
+        .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+          q.eq("paragraphTranslationId", translation._id),
+        )
+        .take(remaining());
+      await deleteRowsInBatch(ctx, translationComments, remaining(), deletedCount);
+
+      if (remaining() <= 0) break;
+      const translationRevisions = await ctx.db
+        .query("paragraphTranslationRevisions")
+        .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+          q.eq("paragraphTranslationId", translation._id),
+        )
+        .take(remaining());
+      await deleteRowsInBatch(ctx, translationRevisions, remaining(), deletedCount);
+
+      if (remaining() <= 0) break;
+      const hasComments = (
+        await ctx.db
           .query("paragraphTranslationComments")
           .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
             q.eq("paragraphTranslationId", translation._id),
           )
-          .take(500);
-        if (comments.length === 0) break;
-        for (const comment of comments) {
-          await ctx.db.delete(comment._id);
-        }
-      }
-
-      while (true) {
-        const revisions = await ctx.db
+          .take(1)
+      ).length > 0;
+      const hasRevisions = (
+        await ctx.db
           .query("paragraphTranslationRevisions")
           .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
             q.eq("paragraphTranslationId", translation._id),
           )
-          .take(500);
-        if (revisions.length === 0) break;
-        for (const revision of revisions) {
-          await ctx.db.delete(revision._id);
-        }
+          .take(1)
+      ).length > 0;
+      if (!hasComments && !hasRevisions) {
+        await ctx.db.delete(translation._id);
+        deletedCount.value += 1;
       }
-
-      await ctx.db.delete(translation._id);
     }
   }
+
+  if (remaining() <= 0) {
+    return { done: false, paragraphDeleted: false, deletedDocs: deletedCount.value };
+  }
+
+  const hasParagraphComments = (
+    await ctx.db
+      .query("paragraphComments")
+      .withIndex("by_paragraphId_and_createdAt", (q) => q.eq("paragraphId", paragraphId))
+      .take(1)
+  ).length > 0;
+  const hasParagraphRevisions = (
+    await ctx.db
+      .query("paragraphRevisions")
+      .withIndex("by_paragraphId_and_createdAt", (q) => q.eq("paragraphId", paragraphId))
+      .take(1)
+  ).length > 0;
+  const hasHighlights = (
+    await ctx.db
+      .query("paragraphSelectionHighlights")
+      .withIndex("by_paragraphId", (q) => q.eq("paragraphId", paragraphId))
+      .take(1)
+  ).length > 0;
+  const hasSnapshots = (
+    await ctx.db
+      .query("sermonPublishedParagraphSnapshots")
+      .withIndex("by_paragraphId", (q) => q.eq("paragraphId", paragraphId))
+      .take(1)
+  ).length > 0;
+  const hasTranslations = (
+    await ctx.db
+      .query("sermonParagraphTranslations")
+      .withIndex("by_paragraphId_and_languageCode", (q) => q.eq("paragraphId", paragraphId))
+      .take(1)
+  ).length > 0;
+
+  if (!hasParagraphComments && !hasParagraphRevisions && !hasHighlights && !hasSnapshots && !hasTranslations) {
+    await ctx.db.delete(paragraphId);
+    deletedCount.value += 1;
+    return { done: true, paragraphDeleted: true, deletedDocs: deletedCount.value };
+  }
+
+  return { done: false, paragraphDeleted: false, deletedDocs: deletedCount.value };
 }
 
-async function clearPublishedVersionsForSermon(ctx: MutationCtx, sermonId: Id<"sermons">) {
-  while (true) {
+export const cleanupParagraphSubtreeChunk = internalMutation({
+  args: {
+    paragraphId: v.id("sermonParagraphs"),
+    maxDeletes: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const maxDeletes = Math.max(1, Math.min(args.maxDeletes ?? MAX_DELETES_PER_CLEANUP_CHUNK, 1000));
+    return await cleanupParagraphSubtreeChunkInTx(ctx, args.paragraphId, maxDeletes);
+  },
+});
+
+export const cleanupSermonParagraphsChunk = internalMutation({
+  args: {
+    sermonTag: v.string(),
+    maxDeletes: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const sermonId = await resolveSermonIdByTag(ctx, args.sermonTag);
+    const firstParagraph = await ctx.db
+      .query("sermonParagraphs")
+      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", sermonId))
+      .take(1);
+    if (firstParagraph.length === 0) {
+      return {
+        done: true,
+        deletedParagraphs: 0,
+        deletedDocs: 0,
+      };
+    }
+
+    const maxDeletes = Math.max(1, Math.min(args.maxDeletes ?? MAX_DELETES_PER_CLEANUP_CHUNK, 1000));
+    const result = await cleanupParagraphSubtreeChunkInTx(ctx, firstParagraph[0]._id, maxDeletes);
+    const hasRemainingParagraphs = (
+      await ctx.db
+        .query("sermonParagraphs")
+        .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", sermonId))
+        .take(1)
+    ).length > 0;
+    return {
+      done: !hasRemainingParagraphs,
+      deletedParagraphs: result.paragraphDeleted ? 1 : 0,
+      deletedDocs: result.deletedDocs,
+    };
+  },
+});
+
+export const clearPublishedVersionsForSermonChunk = internalMutation({
+  args: {
+    sermonTag: v.string(),
+    maxDeletes: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const sermonId = await resolveSermonIdByTag(ctx, args.sermonTag);
+    const maxDeletes = Math.max(1, Math.min(args.maxDeletes ?? MAX_DELETES_PER_CLEANUP_CHUNK, 1000));
+    const deletedCount = { value: 0 };
+    const remaining = () => Math.max(0, maxDeletes - deletedCount.value);
+
     const versions = await ctx.db
       .query("sermonPublishedVersions")
       .withIndex("by_sermonId_and_version", (q) => q.eq("sermonId", sermonId))
-      .take(200);
-    if (versions.length === 0) break;
-
-    for (const version of versions) {
-      while (true) {
-        const snapshots = await ctx.db
-          .query("sermonPublishedParagraphSnapshots")
-          .withIndex("by_publishedVersionId_and_order", (q) =>
-            q.eq("publishedVersionId", version._id),
-          )
-          .take(500);
-        if (snapshots.length === 0) break;
-        for (const snapshot of snapshots) {
-          await ctx.db.delete(snapshot._id);
-        }
-      }
-      await ctx.db.delete(version._id);
+      .take(1);
+    if (versions.length === 0) {
+      await ctx.db.patch(sermonId, {
+        isPublished: false,
+        currentVersion: 0,
+      });
+      return {
+        done: true,
+        deletedVersions: 0,
+        deletedDocs: 0,
+      };
     }
-  }
 
-  await ctx.db.patch(sermonId, {
-    isPublished: false,
-    currentVersion: 0,
-  });
-}
+    const version = versions[0];
+    const snapshots = await ctx.db
+      .query("sermonPublishedParagraphSnapshots")
+      .withIndex("by_publishedVersionId_and_order", (q) => q.eq("publishedVersionId", version._id))
+      .take(remaining());
+    await deleteRowsInBatch(ctx, snapshots, remaining(), deletedCount);
+
+    if (remaining() > 0) {
+      const hasSnapshots = (
+        await ctx.db
+          .query("sermonPublishedParagraphSnapshots")
+          .withIndex("by_publishedVersionId_and_order", (q) => q.eq("publishedVersionId", version._id))
+          .take(1)
+      ).length > 0;
+      if (!hasSnapshots) {
+        await ctx.db.delete(version._id);
+        deletedCount.value += 1;
+      }
+    }
+
+    return {
+      done: false,
+      deletedVersions: deletedCount.value > snapshots.length ? 1 : 0,
+      deletedDocs: deletedCount.value,
+    };
+  },
+});
+
+export const listParagraphIdsBySermonTag = internalQuery({
+  args: {
+    sermonTag: v.string(),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    const tag = args.sermonTag.trim();
+    if (!tag) {
+      throw new Error("sermonTag is required");
+    }
+    const sermonMatches = await ctx.db
+      .query("sermons")
+      .withIndex("by_tag", (q) => q.eq("tag", tag))
+      .take(2);
+    if (sermonMatches.length === 0) {
+      throw new Error(`Sermon not found for tag '${tag}'`);
+    }
+    if (sermonMatches.length > 1) {
+      throw new Error(`Multiple sermons found for tag '${tag}'`);
+    }
+    const sermonId = sermonMatches[0]._id;
+    const page = await ctx.db
+      .query("sermonParagraphs")
+      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", sermonId))
+      .paginate(args.paginationOpts);
+
+    return {
+      ...page,
+      page: page.page.map((row) => row._id),
+    };
+  },
+});
 
 async function insertAllParagraphs(
   ctx: MutationCtx,
@@ -295,16 +484,112 @@ export const importSermonParagraphs = action({
       };
 
       try {
+        const cleanupDeletes = { paragraphs: 0 };
+        if (cleanExisting) {
+          let iterations = 0;
+          while (true) {
+            iterations += 1;
+            if (iterations > MAX_CLEANUP_ITERATIONS) {
+              throw new Error(`Cleanup exceeded ${MAX_CLEANUP_ITERATIONS} iterations for '${request.sermonTag}'`);
+            }
+            const cleanupResult: {
+              done: boolean;
+              deletedParagraphs: number;
+            } = await ctx.runMutation(internal.paragraphImports.cleanupSermonParagraphsChunk, {
+              sermonTag: request.sermonTag,
+              maxDeletes: MAX_DELETES_PER_CLEANUP_CHUNK,
+            });
+            cleanupDeletes.paragraphs += cleanupResult.deletedParagraphs;
+            if (cleanupResult.done) {
+              break;
+            }
+          }
+
+          iterations = 0;
+          while (true) {
+            iterations += 1;
+            if (iterations > MAX_CLEANUP_ITERATIONS) {
+              throw new Error(
+                `Published-version cleanup exceeded ${MAX_CLEANUP_ITERATIONS} iterations for '${request.sermonTag}'`,
+              );
+            }
+            const versionCleanupResult: { done: boolean } = await ctx.runMutation(
+              internal.paragraphImports.clearPublishedVersionsForSermonChunk,
+              {
+                sermonTag: request.sermonTag,
+                maxDeletes: MAX_DELETES_PER_CLEANUP_CHUNK,
+              },
+            );
+            if (versionCleanupResult.done) {
+              break;
+            }
+          }
+        }
+
         mutationResult = await ctx.runMutation(
           internal.paragraphImports.importSermonParagraphsInternal,
           {
             sermonTag: request.sermonTag,
             languageCode,
             paragraphs: request.paragraphs,
-            cleanExisting,
+            cleanExisting: false,
             overwriteExisting,
           },
         );
+
+        if (overwriteExisting) {
+          const keepCount = request.paragraphs.length;
+          const extraParagraphIds: Id<"sermonParagraphs">[] = [];
+          let cursor: string | null = null;
+          let seen = 0;
+          while (true) {
+            const page: {
+              page: Id<"sermonParagraphs">[];
+              continueCursor: string;
+              isDone: boolean;
+            } = await ctx.runQuery(internal.paragraphImports.listParagraphIdsBySermonTag, {
+              sermonTag: request.sermonTag,
+              paginationOpts: { cursor, numItems: 200 },
+            });
+            for (const paragraphId of page.page) {
+              if (seen >= keepCount) {
+                extraParagraphIds.push(paragraphId);
+              }
+              seen += 1;
+            }
+            if (page.isDone) {
+              break;
+            }
+            cursor = page.continueCursor;
+          }
+
+          for (const paragraphId of extraParagraphIds) {
+            let iterations = 0;
+            while (true) {
+              iterations += 1;
+              if (iterations > MAX_CLEANUP_ITERATIONS) {
+                throw new Error(
+                  `Paragraph cleanup exceeded ${MAX_CLEANUP_ITERATIONS} iterations for '${request.sermonTag}'`,
+                );
+              }
+              const cleanupResult: {
+                done: boolean;
+                paragraphDeleted: boolean;
+              } = await ctx.runMutation(internal.paragraphImports.cleanupParagraphSubtreeChunk, {
+                paragraphId,
+                maxDeletes: MAX_DELETES_PER_CLEANUP_CHUNK,
+              });
+              if (cleanupResult.done) {
+                if (cleanupResult.paragraphDeleted) {
+                  cleanupDeletes.paragraphs += 1;
+                }
+                break;
+              }
+            }
+          }
+        }
+
+        mutationResult.deleted += cleanupDeletes.paragraphs;
       } catch (error) {
         errors += 1;
         results.push({
@@ -361,19 +646,7 @@ export const importSermonParagraphsInternal = internalMutation({
       throw new Error(`No valid paragraph rows for sermon tag '${tag}'`);
     }
 
-    const sermonMatches = await ctx.db
-      .query("sermons")
-      .withIndex("by_tag", (q) => q.eq("tag", tag))
-      .take(2);
-
-    if (sermonMatches.length === 0) {
-      throw new Error(`Sermon not found for tag '${tag}'`);
-    }
-    if (sermonMatches.length > 1) {
-      throw new Error(`Multiple sermons found for tag '${tag}'`);
-    }
-
-    const sermonId = sermonMatches[0]._id;
+    const sermonId = await resolveSermonIdByTag(ctx, tag);
     const now = Date.now();
 
     const existingParagraphs: Array<{
@@ -405,30 +678,6 @@ export const importSermonParagraphsInternal = internalMutation({
     let inserted = 0;
     let updated = 0;
     let deleted = 0;
-
-    if (args.cleanExisting && hasExisting) {
-      for (const paragraph of existingParagraphs) {
-        await deleteParagraphSubtree(ctx, paragraph._id);
-        await ctx.db.delete(paragraph._id);
-      }
-      deleted += existingParagraphs.length;
-      await clearPublishedVersionsForSermon(ctx, sermonId);
-      inserted += await insertAllParagraphs(
-        ctx,
-        sermonId,
-        args.languageCode,
-        normalizedRows,
-        now,
-      );
-      return {
-        sermonTag: tag,
-        languageCode: args.languageCode,
-        inserted,
-        updated,
-        deleted,
-        skipped: false,
-      };
-    }
 
     if (args.overwriteExisting && hasExisting) {
       for (let i = 0; i < normalizedRows.length; i += 1) {
@@ -464,13 +713,6 @@ export const importSermonParagraphsInternal = internalMutation({
           );
           inserted += 1;
         }
-      }
-
-      for (let i = normalizedRows.length; i < existingParagraphs.length; i += 1) {
-        const extra = existingParagraphs[i];
-        await deleteParagraphSubtree(ctx, extra._id);
-        await ctx.db.delete(extra._id);
-        deleted += 1;
       }
 
       return {

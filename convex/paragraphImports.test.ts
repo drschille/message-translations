@@ -37,6 +37,38 @@ function makeParagraphs(seed: Array<[number, string, string]>) {
   }));
 }
 
+async function addHeavyArtifacts(
+  t: ReturnType<typeof convexTest>,
+  sermonId: string,
+  paragraphIds: string[],
+) {
+  for (const paragraphId of paragraphIds) {
+    for (let i = 0; i < 12; i += 1) {
+      await t.mutation(api.editorial.addComment, {
+        paragraphId: paragraphId as any,
+        languageCode: "nb",
+        body: `Comment ${i} for ${paragraphId}`,
+      });
+    }
+    for (let i = 0; i < 10; i += 1) {
+      await t.mutation(api.editorial.updateParagraphDraft, {
+        paragraphId: paragraphId as any,
+        languageCode: "nb",
+        translatedText: `Draft ${i} for ${paragraphId}`,
+      });
+    }
+  }
+
+  await t.mutation(api.editorial.setSermonProofreadingState, {
+    sermonId: sermonId as any,
+    state: "done",
+  });
+  await t.mutation(api.editorial.publishSermonVersion, {
+    sermonId: sermonId as any,
+    languageCode: "nb",
+  });
+}
+
 describe("paragraph imports", () => {
   test("imports paragraphs into source and translation tables for a new sermon", async () => {
     const t = convexTest(schema, modules);
@@ -252,5 +284,119 @@ describe("paragraph imports", () => {
       paginationOpts: { cursor: null, numItems: 20 },
     });
     expect(paragraphs.page).toHaveLength(0);
+  });
+
+  test("cleanExisting succeeds with heavier paragraph subtree data", async () => {
+    const t = convexTest(schema, modules);
+    const sermonId = await createSermon(t, "65-TEST-IMPORT-HEAVY-CLEAN");
+
+    await t.action(api.paragraphImports.importSermonParagraphs, {
+      imports: [
+        {
+          sermonTag: "65-TEST-IMPORT-HEAVY-CLEAN",
+          paragraphs: makeParagraphs([
+            [1, "Seed 1", "Frø 1"],
+            [2, "Seed 2", "Frø 2"],
+            [3, "Seed 3", "Frø 3"],
+            [4, "Seed 4", "Frø 4"],
+          ]),
+        },
+      ],
+    });
+
+    const before = await t.query(api.editorial.listParagraphs, {
+      sermonId,
+      languageCode: "nb",
+      paginationOpts: { cursor: null, numItems: 50 },
+    });
+    const oldParagraphIds = before.page.map((row) => row._id as string);
+    await addHeavyArtifacts(t, sermonId as unknown as string, oldParagraphIds);
+
+    const clean = await t.action(api.paragraphImports.importSermonParagraphs, {
+      imports: [
+        {
+          sermonTag: "65-TEST-IMPORT-HEAVY-CLEAN",
+          cleanExisting: true,
+          paragraphs: makeParagraphs([
+            [1, "Replaced 1", "Erstattet 1"],
+            [2, "Replaced 2", "Erstattet 2"],
+          ]),
+        },
+      ],
+    });
+
+    expect(clean.errors).toBe(0);
+    expect(clean.results[0].skipped).toBe(false);
+    expect(clean.results[0].inserted).toBe(2);
+    expect(clean.results[0].deleted).toBeGreaterThanOrEqual(4);
+
+    const after = await t.query(api.editorial.listParagraphs, {
+      sermonId,
+      languageCode: "nb",
+      paginationOpts: { cursor: null, numItems: 50 },
+    });
+    expect(after.page).toHaveLength(2);
+    expect(after.page[0].sourceText).toBe("Replaced 1");
+    expect(after.page[1].sourceText).toBe("Replaced 2");
+
+    const versions = await t.query(api.editorial.listPublishedVersions, {
+      sermonId,
+      paginationOpts: { cursor: null, numItems: 20 },
+    });
+    expect(versions.page).toHaveLength(0);
+  });
+
+  test("overwriteExisting prunes extra paragraphs through bounded cleanup", async () => {
+    const t = convexTest(schema, modules);
+    const sermonId = await createSermon(t, "65-TEST-IMPORT-HEAVY-OVERWRITE");
+
+    await t.action(api.paragraphImports.importSermonParagraphs, {
+      imports: [
+        {
+          sermonTag: "65-TEST-IMPORT-HEAVY-OVERWRITE",
+          paragraphs: makeParagraphs([
+            [1, "Old 1", "Gammel 1"],
+            [2, "Old 2", "Gammel 2"],
+            [3, "Old 3", "Gammel 3"],
+            [4, "Old 4", "Gammel 4"],
+            [5, "Old 5", "Gammel 5"],
+          ]),
+        },
+      ],
+    });
+
+    const before = await t.query(api.editorial.listParagraphs, {
+      sermonId,
+      languageCode: "nb",
+      paginationOpts: { cursor: null, numItems: 50 },
+    });
+    const extraIds = before.page.slice(2).map((row) => row._id as string);
+    await addHeavyArtifacts(t, sermonId as unknown as string, extraIds);
+
+    const overwrite = await t.action(api.paragraphImports.importSermonParagraphs, {
+      imports: [
+        {
+          sermonTag: "65-TEST-IMPORT-HEAVY-OVERWRITE",
+          overwriteExisting: true,
+          paragraphs: makeParagraphs([
+            [1, "New 1", "Ny 1"],
+            [2, "New 2", "Ny 2"],
+          ]),
+        },
+      ],
+    });
+
+    expect(overwrite.errors).toBe(0);
+    expect(overwrite.results[0].updated).toBe(2);
+    expect(overwrite.results[0].deleted).toBe(3);
+
+    const after = await t.query(api.editorial.listParagraphs, {
+      sermonId,
+      languageCode: "nb",
+      paginationOpts: { cursor: null, numItems: 50 },
+    });
+    expect(after.page).toHaveLength(2);
+    expect(after.page[0].sourceText).toBe("New 1");
+    expect(after.page[1].sourceText).toBe("New 2");
   });
 });

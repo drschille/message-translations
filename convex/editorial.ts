@@ -988,13 +988,12 @@ export const verifyNbTranslationsForSermon = internalMutation({
     sampleLimit: v.number(),
   },
   handler: async (ctx, args) => {
-    const paragraphs = await ctx.db
-      .query("sermonParagraphs")
-      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))
-      .take(5000);
-
+    let paragraphsChecked = 0;
     const missingParagraphIds: Id<"sermonParagraphs">[] = [];
-    for (const paragraph of paragraphs) {
+    for await (const paragraph of ctx.db
+      .query("sermonParagraphs")
+      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))) {
+      paragraphsChecked += 1;
       const translation = await ctx.db
         .query("sermonParagraphTranslations")
         .withIndex("by_paragraphId_and_languageCode", (q) =>
@@ -1011,7 +1010,7 @@ export const verifyNbTranslationsForSermon = internalMutation({
     }
 
     return {
-      paragraphsChecked: paragraphs.length,
+      paragraphsChecked,
       missingParagraphIds,
     };
   },
