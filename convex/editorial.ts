@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 
@@ -972,10 +972,7 @@ export const listSermonIdsForNbIntegrity = internalQuery({
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    const page = await ctx.db
-      .query("sermons")
-      .withIndex("by_date")
-      .paginate(args.paginationOpts);
+    const page = await ctx.db.query("sermons").paginate(args.paginationOpts);
 
     return {
       isDone: page.isDone,
@@ -1079,16 +1076,68 @@ export const assertNbTranslationIntegrity = action({
   },
 });
 
+export const checkNbTranslationIntegrityChunk = action({
+  args: {
+    cursor: v.optional(v.string()),
+    sermonBatchSize: v.optional(v.number()),
+    sampleLimit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const sermonBatchSize = Math.max(1, Math.min(args.sermonBatchSize ?? 50, 200));
+    const sampleLimit = Math.max(1, Math.min(args.sampleLimit ?? 50, 500));
+
+    const sermonPage: {
+      isDone: boolean;
+      continueCursor: string;
+      page: Id<"sermons">[];
+    } = await ctx.runQuery(internal.editorial.listSermonIdsForNbIntegrity, {
+      paginationOpts: { cursor: args.cursor ?? null, numItems: sermonBatchSize },
+    });
+
+    let paragraphsChecked = 0;
+    const missingParagraphIds: Id<"sermonParagraphs">[] = [];
+
+    for (const sermonId of sermonPage.page) {
+      const verification: {
+        paragraphsChecked: number;
+        missingParagraphIds: Id<"sermonParagraphs">[];
+      } = await ctx.runMutation(internal.editorial.verifyNbTranslationsForSermon, {
+        sermonId,
+        sampleLimit: sampleLimit - missingParagraphIds.length,
+      });
+
+      paragraphsChecked += verification.paragraphsChecked;
+      missingParagraphIds.push(...verification.missingParagraphIds);
+
+      if (missingParagraphIds.length >= sampleLimit) {
+        break;
+      }
+    }
+
+    return {
+      cursor: sermonPage.isDone ? null : sermonPage.continueCursor,
+      isDone: sermonPage.isDone,
+      sermonsChecked: sermonPage.page.length,
+      paragraphsChecked,
+      missingParagraphIds,
+      ok: sermonPage.isDone && missingParagraphIds.length === 0,
+    };
+  },
+});
+
 export const cleanupLegacyParagraphFields = mutation({
   args: {
     batchSize: v.optional(v.number()),
+    cursor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const batchSize = Math.max(1, Math.min(args.batchSize ?? 200, 1000));
-    const rows = await ctx.db.query("sermonParagraphs").take(batchSize);
+    const page = await ctx.db
+      .query("sermonParagraphs")
+      .paginate({ cursor: args.cursor ?? null, numItems: batchSize });
 
     let cleaned = 0;
-    for (const row of rows) {
+    for (const row of page.page) {
       const hasLegacyFields =
         typeof row.translatedText === "string" ||
         typeof row.status === "string";
@@ -1106,9 +1155,219 @@ export const cleanupLegacyParagraphFields = mutation({
     }
 
     return {
-      scanned: rows.length,
+      scanned: page.page.length,
       cleaned,
-      hasMore: rows.length === batchSize,
+      hasMore: !page.isDone,
+      isDone: page.isDone,
+      nextCursor: page.isDone ? null : page.continueCursor,
+    };
+  },
+});
+
+export const cleanupLegacyParagraphFieldsUntilDone = action({
+  args: {
+    batchSize: v.optional(v.number()),
+    maxBatches: v.optional(v.number()),
+    cursor: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = Math.max(1, Math.min(args.batchSize ?? 1000, 1000));
+    const maxBatches = Math.max(1, Math.min(args.maxBatches ?? 200, 1000));
+
+    let cursor: string | undefined = args.cursor;
+    let batches = 0;
+    let scanned = 0;
+    let cleaned = 0;
+
+    for (let i = 0; i < maxBatches; i += 1) {
+      const result: {
+        scanned: number;
+        cleaned: number;
+        hasMore: boolean;
+        isDone: boolean;
+        nextCursor: string | null;
+      } = await ctx.runMutation(api.editorial.cleanupLegacyParagraphFields as any, {
+        batchSize,
+        cursor,
+      });
+
+      batches += 1;
+      scanned += result.scanned;
+      cleaned += result.cleaned;
+      cursor = result.nextCursor ?? undefined;
+
+      if (result.isDone) {
+        return {
+          done: true,
+          batches,
+          scanned,
+          cleaned,
+          nextCursor: null,
+        };
+      }
+    }
+
+    return {
+      done: false,
+      batches,
+      scanned,
+      cleaned,
+      nextCursor: cursor ?? null,
+    };
+  },
+});
+
+export const repairMissingNbTranslations = mutation({
+  args: {
+    paragraphIds: v.array(v.id("sermonParagraphs")),
+    fromLanguageCode: v.optional(v.string()),
+    allowSourceTextFallback: v.optional(v.boolean()),
+    dryRun: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const dryRun = args.dryRun ?? false;
+    const allowSourceTextFallback = args.allowSourceTextFallback ?? false;
+    const requestedSourceRaw = args.fromLanguageCode?.trim().toLowerCase() ?? null;
+    const useParagraphSource = requestedSourceRaw === "source";
+    const requestedSourceLanguage = requestedSourceRaw && !useParagraphSource
+      ? normalizeLanguageCode(requestedSourceRaw)
+      : null;
+
+    if (requestedSourceLanguage === "nb") {
+      throw new Error("fromLanguageCode cannot be nb");
+    }
+
+    const fallbackSourceLanguages = requestedSourceLanguage
+      ? [requestedSourceLanguage]
+      : ["en", "no", "nn", "sv", "da", "de", "fr", "es"];
+
+    const notFoundParagraphIds: Id<"sermonParagraphs">[] = [];
+    const alreadyPresentParagraphIds: Id<"sermonParagraphs">[] = [];
+    const missingSourceParagraphIds: Id<"sermonParagraphs">[] = [];
+    const missingSourceDetails: Array<{
+      paragraphId: Id<"sermonParagraphs">;
+      sermonId: Id<"sermons">;
+      sermonTag: string | null;
+      order: number;
+      availableLanguages: string[];
+    }> = [];
+    const repairedParagraphIds: Id<"sermonParagraphs">[] = [];
+    const repairedDetails: Array<{
+      paragraphId: Id<"sermonParagraphs">;
+      sermonId: Id<"sermons">;
+      sermonTag: string | null;
+      order: number;
+      sourceLanguage: string;
+    }> = [];
+
+    for (const paragraphId of args.paragraphIds) {
+      const paragraph = await ctx.db.get(paragraphId);
+      if (!paragraph) {
+        notFoundParagraphIds.push(paragraphId);
+        continue;
+      }
+
+      const existingNb = await ctx.db
+        .query("sermonParagraphTranslations")
+        .withIndex("by_paragraphId_and_languageCode", (q) =>
+          q.eq("paragraphId", paragraphId).eq("languageCode", "nb"),
+        )
+        .unique();
+      if (existingNb) {
+        alreadyPresentParagraphIds.push(paragraphId);
+        continue;
+      }
+
+      let sourceTranslation:
+        | Doc<"sermonParagraphTranslations">
+        | null = null;
+      let sourceLanguage = "";
+
+      if (!useParagraphSource) {
+        for (const languageCode of fallbackSourceLanguages) {
+          const candidate = await ctx.db
+            .query("sermonParagraphTranslations")
+            .withIndex("by_paragraphId_and_languageCode", (q) =>
+              q.eq("paragraphId", paragraphId).eq("languageCode", languageCode),
+            )
+            .unique();
+          if (candidate) {
+            sourceTranslation = candidate;
+            sourceLanguage = languageCode;
+            break;
+          }
+        }
+      }
+
+      if (!sourceTranslation && !useParagraphSource && !allowSourceTextFallback) {
+        missingSourceParagraphIds.push(paragraphId);
+        const availableTranslations = await ctx.db
+          .query("sermonParagraphTranslations")
+          .withIndex("by_paragraphId_and_languageCode", (q) => q.eq("paragraphId", paragraphId))
+          .take(100);
+        const sermon = await ctx.db.get(paragraph.sermonId);
+        missingSourceDetails.push({
+          paragraphId,
+          sermonId: paragraph.sermonId,
+          sermonTag: sermon?.tag ?? null,
+          order: paragraph.order,
+          availableLanguages: availableTranslations.map((row) => row.languageCode),
+        });
+        continue;
+      }
+
+      const sermon = await ctx.db.get(paragraph.sermonId);
+      const translatedText = sourceTranslation?.translatedText ?? paragraph.sourceText;
+      const status = sourceTranslation?.status ?? "draft";
+      sourceLanguage = sourceTranslation ? sourceLanguage : "source";
+
+      if (!dryRun) {
+        const insertedId = await ctx.db.insert("sermonParagraphTranslations", {
+          paragraphId,
+          languageCode: "nb",
+          translatedText,
+          status,
+          updatedAt: now,
+        });
+
+        await ctx.db.insert("paragraphTranslationRevisions", {
+          paragraphTranslationId: insertedId,
+          snapshotText: translatedText,
+          status,
+          kind: "edit",
+          reason: `Backfilled missing nb translation from ${sourceLanguage}`,
+          authorName: "System",
+          createdAt: now,
+        });
+      }
+
+      repairedParagraphIds.push(paragraphId);
+      repairedDetails.push({
+        paragraphId,
+        sermonId: paragraph.sermonId,
+        sermonTag: sermon?.tag ?? null,
+        order: paragraph.order,
+        sourceLanguage,
+      });
+    }
+
+    return {
+      dryRun,
+      requestedCount: args.paragraphIds.length,
+      repairedCount: repairedParagraphIds.length,
+      repairedParagraphIds,
+      repairedDetails,
+      alreadyPresentCount: alreadyPresentParagraphIds.length,
+      alreadyPresentParagraphIds,
+      missingSourceCount: missingSourceParagraphIds.length,
+      missingSourceParagraphIds,
+      missingSourceDetails,
+      notFoundCount: notFoundParagraphIds.length,
+      notFoundParagraphIds,
+      ok:
+        notFoundParagraphIds.length === 0 &&
+        missingSourceParagraphIds.length === 0,
     };
   },
 });

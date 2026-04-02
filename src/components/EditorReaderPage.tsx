@@ -11,6 +11,7 @@ import {
   Circle,
   Clock3,
   Columns2,
+  Eraser,
   FileEdit,
   MessageSquareText,
   NotebookPen,
@@ -62,6 +63,10 @@ type SelectionInfo = {
   endOffset: number;
   selectedText: string;
 };
+
+function rangesOverlap(startA: number, endA: number, startB: number, endB: number) {
+  return startA < endB && endA > startB;
+}
 
 function ProofreaderShimmerRows({ columnMode }: { columnMode: ColumnMode }) {
   const rows = [1, 2, 3];
@@ -147,6 +152,13 @@ function rowTone(index: number) {
   return index % 2 === 0 ? "bg-background" : "bg-surface-container-low/30";
 }
 
+function highlightBgClass(color: HighlightColor) {
+  if (color === "yellow") return "bg-yellow-300/35";
+  if (color === "blue") return "bg-blue-300/30";
+  if (color === "green") return "bg-emerald-300/30";
+  return "bg-red-300/30";
+}
+
 function renderTextWithLineBreakSpacing(text: string) {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
   return (
@@ -156,6 +168,131 @@ function renderTextWithLineBreakSpacing(text: string) {
           {line.length > 0 ? line : "\u00A0"}
         </span>
       ))}
+    </span>
+  );
+}
+
+function mergeHighlights(text: string, highlights: HighlightEntry[]) {
+  return highlights
+    .filter((h) => h.startOffset >= 0 && h.endOffset > h.startOffset && h.endOffset <= text.length)
+    .sort((a, b) => a.startOffset - b.startOffset || a.endOffset - b.endOffset)
+    .reduce<HighlightEntry[]>((acc, h) => {
+      const last = acc[acc.length - 1];
+      if (!last || h.startOffset >= last.endOffset) {
+        acc.push({ ...h });
+        return acc;
+      }
+      if (h.endOffset > last.endOffset) {
+        acc[acc.length - 1] = { ...last, endOffset: h.endOffset };
+      }
+      return acc;
+    }, []);
+}
+
+function findNearestTextRange(text: string, selectedText: string, expectedStart: number) {
+  if (!selectedText) return null;
+  let searchFrom = 0;
+  let bestStart = -1;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  while (searchFrom <= text.length) {
+    const found = text.indexOf(selectedText, searchFrom);
+    if (found === -1) break;
+    const distance = Math.abs(found - expectedStart);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestStart = found;
+    }
+    searchFrom = found + 1;
+  }
+
+  if (bestStart === -1) return null;
+  return { startOffset: bestStart, endOffset: bestStart + selectedText.length };
+}
+
+function resolveSelectionRangeInText(
+  text: string,
+  selectedText: string,
+  fallbackStart: number,
+  fallbackEnd: number,
+) {
+  const selected = normalizeSelectionText(selectedText);
+  if (!selected) {
+    return {
+      startOffset: Math.max(0, Math.min(fallbackStart, text.length)),
+      endOffset: Math.max(0, Math.min(fallbackEnd, text.length)),
+    };
+  }
+  const nearest = findNearestTextRange(text, selected, fallbackStart);
+  if (nearest) return nearest;
+  return {
+    startOffset: Math.max(0, Math.min(fallbackStart, text.length)),
+    endOffset: Math.max(0, Math.min(fallbackEnd, text.length)),
+  };
+}
+
+function normalizeHighlightOffsetsForText(text: string, highlight: HighlightEntry): HighlightEntry {
+  const startOffset = Math.max(0, Math.min(highlight.startOffset, text.length));
+  const endOffset = Math.max(startOffset, Math.min(highlight.endOffset, text.length));
+  const resolved = resolveSelectionRangeInText(text, highlight.selectedText, startOffset, endOffset);
+  const selected = normalizeSelectionText(highlight.selectedText);
+  if (!selected) {
+    return { ...highlight, startOffset, endOffset };
+  }
+  return { ...highlight, startOffset: resolved.startOffset, endOffset: resolved.endOffset };
+}
+
+function renderHighlightedTextWithLineBreakSpacing(text: string, highlights: HighlightEntry[]) {
+  const normalized = text.replace(/\r\n/g, "\n");
+  const merged = mergeHighlights(
+    normalized,
+    highlights.map((highlight) => normalizeHighlightOffsetsForText(normalized, highlight)),
+  );
+  const lines = normalized.split("\n");
+
+  let lineStartOffset = 0;
+
+  return (
+    <span className="block space-y-2">
+      {lines.map((line, lineIndex) => {
+        const lineEndOffset = lineStartOffset + line.length;
+        const pieces: React.ReactNode[] = [];
+        let cursor = 0;
+
+        for (let i = 0; i < merged.length; i += 1) {
+          const h = merged[i];
+          if (h.endOffset <= lineStartOffset || h.startOffset >= lineEndOffset) continue;
+
+          const localStart = Math.max(0, h.startOffset - lineStartOffset);
+          const localEnd = Math.min(line.length, h.endOffset - lineStartOffset);
+          if (localStart > cursor) {
+            pieces.push(<span key={`t-${lineIndex}-${i}`}>{line.slice(cursor, localStart)}</span>);
+          }
+          pieces.push(
+            <mark
+              key={`h-${lineIndex}-${i}`}
+              className={`${highlightBgClass(h.color)} rounded-[2px] px-[1px] text-inherit`}
+            >
+              {line.slice(localStart, localEnd)}
+            </mark>,
+          );
+          cursor = Math.max(cursor, localEnd);
+        }
+
+        if (cursor < line.length) {
+          pieces.push(<span key={`tail-${lineIndex}`}>{line.slice(cursor)}</span>);
+        }
+
+        const node = pieces.length > 0 ? pieces : ["\u00A0"];
+        const rendered = (
+          <span key={`line-${lineIndex}`} className="block break-words">
+            {node}
+          </span>
+        );
+
+        lineStartOffset = lineEndOffset + 1;
+        return rendered;
+      })}
     </span>
   );
 }
@@ -181,8 +318,13 @@ function textToEditorHtml(text: string) {
 }
 
 function readEditorText(editor: HTMLElement) {
+  // For editable content, innerText preserves block boundaries as line breaks.
   const text = editor.innerText.replace(/\r\n/g, "\n");
   return text.endsWith("\n") ? text.slice(0, -1) : text;
+}
+
+function normalizeSelectionText(text: string) {
+  return text.replace(/\r\n/g, "\n");
 }
 
 export default function EditorReaderPage() {
@@ -339,6 +481,27 @@ export default function EditorReaderPage() {
     return map;
   }, [highlights]);
 
+  const canClearActiveSelection = useMemo(() => {
+    if (!activeSelection) return false;
+    const selectedSegment = segments.find((segment) => segment.paragraphId === activeSelection.paragraphId);
+    const selectedSegmentText = selectedSegment
+      ? drafts[selectedSegment.key] ?? selectedSegment.translatedText
+      : "";
+    const resolvedSelection = resolveSelectionRangeInText(
+      selectedSegmentText,
+      activeSelection.selectedText,
+      activeSelection.startOffset,
+      activeSelection.endOffset,
+    );
+    return highlights
+      .map((h) => normalizeHighlightOffsetsForText(selectedSegmentText, h))
+      .some(
+        (h) =>
+          h.paragraphId === activeSelection.paragraphId &&
+          rangesOverlap(h.startOffset, h.endOffset, resolvedSelection.startOffset, resolvedSelection.endOffset),
+      );
+  }, [activeSelection, highlights, segments, drafts]);
+
   const setBusy = (key: string, busy: boolean) => {
     setBusyKeys((prev) => ({ ...prev, [key]: busy }));
   };
@@ -475,17 +638,30 @@ export default function EditorReaderPage() {
       return;
     }
 
-    const selectedText = range.toString();
+    const fullRange = range.cloneRange();
+    fullRange.selectNodeContents(element);
+
+    const startRange = range.cloneRange();
+    startRange.selectNodeContents(element);
+    startRange.setEnd(range.startContainer, range.startOffset);
+
+    const endRange = range.cloneRange();
+    endRange.selectNodeContents(element);
+    endRange.setEnd(range.endContainer, range.endOffset);
+
+    const canonical = normalizeSelectionText(fullRange.toString());
+    const start = normalizeSelectionText(startRange.toString()).length;
+    const end = normalizeSelectionText(endRange.toString()).length;
+
+    if (end <= start) {
+      setActiveSelection(null);
+      return;
+    }
+    const selectedText = canonical.slice(start, end);
     if (!selectedText.trim()) {
       setActiveSelection(null);
       return;
     }
-
-    const preRange = range.cloneRange();
-    preRange.selectNodeContents(element);
-    preRange.setEnd(range.startContainer, range.startOffset);
-    const start = preRange.toString().length;
-    const end = start + selectedText.length;
 
     setActiveSelection({
       segmentKey: segment.key,
@@ -514,27 +690,70 @@ export default function EditorReaderPage() {
     setSelectedHighlightColor(color);
     if (!activeSelection) return;
 
-    const existing = highlights.find(
-      (h) =>
-        h.paragraphId === activeSelection.paragraphId &&
-        h.startOffset === activeSelection.startOffset &&
-        h.endOffset === activeSelection.endOffset,
+    const selectedSegment = segments.find((segment) => segment.paragraphId === activeSelection.paragraphId);
+    const selectedSegmentText = selectedSegment
+      ? drafts[selectedSegment.key] ?? selectedSegment.translatedText
+      : "";
+    const resolvedSelection = resolveSelectionRangeInText(
+      selectedSegmentText,
+      activeSelection.selectedText,
+      activeSelection.startOffset,
+      activeSelection.endOffset,
     );
+    const paragraphHighlights = highlights
+      .filter((h) => h.paragraphId === activeSelection.paragraphId)
+      .map((h) => normalizeHighlightOffsetsForText(selectedSegmentText, h));
+    const overlapping = paragraphHighlights.filter((h) =>
+      rangesOverlap(h.startOffset, h.endOffset, resolvedSelection.startOffset, resolvedSelection.endOffset),
+    );
+    const overlappingSameColor = overlapping.filter((h) => h.color === color);
 
-    if (existing && existing.color === color) {
-      try {
-        await deletePrivateHighlight(existing._id);
-        setLocalHighlights((prev) => prev.filter((h) => h._id !== existing._id));
-      } catch (error) {
-        console.error("Failed removing local highlight", error);
+    if (overlappingSameColor.length > 0) {
+      const mergedRanges = [...overlappingSameColor]
+        .sort((a, b) => a.startOffset - b.startOffset || a.endOffset - b.endOffset)
+        .reduce<Array<{ startOffset: number; endOffset: number }>>((acc, h) => {
+          const last = acc[acc.length - 1];
+          if (!last || h.startOffset > last.endOffset) {
+            acc.push({ startOffset: h.startOffset, endOffset: h.endOffset });
+            return acc;
+          }
+          if (h.endOffset > last.endOffset) {
+            last.endOffset = h.endOffset;
+          }
+          return acc;
+        }, []);
+      const selectionCovered = mergedRanges.some(
+        (h) => h.startOffset <= resolvedSelection.startOffset && h.endOffset >= resolvedSelection.endOffset,
+      );
+
+      // Fast remove when re-applying the same color over an already-highlighted selection.
+      if (selectionCovered) {
+        try {
+          await Promise.all(overlappingSameColor.map((h) => deletePrivateHighlight(h._id)));
+          const deleteIds = new Set(overlappingSameColor.map((h) => h._id));
+          setLocalHighlights((prev) => prev.filter((h) => !deleteIds.has(h._id)));
+        } catch (error) {
+          console.error("Failed removing local highlight", error);
+        }
+        return;
       }
-      return;
     }
 
-    if (existing && existing.color !== color) {
+    const mergedStart = Math.min(
+      resolvedSelection.startOffset,
+      ...overlappingSameColor.map((h) => h.startOffset),
+    );
+    const mergedEnd = Math.max(
+      resolvedSelection.endOffset,
+      ...overlappingSameColor.map((h) => h.endOffset),
+    );
+    const mergedSelectedText = selectedSegmentText.slice(mergedStart, mergedEnd);
+
+    if (overlappingSameColor.length > 0) {
       try {
-        await deletePrivateHighlight(existing._id);
-        setLocalHighlights((prev) => prev.filter((h) => h._id !== existing._id));
+        await Promise.all(overlappingSameColor.map((h) => deletePrivateHighlight(h._id)));
+        const deleteIds = new Set(overlappingSameColor.map((h) => h._id));
+        setLocalHighlights((prev) => prev.filter((h) => !deleteIds.has(h._id)));
       } catch (error) {
         console.error("Failed replacing local highlight", error);
       }
@@ -546,9 +765,9 @@ export default function EditorReaderPage() {
         paragraphId: activeSelection.paragraphId,
         languageCode: proofreaderLanguageCode,
         color,
-        startOffset: activeSelection.startOffset,
-        endOffset: activeSelection.endOffset,
-        selectedText: activeSelection.selectedText,
+        startOffset: mergedStart,
+        endOffset: mergedEnd,
+        selectedText: mergedSelectedText || activeSelection.selectedText,
       });
       setLocalHighlights((prev) => [
         ...prev.filter((h) => h._id !== saved.id),
@@ -566,16 +785,48 @@ export default function EditorReaderPage() {
       setLocalHighlights((prev) => [
         ...prev,
         {
-          _id: `local-${activeSelection.paragraphId}-${activeSelection.startOffset}-${activeSelection.endOffset}-${color}`,
+          _id: `local-${activeSelection.paragraphId}-${mergedStart}-${mergedEnd}-${color}`,
           paragraphId: activeSelection.paragraphId,
           color,
-          startOffset: activeSelection.startOffset,
-          endOffset: activeSelection.endOffset,
-          selectedText: activeSelection.selectedText,
+          startOffset: mergedStart,
+          endOffset: mergedEnd,
+          selectedText: mergedSelectedText || activeSelection.selectedText,
         },
       ]);
     }
   };
+
+  const clearSelectionHighlights = useCallback(async () => {
+    if (!activeSelection) return;
+    const selectedSegment = segments.find((segment) => segment.paragraphId === activeSelection.paragraphId);
+    const selectedSegmentText = selectedSegment
+      ? drafts[selectedSegment.key] ?? selectedSegment.translatedText
+      : "";
+    const resolvedSelection = resolveSelectionRangeInText(
+      selectedSegmentText,
+      activeSelection.selectedText,
+      activeSelection.startOffset,
+      activeSelection.endOffset,
+    );
+    const overlapping = highlights
+      .map((h) => normalizeHighlightOffsetsForText(selectedSegmentText, h))
+      .filter(
+        (h) =>
+          h.paragraphId === activeSelection.paragraphId &&
+          rangesOverlap(h.startOffset, h.endOffset, resolvedSelection.startOffset, resolvedSelection.endOffset),
+      );
+    const overlappingIds = new Set(overlapping.map((h) => h._id));
+    const toDelete = highlights.filter((h) => overlappingIds.has(h._id));
+    if (toDelete.length === 0) return;
+
+    try {
+      await Promise.all(toDelete.map((h) => deletePrivateHighlight(h._id)));
+      const deleteIds = new Set(toDelete.map((h) => h._id));
+      setLocalHighlights((prev) => prev.filter((h) => !deleteIds.has(h._id)));
+    } catch (error) {
+      console.error("Failed clearing local highlights", error);
+    }
+  }, [activeSelection, highlights, segments, drafts]);
 
   const adjustFontSize = (delta: number) => {
     const next = Math.max(12, Math.min(30, fontSizePx + delta));
@@ -732,6 +983,15 @@ export default function EditorReaderPage() {
                   transition={{ type: "spring", stiffness: 450, damping: 24 }}
                 />
               ))}
+              <button
+                onClick={() => clearSelectionHighlights()}
+                disabled={!canClearActiveSelection}
+                className="ml-1 inline-flex h-[20px] w-[20px] items-center justify-center rounded border border-[#43474e] text-on-surface-variant disabled:opacity-40"
+                aria-label={t("editorial.clearHighlight", "Clear highlight")}
+                title={t("editorial.clearHighlight", "Clear highlight")}
+              >
+                <Eraser size={12} />
+              </button>
             </div>
 
             <div className="h-5 w-px bg-[#43474e]" />
@@ -906,6 +1166,15 @@ export default function EditorReaderPage() {
                     <div className="space-y-3 pl-2">
                       <div className="relative">
                         <div
+                          className="pointer-events-none absolute inset-0 text-on-surface leading-relaxed"
+                          style={{ fontSize: `${fontSizePx}px` }}
+                        >
+                          {renderHighlightedTextWithLineBreakSpacing(
+                            currentText,
+                            highlights.filter((h) => h.paragraphId === segment.paragraphId),
+                          )}
+                        </div>
+                        <div
                           ref={(node) => {
                             if (node) {
                               editableRefs.current.set(segment.key, node);
@@ -935,7 +1204,7 @@ export default function EditorReaderPage() {
                               saveDraft(segment, false).catch((e) => console.error(e));
                             }
                           }}
-                          className={`block w-full min-h-20 rounded px-0 py-0 text-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
+                          className={`relative z-10 block w-full min-h-20 rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
                             lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
                           }`}
                           style={{ fontSize: `${fontSizePx}px` }}
@@ -1040,6 +1309,15 @@ export default function EditorReaderPage() {
 
                       <div className="relative">
                         <div
+                          className="pointer-events-none absolute inset-0 text-on-surface leading-relaxed"
+                          style={{ fontSize: `${fontSizePx}px` }}
+                        >
+                          {renderHighlightedTextWithLineBreakSpacing(
+                            currentText,
+                            highlights.filter((h) => h.paragraphId === segment.paragraphId),
+                          )}
+                        </div>
+                        <div
                           ref={(node) => {
                             if (node) {
                               editableRefs.current.set(segment.key, node);
@@ -1069,7 +1347,7 @@ export default function EditorReaderPage() {
                               saveDraft(segment, false).catch((e) => console.error(e));
                             }
                           }}
-                          className={`block w-full min-h-20 rounded px-0 py-0 text-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
+                          className={`relative z-10 block w-full min-h-20 rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
                             lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
                           }`}
                           style={{ fontSize: `${fontSizePx}px` }}

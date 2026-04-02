@@ -259,4 +259,26 @@ describe("editorial revert to last approved", () => {
       t.action(api.editorial.assertNbTranslationIntegrity as any, { sampleLimit: 10 }),
     ).rejects.toThrow("NB translation integrity failed");
   });
+
+  test("checkNbTranslationIntegrityChunk cursor advances between chunk calls", async () => {
+    const t = convexTest(schema, modules);
+    await t.mutation(api.sermons.seed, {});
+
+    const first = await t.action(api.editorial.checkNbTranslationIntegrityChunk as any, {
+      sermonBatchSize: 1,
+      sampleLimit: 10,
+    });
+    expect(first.sermonsChecked).toBe(1);
+    expect(first.isDone).toBe(false);
+    expect(typeof first.cursor).toBe("string");
+
+    const second = await t.action(api.editorial.checkNbTranslationIntegrityChunk as any, {
+      cursor: first.cursor,
+      sermonBatchSize: 1,
+      sampleLimit: 10,
+    });
+
+    expect(second.sermonsChecked).toBe(1);
+    expect(second.cursor).not.toBe(first.cursor);
+  });
 });
