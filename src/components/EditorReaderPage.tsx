@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Bookmark,
@@ -147,92 +147,42 @@ function rowTone(index: number) {
   return index % 2 === 0 ? "bg-background" : "bg-surface-container-low/30";
 }
 
-function highlightBgClass(color: HighlightColor) {
-  if (color === "yellow") return "bg-yellow-300/35";
-  if (color === "blue") return "bg-blue-300/30";
-  if (color === "green") return "bg-emerald-300/30";
-  return "bg-red-300/30";
+function renderTextWithLineBreakSpacing(text: string) {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  return (
+    <span className="block space-y-2">
+      {lines.map((line, index) => (
+        <span key={index} className="block break-words">
+          {line.length > 0 ? line : "\u00A0"}
+        </span>
+      ))}
+    </span>
+  );
 }
 
-function renderHighlightedText(text: string, highlights: HighlightEntry[]) {
-  if (highlights.length === 0) return [<span key="plain">{text}</span>];
-
-  const sorted = highlights
-    .filter((h) => h.startOffset >= 0 && h.endOffset > h.startOffset && h.endOffset <= text.length)
-    .sort((a, b) => a.startOffset - b.startOffset || a.endOffset - b.endOffset);
-  const merged: HighlightEntry[] = [];
-
-  for (const h of sorted) {
-    const last = merged[merged.length - 1];
-    if (!last || h.startOffset >= last.endOffset) {
-      merged.push(h);
-      continue;
-    }
-    if (h.endOffset > last.endOffset) {
-      merged[merged.length - 1] = { ...last, endOffset: h.endOffset };
-    }
-  }
-
-  const out: ReactNode[] = [];
-  let cursor = 0;
-  for (let i = 0; i < merged.length; i += 1) {
-    const h = merged[i];
-    if (h.startOffset > cursor) {
-      out.push(<span key={`t-${i}`}>{text.slice(cursor, h.startOffset)}</span>);
-    }
-    out.push(
-      <mark key={`h-${i}`} className={`${highlightBgClass(h.color)} rounded-[2px] px-[1px] text-inherit`}>
-        {text.slice(h.startOffset, h.endOffset)}
-      </mark>,
-    );
-    cursor = h.endOffset;
-  }
-  if (cursor < text.length) out.push(<span key="t-last">{text.slice(cursor)}</span>);
-  return out;
+function escapeHtml(input: string) {
+  return input
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
-function useAutoGrowTranslatedTextareas(deps: ReadonlyArray<unknown>) {
-  const autoResizeTranslatedTextarea = useCallback((textarea: HTMLTextAreaElement | null) => {
-    if (!textarea) return;
-    textarea.style.height = "0px";
-    textarea.style.height = `${textarea.scrollHeight}px`;
-    textarea.scrollTop = 0;
-  }, []);
+function textToEditorHtml(text: string) {
+  const normalized = text.replace(/\r\n/g, "\n");
+  const lines = normalized.split("\n");
+  if (lines.length === 0) {
+    return "<div><br></div>";
+  }
+  return lines
+    .map((line) => (line.length > 0 ? `<div>${escapeHtml(line)}</div>` : "<div><br></div>"))
+    .join("");
+}
 
-  useLayoutEffect(() => {
-    const textareas = Array.from(
-      document.querySelectorAll<HTMLTextAreaElement>("[data-editor-autogrow='translated']"),
-    );
-
-    const resizeAll = () => {
-      textareas.forEach((textarea) => autoResizeTranslatedTextarea(textarea));
-    };
-
-    resizeAll();
-    const frame = window.requestAnimationFrame(resizeAll);
-
-    const observer =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(() => {
-            resizeAll();
-          })
-        : null;
-
-    textareas.forEach((textarea) => observer?.observe(textarea));
-
-    const onWindowResize = () => {
-      resizeAll();
-    };
-    window.addEventListener("resize", onWindowResize);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", onWindowResize);
-      observer?.disconnect();
-    };
-  }, [autoResizeTranslatedTextarea, ...deps]);
-
-  return autoResizeTranslatedTextarea;
+function readEditorText(editor: HTMLElement) {
+  const text = editor.innerText.replace(/\r\n/g, "\n");
+  return text.endsWith("\n") ? text.slice(0, -1) : text;
 }
 
 export default function EditorReaderPage() {
@@ -256,6 +206,7 @@ export default function EditorReaderPage() {
   const [localHighlights, setLocalHighlights] = useState<HighlightEntry[]>([]);
   const savingDraftKeysRef = useRef<Set<string>>(new Set());
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const editableRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const sermon = useQuery(
     api.sermons.getById,
@@ -506,22 +457,36 @@ export default function EditorReaderPage() {
     [revertParagraphToLastApproved, proofreaderLanguageCode],
   );
 
-  const captureSelection = (segment: Segment, element: HTMLTextAreaElement) => {
+  const captureSelection = (segment: Segment, element: HTMLElement) => {
     if (!segment.paragraphId) {
       setActiveSelection(null);
       return;
     }
-    const start = element.selectionStart ?? 0;
-    const end = element.selectionEnd ?? 0;
-    if (end <= start) {
+
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
       setActiveSelection(null);
       return;
     }
-    const selectedText = element.value.slice(start, end);
+
+    const range = selection.getRangeAt(0);
+    if (!element.contains(range.startContainer) || !element.contains(range.endContainer)) {
+      setActiveSelection(null);
+      return;
+    }
+
+    const selectedText = range.toString();
     if (!selectedText.trim()) {
       setActiveSelection(null);
       return;
     }
+
+    const preRange = range.cloneRange();
+    preRange.selectNodeContents(element);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    const start = preRange.toString().length;
+    const end = start + selectedText.length;
+
     setActiveSelection({
       segmentKey: segment.key,
       paragraphId: segment.paragraphId,
@@ -531,13 +496,18 @@ export default function EditorReaderPage() {
     });
   };
 
-  const autoResizeTranslatedTextarea = useAutoGrowTranslatedTextareas([
-    drafts,
-    fontSizePx,
-    columnMode,
-    segments.length,
-    i18n.language,
-  ]);
+  useEffect(() => {
+    for (const segment of segments) {
+      const editor = editableRefs.current.get(segment.key);
+      if (!editor) continue;
+      if (document.activeElement === editor) continue;
+      const target = drafts[segment.key] ?? segment.translatedText;
+      const current = readEditorText(editor);
+      if (current !== target) {
+        editor.innerHTML = textToEditorHtml(target);
+      }
+    }
+  }, [segments, drafts]);
 
   const applyHighlight = async (color: HighlightColor) => {
     if (!sermonId) return;
@@ -927,33 +897,35 @@ export default function EditorReaderPage() {
                     </div>
                     <div className="pr-4 border-r border-outline/25">
                       <p
-                        className="italic whitespace-pre-wrap break-words text-on-surface-variant leading-relaxed"
+                        className="italic text-on-surface-variant leading-relaxed"
                         style={{ fontSize: `${fontSizePx}px` }}
                       >
-                        {segment.sourceText}
+                        {renderTextWithLineBreakSpacing(segment.sourceText)}
                       </p>
                     </div>
                     <div className="space-y-3 pl-2">
                       <div className="relative">
                         <div
-                          className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-on-surface leading-relaxed"
-                          style={{ fontSize: `${fontSizePx}px` }}
-                        >
-                          {renderHighlightedText(
-                            currentText,
-                            highlights.filter((h) => h.paragraphId === segment.paragraphId),
-                          )}
-                        </div>
-                        <textarea
-                          id={`editor-reader-translated-text-two-column-${segment.order}`}
-                          data-editor-autogrow="translated"
-                          value={currentText}
-                          readOnly={lockedApproved || saving}
+                          ref={(node) => {
+                            if (node) {
+                              editableRefs.current.set(segment.key, node);
+                              if (!node.innerHTML.trim()) {
+                                node.innerHTML = textToEditorHtml(currentText);
+                              }
+                            } else {
+                              editableRefs.current.delete(segment.key);
+                            }
+                          }}
+                          contentEditable={!lockedApproved && !saving}
+                          suppressContentEditableWarning
+                          spellCheck={false}
                           onSelect={(e) => captureSelection(segment, e.currentTarget)}
                           onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
                           onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
-                          onInput={(e) => autoResizeTranslatedTextarea(e.currentTarget)}
-                          onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
+                          onInput={(e) => {
+                            const nextValue = readEditorText(e.currentTarget);
+                            setDrafts((prev) => ({ ...prev, [segment.key]: nextValue }));
+                          }}
                           onBlur={() => {
                             if (suppressBlurSaveKey === segment.key) {
                               setSuppressBlurSaveKey(null);
@@ -963,10 +935,10 @@ export default function EditorReaderPage() {
                               saveDraft(segment, false).catch((e) => console.error(e));
                             }
                           }}
-                          className={`relative z-10 block w-full min-h-20 resize-none overflow-hidden bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
+                          className={`block w-full min-h-20 rounded px-0 py-0 text-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
                             lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
                           }`}
-                          style={{ fontSize: `${fontSizePx}px`, overflowY: "hidden" }}
+                          style={{ fontSize: `${fontSizePx}px` }}
                         />
                       </div>
                       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -1055,10 +1027,10 @@ export default function EditorReaderPage() {
                                 {t("reader.original")}
                               </div>
                               <p
-                                className="italic whitespace-pre-wrap break-words text-on-surface-variant leading-relaxed"
+                                className="italic text-on-surface-variant leading-relaxed"
                                 style={{ fontSize: `${fontSizePx}px` }}
                               >
-                                {segment.sourceText}
+                                {renderTextWithLineBreakSpacing(segment.sourceText)}
                               </p>
                               <div className="h-px bg-outline/35" />
                             </div>
@@ -1068,24 +1040,26 @@ export default function EditorReaderPage() {
 
                       <div className="relative">
                         <div
-                          className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-on-surface leading-relaxed"
-                          style={{ fontSize: `${fontSizePx}px` }}
-                        >
-                          {renderHighlightedText(
-                            currentText,
-                            highlights.filter((h) => h.paragraphId === segment.paragraphId),
-                          )}
-                        </div>
-                        <textarea
-                          id={`editor-reader-translated-text-single-column-${segment.order}`}
-                          data-editor-autogrow="translated"
-                          value={currentText}
-                          readOnly={lockedApproved || saving}
+                          ref={(node) => {
+                            if (node) {
+                              editableRefs.current.set(segment.key, node);
+                              if (!node.innerHTML.trim()) {
+                                node.innerHTML = textToEditorHtml(currentText);
+                              }
+                            } else {
+                              editableRefs.current.delete(segment.key);
+                            }
+                          }}
+                          contentEditable={!lockedApproved && !saving}
+                          suppressContentEditableWarning
+                          spellCheck={false}
                           onSelect={(e) => captureSelection(segment, e.currentTarget)}
                           onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
                           onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
-                          onInput={(e) => autoResizeTranslatedTextarea(e.currentTarget)}
-                          onChange={(e) => setDrafts((prev) => ({ ...prev, [segment.key]: e.target.value }))}
+                          onInput={(e) => {
+                            const nextValue = readEditorText(e.currentTarget);
+                            setDrafts((prev) => ({ ...prev, [segment.key]: nextValue }));
+                          }}
                           onBlur={() => {
                             if (suppressBlurSaveKey === segment.key) {
                               setSuppressBlurSaveKey(null);
@@ -1095,10 +1069,10 @@ export default function EditorReaderPage() {
                               saveDraft(segment, false).catch((e) => console.error(e));
                             }
                           }}
-                          className={`relative z-10 block w-full min-h-20 resize-none overflow-hidden bg-transparent rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed ${
+                          className={`block w-full min-h-20 rounded px-0 py-0 text-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
                             lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
                           }`}
-                          style={{ fontSize: `${fontSizePx}px`, overflowY: "hidden" }}
+                          style={{ fontSize: `${fontSizePx}px` }}
                         />
                       </div>
                     </div>

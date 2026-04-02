@@ -1,6 +1,7 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 
@@ -93,8 +94,6 @@ async function ensureTranslationForParagraph(
   paragraph: {
     _id: Id<"sermonParagraphs">;
     sourceText: string;
-    translatedText: string;
-    status: "draft" | "drafting" | "needs_review" | "approved";
     updatedAt: number;
   },
   languageCode: string,
@@ -105,14 +104,15 @@ async function ensureTranslationForParagraph(
     return existing;
   }
 
+  if (normalized === "nb") {
+    throw new Error(`Missing canonical nb translation for paragraph ${paragraph._id}`);
+  }
+
   const translationId = await ctx.db.insert("sermonParagraphTranslations", {
     paragraphId: paragraph._id,
     languageCode: normalized,
-    translatedText:
-      normalized === "nb"
-        ? paragraph.translatedText
-        : paragraph.sourceText,
-    status: normalized === "nb" ? paragraph.status : "draft",
+    translatedText: paragraph.sourceText,
+    status: "draft",
     updatedAt: Date.now(),
   });
 
@@ -168,29 +168,43 @@ export const ensureParagraphsForSermon = mutation({
         sermonId: args.sermonId,
         order: i + 1,
         sourceText: pair.sourceText,
+        updatedAt: now,
+      });
+
+      const nbTranslationId = await ctx.db.insert("sermonParagraphTranslations", {
+        paragraphId,
+        languageCode: "nb",
         translatedText: pair.translatedText,
         status,
         updatedAt: now,
       });
 
+      await ctx.db.insert("paragraphTranslationRevisions", {
+        paragraphTranslationId: nbTranslationId,
+        snapshotText: pair.translatedText,
+        status,
+        kind: "edit",
+        reason: "Initial seed",
+        authorName: "System",
+        createdAt: now,
+      });
+
+      if (normalizedLanguage === "nb") {
+        continue;
+      }
+
       const translationId = await ctx.db.insert("sermonParagraphTranslations", {
         paragraphId,
         languageCode: normalizedLanguage,
-        translatedText:
-          normalizedLanguage === "nb"
-            ? pair.translatedText
-            : pair.sourceText,
-        status: normalizedLanguage === "nb" ? status : "draft",
+        translatedText: pair.sourceText,
+        status: "draft",
         updatedAt: now,
       });
 
       await ctx.db.insert("paragraphTranslationRevisions", {
         paragraphTranslationId: translationId,
-        snapshotText:
-          normalizedLanguage === "nb"
-            ? pair.translatedText
-            : pair.sourceText,
-        status: normalizedLanguage === "nb" ? status : "draft",
+        snapshotText: pair.sourceText,
+        status: "draft",
         kind: "edit",
         reason: "Initial seed",
         authorName: "System",
@@ -331,7 +345,7 @@ export const listRevertBaselines = query({
         if (!translation) {
           return {
             paragraphId: paragraph._id,
-            targetText: paragraph.translatedText,
+            targetText: paragraph.sourceText,
           };
         }
 
@@ -947,10 +961,42 @@ export const revertParagraphToLastApproved = mutation({
 export const backfillParagraphTranslationsNb = mutation({
   args: {},
   handler: async (ctx) => {
-    const paragraphs = await ctx.db.query("sermonParagraphs").collect();
-    let created = 0;
-    let existing = 0;
+    throw new Error(
+      "Legacy backfill is no longer supported. Run editorial.assertNbTranslationIntegrity instead.",
+    );
+  },
+});
 
+export const listSermonIdsForNbIntegrity = internalQuery({
+  args: {
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    const page = await ctx.db
+      .query("sermons")
+      .withIndex("by_date")
+      .paginate(args.paginationOpts);
+
+    return {
+      isDone: page.isDone,
+      continueCursor: page.continueCursor,
+      page: page.page.map((sermon) => sermon._id),
+    };
+  },
+});
+
+export const verifyNbTranslationsForSermon = internalMutation({
+  args: {
+    sermonId: v.id("sermons"),
+    sampleLimit: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const paragraphs = await ctx.db
+      .query("sermonParagraphs")
+      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))
+      .take(5000);
+
+    const missingParagraphIds: Id<"sermonParagraphs">[] = [];
     for (const paragraph of paragraphs) {
       const translation = await ctx.db
         .query("sermonParagraphTranslations")
@@ -959,32 +1005,110 @@ export const backfillParagraphTranslationsNb = mutation({
         )
         .unique();
 
-      if (translation) {
-        existing += 1;
+      if (!translation) {
+        missingParagraphIds.push(paragraph._id);
+      }
+      if (missingParagraphIds.length >= args.sampleLimit) {
+        break;
+      }
+    }
+
+    return {
+      paragraphsChecked: paragraphs.length,
+      missingParagraphIds,
+    };
+  },
+});
+
+export const assertNbTranslationIntegrity = action({
+  args: {
+    sampleLimit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const sampleLimit = Math.max(1, Math.min(args.sampleLimit ?? 100, 1000));
+    const missingParagraphIds: Id<"sermonParagraphs">[] = [];
+    let cursor: string | null = null;
+    let sermonsChecked = 0;
+    let paragraphsChecked = 0;
+
+    do {
+      const sermonPage: {
+        isDone: boolean;
+        continueCursor: string;
+        page: Id<"sermons">[];
+      } = await ctx.runQuery(internal.editorial.listSermonIdsForNbIntegrity, {
+        paginationOpts: { cursor, numItems: 100 },
+      });
+
+      for (const sermonId of sermonPage.page) {
+        const verification: {
+          paragraphsChecked: number;
+          missingParagraphIds: Id<"sermonParagraphs">[];
+        } = await ctx.runMutation(internal.editorial.verifyNbTranslationsForSermon, {
+          sermonId,
+          sampleLimit: sampleLimit - missingParagraphIds.length,
+        });
+
+        sermonsChecked += 1;
+        paragraphsChecked += verification.paragraphsChecked;
+        missingParagraphIds.push(...verification.missingParagraphIds);
+
+        if (missingParagraphIds.length >= sampleLimit) {
+          break;
+        }
+      }
+
+      if (missingParagraphIds.length >= sampleLimit || sermonPage.isDone) {
+        break;
+      }
+      cursor = sermonPage.continueCursor;
+    } while (true);
+
+    if (missingParagraphIds.length > 0) {
+      throw new Error(
+        `NB translation integrity failed. Missing paragraph IDs (${missingParagraphIds.length} sample): ${missingParagraphIds.join(", ")}`,
+      );
+    }
+
+    return {
+      ok: true,
+      sermonsChecked,
+      paragraphsChecked,
+      missingCount: 0,
+    };
+  },
+});
+
+export const cleanupLegacyParagraphFields = mutation({
+  args: {
+    batchSize: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const batchSize = Math.max(1, Math.min(args.batchSize ?? 200, 1000));
+    const rows = await ctx.db.query("sermonParagraphs").take(batchSize);
+
+    let cleaned = 0;
+    for (const row of rows) {
+      const hasLegacyFields =
+        typeof row.translatedText === "string" ||
+        typeof row.status === "string";
+      if (!hasLegacyFields) {
         continue;
       }
 
-      const translationId = await ctx.db.insert("sermonParagraphTranslations", {
-        paragraphId: paragraph._id,
-        languageCode: "nb",
-        translatedText: paragraph.translatedText,
-        status: paragraph.status,
-        updatedAt: paragraph.updatedAt,
+      await ctx.db.replace(row._id, {
+        sermonId: row.sermonId,
+        order: row.order,
+        sourceText: row.sourceText,
+        updatedAt: row.updatedAt,
       });
-
-      await ctx.db.insert("paragraphTranslationRevisions", {
-        paragraphTranslationId: translationId,
-        snapshotText: paragraph.translatedText,
-        status: paragraph.status,
-        kind: "edit",
-        reason: "Backfilled from legacy paragraph",
-        authorName: "System",
-        createdAt: Date.now(),
-      });
-
-      created += 1;
+      cleaned += 1;
     }
 
-    return { created, existing };
+    return {
+      scanned: rows.length,
+      cleaned,
+      hasMore: rows.length === batchSize,
+    };
   },
 });

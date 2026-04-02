@@ -221,8 +221,6 @@ async function insertAllParagraphs(
       sermonId,
       order: row.order,
       sourceText: row.sourceText,
-      translatedText: row.translatedText,
-      status: paragraphStatus,
       updatedAt: now,
     });
     await upsertTranslationForLanguage(ctx, paragraphId, languageCode, row.translatedText, now);
@@ -424,8 +422,6 @@ export const importSermonParagraphsInternal = internalMutation({
           await ctx.db.patch(existing._id, {
             order: row.order,
             sourceText: row.sourceText,
-            translatedText: row.translatedText,
-            status: paragraphStatus,
             updatedAt: now,
           });
           await upsertTranslationForLanguage(
@@ -441,8 +437,6 @@ export const importSermonParagraphsInternal = internalMutation({
             sermonId,
             order: row.order,
             sourceText: row.sourceText,
-            translatedText: row.translatedText,
-            status: paragraphStatus,
             updatedAt: now,
           });
           await upsertTranslationForLanguage(

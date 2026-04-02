@@ -50,12 +50,12 @@ export default defineSchema({
     sermonId: v.id("sermons"),
     order: v.number(),
     sourceText: v.string(),
-    translatedText: v.string(),
-    status: paragraphStatus,
+    // Deprecated: kept optional temporarily to allow online migration cleanup.
+    translatedText: v.optional(v.string()),
+    // Deprecated: kept optional temporarily to allow online migration cleanup.
+    status: v.optional(paragraphStatus),
     updatedAt: v.number(),
-  })
-    .index("by_sermonId_and_order", ["sermonId", "order"])
-    .index("by_sermonId_and_status", ["sermonId", "status"]),
+  }).index("by_sermonId_and_order", ["sermonId", "order"]),
   sermonMetadataTranslations: defineTable({
     sermonId: v.id("sermons"),
     languageCode: v.string(),
