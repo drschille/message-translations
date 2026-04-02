@@ -667,12 +667,15 @@ export default function EditorReaderPage() {
                 ["green", "#4ade80"],
                 ["red", "#f87171"],
               ] as const).map(([color, fill]) => (
-                <button
+                <motion.button
                   key={color}
                   onClick={() => applyHighlight(color)}
                   className={`h-[18px] w-[18px] rounded-full ${selectedHighlightColor === color ? "ring-2 ring-[#e5e2e1]" : ""}`}
                   style={{ backgroundColor: fill }}
                   aria-label={t("editorial.highlightColor", { color })}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{ scale: selectedHighlightColor === color ? 1.08 : 1 }}
+                  transition={{ type: "spring", stiffness: 450, damping: 24 }}
                 />
               ))}
             </div>
@@ -738,7 +741,7 @@ export default function EditorReaderPage() {
       </section>
 
       <section
-        className={`grid gap-0 ${
+        className={`grid gap-0 transition-[grid-template-columns] duration-300 ease-out ${
           reviewsCollapsed ? "lg:grid-cols-[200px_1fr_48px]" : "lg:grid-cols-[200px_1fr_340px]"
         }`}
       >
@@ -1059,82 +1062,123 @@ export default function EditorReaderPage() {
           })}
         </article>
 
-        {reviewsCollapsed ? (
-          <aside className="hidden lg:flex lg:sticky lg:top-32 self-start bg-surface-container-low/35 items-start justify-center pt-8">
-            <button
-              onClick={() => setReviewsCollapsed(false)}
-              className="inline-flex flex-col items-center gap-2 text-on-surface-variant hover:text-on-surface"
-              aria-label={t("editorial.expandReviewsPanel")}
+        <AnimatePresence mode="wait" initial={false}>
+          {reviewsCollapsed ? (
+            <motion.aside
+              key="reviews-collapsed"
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 8 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="hidden lg:flex lg:sticky lg:top-32 self-start bg-surface-container-low/35 items-start justify-center pt-8"
             >
-              <MessageSquareText size={18} />
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/25 px-1.5 text-[10px] text-primary">
-                {pendingSegments.length}
-              </span>
-              <PanelRightOpen size={16} />
-            </button>
-          </aside>
-        ) : (
-          <aside className="hidden lg:block lg:sticky lg:top-32 self-start max-h-[calc(100vh-8rem)] overflow-y-auto bg-surface-container-low/25">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                {t("editorial.commentsAndReviews")}
-              </div>
               <button
-                onClick={() => setReviewsCollapsed(true)}
-                className="rounded border border-outline/30 p-1 text-on-surface-variant hover:text-on-surface"
-                aria-label={t("editorial.collapseReviewsPanel")}
+                onClick={() => setReviewsCollapsed(false)}
+                className="inline-flex flex-col items-center gap-2 text-on-surface-variant hover:text-on-surface"
+                aria-label={t("editorial.expandReviewsPanel")}
               >
-                <PanelRightClose size={14} />
+                <MessageSquareText size={18} />
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/25 px-1.5 text-[10px] text-primary">
+                  {pendingSegments.length}
+                </span>
+                <PanelRightOpen size={16} />
               </button>
-            </div>
-            <div className="space-y-5 px-4 py-4">
-              <div className="space-y-2">
+            </motion.aside>
+          ) : (
+            <motion.aside
+              key="reviews-expanded"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 12 }}
+              transition={{ duration: 0.24, ease: "easeOut" }}
+              className="hidden lg:block lg:sticky lg:top-32 self-start max-h-[calc(100vh-8rem)] overflow-y-auto bg-surface-container-low/25"
+            >
+              <div className="flex items-center justify-between px-4 py-3">
                 <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                  {t("reader.statusNeedsReview")}
+                  {t("editorial.commentsAndReviews")}
                 </div>
-                {pendingSegments.length === 0 ? (
-                  <p className="text-xs text-on-surface-variant">{t("editorial.noPendingReviews")}</p>
-                ) : (
-                  <div className="space-y-2">
-                    {pendingSegments.map((segment) => (
-                      <div key={segment.key} className="rounded border border-outline/25 px-2.5 py-2 text-xs">
-                        <div className="text-on-surface-variant">#{segment.order}</div>
-                        <p className="mt-1 text-on-surface">
-                          {segment.translatedText.length > 120
-                            ? `${segment.translatedText.slice(0, 120)}...`
-                            : segment.translatedText}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <button
+                  onClick={() => setReviewsCollapsed(true)}
+                  className="rounded border border-outline/30 p-1 text-on-surface-variant hover:text-on-surface"
+                  aria-label={t("editorial.collapseReviewsPanel")}
+                >
+                  <PanelRightClose size={14} />
+                </button>
               </div>
-              <div className="space-y-2 border-t border-outline/20 pt-4">
-                <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                  {t("editorial.versionHistory")}
-                </div>
-                {(versionsResult?.page ?? []).length === 0 ? (
-                  <p className="text-xs text-on-surface-variant">{t("editorial.noRevisions")}</p>
-                ) : (
-                  <div className="space-y-2">
-                    {(versionsResult?.page ?? []).map((v: any) => (
-                      <div key={v._id} className="rounded border border-outline/25 px-2.5 py-2 text-xs">
-                        <div className="font-medium text-on-surface">v{v.version}</div>
-                        <div className="text-on-surface-variant">
-                          {new Intl.DateTimeFormat(i18n.language, {
-                            year: "numeric",
-                            month: "short",
-                            day: "2-digit",
-                          }).format(new Date(v.publishedAt))}
-                        </div>
-                      </div>
-                    ))}
+              <div className="space-y-5 px-4 py-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="space-y-2"
+                >
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
+                    {t("reader.statusNeedsReview")}
                   </div>
-                )}
+                  {pendingSegments.length === 0 ? (
+                    <p className="text-xs text-on-surface-variant">{t("editorial.noPendingReviews")}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      <AnimatePresence initial={false}>
+                        {pendingSegments.map((segment) => (
+                          <motion.div
+                            key={segment.key}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.18, ease: "easeOut" }}
+                            className="rounded border border-outline/25 px-2.5 py-2 text-xs"
+                          >
+                            <div className="text-on-surface-variant">#{segment.order}</div>
+                            <p className="mt-1 text-on-surface">
+                              {segment.translatedText.length > 120
+                                ? `${segment.translatedText.slice(0, 120)}...`
+                                : segment.translatedText}
+                            </p>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  )}
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, delay: 0.04, ease: "easeOut" }}
+                  className="space-y-2 border-t border-outline/20 pt-4"
+                >
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
+                    {t("editorial.versionHistory")}
+                  </div>
+                  {(versionsResult?.page ?? []).length === 0 ? (
+                    <p className="text-xs text-on-surface-variant">{t("editorial.noRevisions")}</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {(versionsResult?.page ?? []).map((v: any) => (
+                        <motion.div
+                          key={v._id}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.18, ease: "easeOut" }}
+                          className="rounded border border-outline/25 px-2.5 py-2 text-xs"
+                        >
+                          <div className="font-medium text-on-surface">v{v.version}</div>
+                          <div className="text-on-surface-variant">
+                            {new Intl.DateTimeFormat(i18n.language, {
+                              year: "numeric",
+                              month: "short",
+                              day: "2-digit",
+                            }).format(new Date(v.publishedAt))}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
               </div>
-            </div>
-          </aside>
-        )}
+            </motion.aside>
+          )}
+        </AnimatePresence>
       </section>
     </main>
   );
