@@ -1,31 +1,84 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MessageSquare, Reply, Send, X } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTranslation } from "react-i18next";
 import { formatRelativeTime } from "@/src/lib/ui-labels";
-import type { Id } from "@/convex/_generated/dataModel";
 import type { ParagraphId } from "@/src/types/editorial";
+import { addPrivateComment, listPrivateComments } from "@/src/lib/readerPrivateAnnotations";
 
 interface ParagraphCommentsModalProps {
   paragraphId: ParagraphId | null;
+  sermonId?: string;
   languageCode: string;
   open: boolean;
+  storageMode?: "convex" | "localPrivate";
   onClose: () => void;
 }
 
-export default function ParagraphCommentsModal({ paragraphId, languageCode, open, onClose }: ParagraphCommentsModalProps) {
+type UiComment = {
+  _id: string;
+  parentCommentId: string | null;
+  authorName: string;
+  body: string;
+  createdAt: number;
+};
+
+export default function ParagraphCommentsModal({
+  paragraphId,
+  sermonId,
+  languageCode,
+  open,
+  storageMode = "convex",
+  onClose,
+}: ParagraphCommentsModalProps) {
   const { t } = useTranslation();
+  const isLocalPrivate = storageMode === "localPrivate";
   const commentsResult = useQuery(
     api.editorial.listComments,
-    paragraphId ? { paragraphId, languageCode, paginationOpts: { cursor: null, numItems: 200 } } : "skip",
+    !isLocalPrivate && paragraphId
+      ? { paragraphId, languageCode, paginationOpts: { cursor: null, numItems: 200 } }
+      : "skip",
   );
   const addComment = useMutation(api.editorial.addComment);
   const [draftComment, setDraftComment] = useState("");
-  const [replyParentId, setReplyParentId] = useState<Id<"paragraphTranslationComments"> | null>(null);
+  const [replyParentId, setReplyParentId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [localComments, setLocalComments] = useState<UiComment[]>([]);
 
-  const comments = useMemo(() => commentsResult?.page ?? [], [commentsResult]);
+  useEffect(() => {
+    if (!open || !paragraphId || !isLocalPrivate || !sermonId) return;
+    listPrivateComments({
+      sermonId,
+      paragraphId,
+      languageCode,
+    })
+      .then((rows) => {
+        setLocalComments(
+          rows.map((row) => ({
+            _id: row.id,
+            parentCommentId: row.parentId,
+            authorName: row.authorName,
+            body: row.body,
+            createdAt: row.createdAt,
+          })),
+        );
+      })
+      .catch((error) => {
+        console.error("Failed loading local comments", error);
+      });
+  }, [isLocalPrivate, open, paragraphId, sermonId, languageCode]);
+
+  const comments: UiComment[] = useMemo(() => {
+    if (isLocalPrivate) return localComments;
+    return (commentsResult?.page ?? []).map((comment) => ({
+      _id: String(comment._id),
+      parentCommentId: comment.parentCommentId ? String(comment.parentCommentId) : null,
+      authorName: comment.authorName,
+      body: comment.body,
+      createdAt: comment.createdAt,
+    }));
+  }, [isLocalPrivate, localComments, commentsResult]);
   const rootComments = useMemo(
     () => comments.filter((comment) => !comment.parentCommentId),
     [comments],
@@ -50,12 +103,33 @@ export default function ParagraphCommentsModal({ paragraphId, languageCode, open
     if (!body) return;
     setSubmitting(true);
     try {
-      await addComment({
-        paragraphId,
-        languageCode,
-        body,
-        parentCommentId: replyParentId ?? undefined,
-      });
+      if (isLocalPrivate && sermonId) {
+        const created = await addPrivateComment({
+          sermonId,
+          paragraphId,
+          languageCode,
+          body,
+          parentId: replyParentId,
+          authorName: "You",
+        });
+        setLocalComments((prev) => [
+          ...prev,
+          {
+            _id: created.id,
+            parentCommentId: created.parentId,
+            authorName: created.authorName,
+            body: created.body,
+            createdAt: created.createdAt,
+          },
+        ]);
+      } else {
+        await addComment({
+          paragraphId,
+          languageCode,
+          body,
+          parentCommentId: replyParentId ? (replyParentId as any) : undefined,
+        });
+      }
       setDraftComment("");
       setReplyParentId(null);
     } finally {

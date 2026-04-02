@@ -1,7 +1,7 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 
 const paragraphStatusValidator = v.union(
@@ -9,6 +9,17 @@ const paragraphStatusValidator = v.union(
   v.literal("drafting"),
   v.literal("needs_review"),
   v.literal("approved"),
+);
+const sermonProofreadingStateValidator = v.union(
+  v.literal("queued"),
+  v.literal("in_progress"),
+  v.literal("done"),
+);
+const highlightColorValidator = v.union(
+  v.literal("yellow"),
+  v.literal("blue"),
+  v.literal("green"),
+  v.literal("red"),
 );
 
 const fallbackParagraphPairs = [
@@ -54,6 +65,14 @@ function splitTranscript(transcript: string): string[] {
 
 function normalizeLanguageCode(languageCode: string) {
   return languageCode.trim().toLowerCase() || "nb";
+}
+
+async function requireIdentity(ctx: MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity?.tokenIdentifier) {
+    throw new Error("Authentication required");
+  }
+  return identity;
 }
 
 async function findTranslationByParagraphAndLanguage(
@@ -288,6 +307,272 @@ export const listRevisions = query({
   },
 });
 
+export const listRevertBaselines = query({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const paragraphs = await ctx.db
+      .query("sermonParagraphs")
+      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))
+      .take(500);
+
+    const baselines = await Promise.all(
+      paragraphs.map(async (paragraph) => {
+        const translation = await ctx.db
+          .query("sermonParagraphTranslations")
+          .withIndex("by_paragraphId_and_languageCode", (q) =>
+            q.eq("paragraphId", paragraph._id).eq("languageCode", normalizedLanguage),
+          )
+          .unique();
+
+        if (!translation) {
+          return {
+            paragraphId: paragraph._id,
+            targetText: paragraph.translatedText,
+          };
+        }
+
+        const revisionsDesc = ctx.db
+          .query("paragraphTranslationRevisions")
+          .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+            q.eq("paragraphTranslationId", translation._id),
+          )
+          .order("desc");
+
+        for await (const revision of revisionsDesc) {
+          if (revision.status === "approved") {
+            return {
+              paragraphId: paragraph._id,
+              targetText: revision.snapshotText,
+            };
+          }
+        }
+
+        const firstRevision = await ctx.db
+          .query("paragraphTranslationRevisions")
+          .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+            q.eq("paragraphTranslationId", translation._id),
+          )
+          .order("asc")
+          .take(1);
+
+        return {
+          paragraphId: paragraph._id,
+          targetText: firstRevision[0]?.snapshotText ?? translation.translatedText,
+        };
+      }),
+    );
+
+    return baselines;
+  },
+});
+
+export const getEditorToolbarPrefs = query({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.tokenIdentifier) {
+      return {
+        canPersist: false,
+        fontSizePx: null,
+        bookmarked: null,
+      };
+    }
+
+    const prefs = await ctx.db
+      .query("editorToolbarPrefs")
+      .withIndex("by_sermonId_and_languageCode_and_userTokenIdentifier", (q) =>
+        q
+          .eq("sermonId", args.sermonId)
+          .eq("languageCode", normalizeLanguageCode(args.languageCode))
+          .eq("userTokenIdentifier", identity.tokenIdentifier),
+      )
+      .unique();
+
+    return {
+      canPersist: true,
+      fontSizePx: prefs?.fontSizePx ?? null,
+      bookmarked: prefs?.bookmarked ?? null,
+    };
+  },
+});
+
+export const setEditorToolbarPrefs = mutation({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+    fontSizePx: v.optional(v.number()),
+    bookmarked: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await requireIdentity(ctx);
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const now = Date.now();
+
+    const existing = await ctx.db
+      .query("editorToolbarPrefs")
+      .withIndex("by_sermonId_and_languageCode_and_userTokenIdentifier", (q) =>
+        q
+          .eq("sermonId", args.sermonId)
+          .eq("languageCode", normalizedLanguage)
+          .eq("userTokenIdentifier", identity.tokenIdentifier),
+      )
+      .unique();
+
+    const nextFontSize = args.fontSizePx ?? existing?.fontSizePx ?? 16;
+    const nextBookmarked = args.bookmarked ?? existing?.bookmarked ?? false;
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        fontSizePx: nextFontSize,
+        bookmarked: nextBookmarked,
+        updatedAt: now,
+      });
+      return { ok: true };
+    }
+
+    await ctx.db.insert("editorToolbarPrefs", {
+      sermonId: args.sermonId,
+      languageCode: normalizedLanguage,
+      userTokenIdentifier: identity.tokenIdentifier,
+      fontSizePx: nextFontSize,
+      bookmarked: nextBookmarked,
+      updatedAt: now,
+    });
+
+    return { ok: true };
+  },
+});
+
+export const listSelectionHighlights = query({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.tokenIdentifier) {
+      return {
+        canPersist: false,
+        highlights: [],
+      };
+    }
+
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const highlights = await ctx.db
+      .query("paragraphSelectionHighlights")
+      .withIndex("by_sermonId_and_languageCode_and_userTokenIdentifier", (q) =>
+        q
+          .eq("sermonId", args.sermonId)
+          .eq("languageCode", normalizedLanguage)
+          .eq("userTokenIdentifier", identity.tokenIdentifier),
+      )
+      .take(2000);
+
+    const result: Array<{
+      _id: Id<"paragraphSelectionHighlights">;
+      paragraphId: Id<"sermonParagraphs">;
+      color: "yellow" | "blue" | "green" | "red";
+      startOffset: number;
+      endOffset: number;
+      selectedText: string;
+    }> = [];
+
+    for (const highlight of highlights) {
+      const translation = await ctx.db
+        .query("sermonParagraphTranslations")
+        .withIndex("by_paragraphId_and_languageCode", (q) =>
+          q.eq("paragraphId", highlight.paragraphId).eq("languageCode", normalizedLanguage),
+        )
+        .unique();
+      const text = translation?.translatedText ?? "";
+      if (
+        highlight.startOffset >= 0 &&
+        highlight.endOffset > highlight.startOffset &&
+        highlight.endOffset <= text.length &&
+        text.slice(highlight.startOffset, highlight.endOffset) === highlight.selectedText
+      ) {
+        result.push({
+          _id: highlight._id,
+          paragraphId: highlight.paragraphId,
+          color: highlight.color,
+          startOffset: highlight.startOffset,
+          endOffset: highlight.endOffset,
+          selectedText: highlight.selectedText,
+        });
+      }
+    }
+
+    return {
+      canPersist: true,
+      highlights: result,
+    };
+  },
+});
+
+export const createSelectionHighlight = mutation({
+  args: {
+    paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
+    color: highlightColorValidator,
+    startOffset: v.number(),
+    endOffset: v.number(),
+    selectedText: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await requireIdentity(ctx);
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const paragraph = await ctx.db.get(args.paragraphId);
+    if (!paragraph) {
+      throw new Error("Paragraph not found");
+    }
+    const translation = await ensureTranslationForParagraph(ctx, paragraph, normalizedLanguage);
+
+    if (args.startOffset < 0 || args.endOffset <= args.startOffset || args.endOffset > translation.translatedText.length) {
+      throw new Error("Invalid text selection offsets");
+    }
+    if (translation.translatedText.slice(args.startOffset, args.endOffset) !== args.selectedText) {
+      throw new Error("Selected text no longer matches paragraph content");
+    }
+
+    const now = Date.now();
+    const highlightId = await ctx.db.insert("paragraphSelectionHighlights", {
+      sermonId: paragraph.sermonId,
+      paragraphId: args.paragraphId,
+      languageCode: normalizedLanguage,
+      userTokenIdentifier: identity.tokenIdentifier,
+      color: args.color,
+      startOffset: args.startOffset,
+      endOffset: args.endOffset,
+      selectedText: args.selectedText,
+      createdAt: now,
+    });
+    return { highlightId };
+  },
+});
+
+export const deleteSelectionHighlight = mutation({
+  args: {
+    highlightId: v.id("paragraphSelectionHighlights"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await requireIdentity(ctx);
+    const highlight = await ctx.db.get(args.highlightId);
+    if (!highlight) return { ok: true };
+    if (highlight.userTokenIdentifier !== identity.tokenIdentifier) {
+      throw new Error("Unauthorized");
+    }
+    await ctx.db.delete(args.highlightId);
+    return { ok: true };
+  },
+});
+
 export const updateParagraphDraft = mutation({
   args: {
     paragraphId: v.id("sermonParagraphs"),
@@ -369,6 +654,144 @@ export const updateParagraphStatus = mutation({
   },
 });
 
+export const setSermonProofreadingState = mutation({
+  args: {
+    sermonId: v.id("sermons"),
+    state: sermonProofreadingStateValidator,
+  },
+  handler: async (ctx, args) => {
+    const sermon = await ctx.db.get(args.sermonId);
+    if (!sermon) {
+      throw new Error("Sermon not found");
+    }
+
+    await ctx.db.patch(args.sermonId, {
+      proofreadingState: args.state,
+    });
+
+    return { ok: true };
+  },
+});
+
+export const publishSermonVersion = mutation({
+  args: {
+    sermonId: v.id("sermons"),
+    languageCode: v.string(),
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const sermon = await ctx.db.get(args.sermonId);
+    if (!sermon) {
+      throw new Error("Sermon not found");
+    }
+
+    const proofreadingState = sermon.proofreadingState ?? "queued";
+    if (proofreadingState !== "done") {
+      throw new Error("Sermon must be marked as done before publishing");
+    }
+
+    const normalizedLanguage = normalizeLanguageCode(args.languageCode);
+    const paragraphs = await ctx.db
+      .query("sermonParagraphs")
+      .withIndex("by_sermonId_and_order", (q) => q.eq("sermonId", args.sermonId))
+      .take(2000);
+
+    if (paragraphs.length === 0) {
+      throw new Error("Cannot publish a sermon without paragraphs");
+    }
+
+    const identity = await ctx.auth.getUserIdentity();
+    const publishedAt = Date.now();
+    const version = (sermon.currentVersion ?? 0) + 1;
+
+    const publishedVersionId = await ctx.db.insert("sermonPublishedVersions", {
+      sermonId: args.sermonId,
+      version,
+      languageCode: normalizedLanguage,
+      proofreadingState: "done",
+      publishedAt,
+      reason: args.reason,
+      authorName: identity?.name ?? identity?.email ?? "Anonymous editor",
+      authorTokenIdentifier: identity?.tokenIdentifier,
+    });
+
+    for (const paragraph of paragraphs) {
+      const translation = await ctx.db
+        .query("sermonParagraphTranslations")
+        .withIndex("by_paragraphId_and_languageCode", (q) =>
+          q.eq("paragraphId", paragraph._id).eq("languageCode", normalizedLanguage),
+        )
+        .unique();
+
+      await ctx.db.insert("sermonPublishedParagraphSnapshots", {
+        publishedVersionId,
+        paragraphId: paragraph._id,
+        order: paragraph.order,
+        sourceText: paragraph.sourceText,
+        translatedText: translation?.translatedText ?? paragraph.sourceText,
+        status: translation?.status ?? "draft",
+      });
+    }
+
+    await ctx.db.patch(args.sermonId, {
+      isPublished: true,
+      currentVersion: version,
+      lastPublishedAt: publishedAt,
+    });
+
+    return {
+      sermonId: args.sermonId,
+      version,
+      publishedAt,
+    };
+  },
+});
+
+export const listPublishedVersions = query({
+  args: {
+    sermonId: v.id("sermons"),
+    paginationOpts: paginationOptsValidator,
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("sermonPublishedVersions")
+      .withIndex("by_sermonId_and_version", (q) => q.eq("sermonId", args.sermonId))
+      .order("desc")
+      .paginate(args.paginationOpts);
+  },
+});
+
+export const getPublishedVersion = query({
+  args: {
+    sermonId: v.id("sermons"),
+    version: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const publishedVersion = await ctx.db
+      .query("sermonPublishedVersions")
+      .withIndex("by_sermonId_and_version", (q) =>
+        q.eq("sermonId", args.sermonId).eq("version", args.version),
+      )
+      .unique();
+
+    if (!publishedVersion) {
+      return null;
+    }
+
+    const paragraphs = await ctx.db
+      .query("sermonPublishedParagraphSnapshots")
+      .withIndex("by_publishedVersionId_and_order", (q) =>
+        q.eq("publishedVersionId", publishedVersion._id),
+      )
+      .take(2000);
+
+    return {
+      ...publishedVersion,
+      paragraphs,
+    };
+  },
+});
+
 export const addComment = mutation({
   args: {
     paragraphId: v.id("sermonParagraphs"),
@@ -444,6 +867,80 @@ export const restoreRevision = mutation({
     });
 
     return { revisionId: createdRevisionId };
+  },
+});
+
+export const revertParagraphToLastApproved = mutation({
+  args: {
+    paragraphId: v.id("sermonParagraphs"),
+    languageCode: v.string(),
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const paragraph = await ctx.db.get(args.paragraphId);
+    if (!paragraph) {
+      throw new Error("Paragraph not found");
+    }
+
+    const translation = await ensureTranslationForParagraph(ctx, paragraph, args.languageCode);
+
+    let targetRevision: Doc<"paragraphTranslationRevisions"> | null = null;
+    const revisionsDesc = ctx.db
+      .query("paragraphTranslationRevisions")
+      .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+        q.eq("paragraphTranslationId", translation._id),
+      )
+      .order("desc");
+
+    for await (const revision of revisionsDesc) {
+      if (revision.status === "approved") {
+        targetRevision = revision;
+        break;
+      }
+    }
+
+    if (!targetRevision) {
+      // Fallback: treat the first stored draft snapshot as the approved baseline.
+      const revisionsAsc = ctx.db
+        .query("paragraphTranslationRevisions")
+        .withIndex("by_paragraphTranslationId_and_createdAt", (q) =>
+          q.eq("paragraphTranslationId", translation._id),
+        )
+        .order("asc");
+      for await (const revision of revisionsAsc) {
+        targetRevision = revision;
+        break;
+      }
+    }
+
+    if (!targetRevision) {
+      throw new Error("No revision history found for paragraph translation");
+    }
+
+    const identity = await ctx.auth.getUserIdentity();
+    const now = Date.now();
+
+    await ctx.db.patch(translation._id, {
+      translatedText: targetRevision.snapshotText,
+      updatedAt: now,
+    });
+
+    await ctx.db.insert("paragraphTranslationRevisions", {
+      paragraphTranslationId: translation._id,
+      snapshotText: targetRevision.snapshotText,
+      status: translation.status,
+      kind: "restore",
+      reason: args.reason ?? "Reverted to last approved translation",
+      restoredFromRevisionId: targetRevision._id,
+      authorName: identity?.name ?? identity?.email ?? "Anonymous editor",
+      authorTokenIdentifier: identity?.tokenIdentifier,
+      createdAt: now,
+    });
+
+    return {
+      ok: true,
+      translatedText: targetRevision.snapshotText,
+    };
   },
 });
 

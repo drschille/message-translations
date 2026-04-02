@@ -31,6 +31,7 @@
     "home": "Home",
     "sermons": "Sermons",
     "translations": "Translations",
+    "proofreading": "Proofreading",
     "about": "About",
     "contact": "Contact"
   },
@@ -63,7 +64,9 @@
     "statusBreakdown": "Status Breakdown",
     "statusApproved": "Approved",
     "statusNeedsReview": "Pending",
-    "statusDraft": "Draft"
+    "statusDraft": "Draft",
+    "exportAnnotations": "Export annotations",
+    "importAnnotations": "Import annotations"
   },
   "editorial": {
     "paragraphComments": "Paragraph Comments",
@@ -79,7 +82,16 @@
     "compare": "Compare",
     "hideCompare": "Hide Compare",
     "diffVsCurrent": "Diff vs current",
-    "confirmRestore": "Restore this revision as current text?"
+    "confirmRestore": "Restore this revision as current text?",
+    "notes": "Notes",
+    "highlightColor": "Highlight {{color}}",
+    "originalColumnLabel": "English (Original)",
+    "translationColumnLabel": "Norwegian (Translation)",
+    "singleColumnTranslationLabel": "Norwegian (Translated)",
+    "expandReviewsPanel": "Expand comments and reviews",
+    "commentsAndReviews": "Comments and reviews",
+    "collapseReviewsPanel": "Hide comments and reviews",
+    "noPendingReviews": "No paragraphs are waiting for approval."
   },
   "proofreading": {
     "backToArchive": "Back To Archive",
@@ -95,18 +107,58 @@
     "saveActiveChanges": "Save Active Changes",
     "saveDraft": "Save Draft",
     "submitForReview": "Submit for Review",
+    "requestApproval": "Request approval",
+    "revertDraftChanges": "Revert changes",
     "exportDraft": "Export Draft",
+    "singleColumnHint": "Only translated text is shown by default",
+    "mode": {
+      "one": "Single column",
+      "two": "Two columns"
+    },
+    "queueTitle": "Sermons ready for",
+    "openProofreader": "Open proofreader",
+    "published": "Published",
+    "unpublished": "Unpublished",
+    "filter": {
+      "state": "Status",
+      "published": "Publishing"
+    },
+    "state": {
+      "queued": "Queued",
+      "inProgress": "In progress",
+      "done": "Done"
+    },
     "approveSegment": "Approve segment {{key}}",
     "editSegment": "Edit segment {{key}}",
     "historyForSegment": "History for segment {{key}}",
     "commentOnSegment": "Comment on segment {{key}}"
   },
   "footer": {
-    "copyright": "© 2024 branham.no. All rights reserved.",
+    "copyright": "© 2026 Budskapet. All rights reserved.",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "archiveGuidelines": "Archive Guidelines",
-    "digitalArchive": "The Digital Archive"
+    "digitalArchive": "The Digital Archive",
+    "brand": {
+      "title": "Budskapet",
+      "tagline": "The Norwegian archive for Budskapet"
+    },
+    "navigation": {
+      "title": "Navigation",
+      "home": "Home",
+      "sermons": "Sermons",
+      "about": "About Us"
+    },
+    "resources": {
+      "title": "Resources",
+      "audio": "Audio Recordings",
+      "translations": "Translations",
+      "contact": "Contact"
+    },
+    "social": {
+      "youtube": "YouTube",
+      "email": "Email"
+    }
   },
   "errors": {
     "deploymentRequired": "Backend Deployment Required",

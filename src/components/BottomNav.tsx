@@ -1,4 +1,4 @@
-import { Home, BookOpen, Info, Mail } from "lucide-react";
+import { Home, BookOpen, Info, Mail, PenSquare } from "lucide-react";
 import { NavLink } from "react-router";
 import { cn } from "@/src/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -54,6 +54,22 @@ export default function BottomNav() {
             <>
               <Info size={20} fill={isActive ? "currentColor" : "none"} />
               <span className="text-[10px]">{t('nav.about')}</span>
+            </>
+          )}
+        </NavLink>
+        <NavLink
+          to="/editor/sermons"
+          className={({ isActive }) =>
+            cn(
+              "flex flex-col items-center gap-1 transition-colors",
+              isActive ? "text-primary" : "text-on-surface/70"
+            )
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <PenSquare size={20} fill={isActive ? "currentColor" : "none"} />
+              <span className="text-[10px]">{t("nav.proofreading")}</span>
             </>
           )}
         </NavLink>

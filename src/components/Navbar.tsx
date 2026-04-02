@@ -33,6 +33,9 @@ export default function Navbar() {
           <NavLink to="/sermons" className={navLinkClass}>
             {t('nav.sermons')}
           </NavLink>
+          <NavLink to="/editor/sermons" className={navLinkClass}>
+            {t("nav.proofreading")}
+          </NavLink>
           <NavLink to="/about" className={navLinkClass}>
             {t('nav.about')}
           </NavLink>

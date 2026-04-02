@@ -24,6 +24,11 @@ const branhamSermonValidator = v.object({
 });
 
 const SERMONS_TOTAL_KEY = "sermons_total";
+const sermonProofreadingStateValidator = v.union(
+  v.literal("queued"),
+  v.literal("in_progress"),
+  v.literal("done"),
+);
 
 function normalizeLanguageCode(languageCode: string) {
   return languageCode.trim().toLowerCase() || "nb";
@@ -85,6 +90,9 @@ async function resolveLocalizedMetadata(
     ...sermon,
     title: localized?.title ?? sermon.title,
     description: localized?.description ?? sermon.description,
+    proofreadingState: sermon.proofreadingState ?? "queued",
+    isPublished: sermon.isPublished ?? false,
+    currentVersion: sermon.currentVersion ?? 0,
   };
 }
 
@@ -107,6 +115,8 @@ export const list = query({
     year: v.optional(v.string()),
     series: v.optional(v.string()),
     languageCode: v.optional(v.string()),
+    proofreadingState: v.optional(sermonProofreadingStateValidator),
+    isPublished: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const languageCode = args.languageCode ?? "nb";
@@ -134,6 +144,12 @@ export const list = query({
 
     if (args.series) {
       filtered = filtered.filter((s) => s.series === args.series);
+    }
+    if (args.proofreadingState) {
+      filtered = filtered.filter((s) => (s.proofreadingState ?? "queued") === args.proofreadingState);
+    }
+    if (typeof args.isPublished === "boolean") {
+      filtered = filtered.filter((s) => (s.isPublished ?? false) === args.isPublished);
     }
 
     const start = args.paginationOpts.cursor ? Number(args.paginationOpts.cursor) : 0;

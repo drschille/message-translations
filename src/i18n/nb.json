@@ -31,6 +31,7 @@
     "home": "Hjem",
     "sermons": "Taler",
     "translations": "Oversettelser",
+    "proofreading": "Korrektur",
     "about": "Om oss",
     "contact": "Kontakt"
   },
@@ -63,7 +64,9 @@
     "statusBreakdown": "Statusfordeling",
     "statusApproved": "Godkjent",
     "statusNeedsReview": "Venter",
-    "statusDraft": "Utkast"
+    "statusDraft": "Utkast",
+    "exportAnnotations": "Eksporter notater",
+    "importAnnotations": "Importer notater"
   },
   "editorial": {
     "paragraphComments": "Paragrafkommentarer",
@@ -79,7 +82,16 @@
     "compare": "Sammenlign",
     "hideCompare": "Skjul sammenligning",
     "diffVsCurrent": "Diff mot gjeldende",
-    "confirmRestore": "Gjenopprett denne revisjonen som gjeldende tekst?"
+    "confirmRestore": "Gjenopprett denne revisjonen som gjeldende tekst?",
+    "notes": "Notater",
+    "highlightColor": "Marker {{color}}",
+    "originalColumnLabel": "Engelsk (original)",
+    "translationColumnLabel": "Norsk (oversettelse)",
+    "singleColumnTranslationLabel": "Norsk (oversatt)",
+    "expandReviewsPanel": "Utvid kommentarer og vurderinger",
+    "commentsAndReviews": "Kommentarer og vurderinger",
+    "collapseReviewsPanel": "Skjul kommentarer og vurderinger",
+    "noPendingReviews": "Ingen avsnitt venter på godkjenning."
   },
   "proofreading": {
     "backToArchive": "Tilbake til arkiv",
@@ -95,18 +107,58 @@
     "saveActiveChanges": "Lagre aktive endringer",
     "saveDraft": "Lagre utkast",
     "submitForReview": "Send til godkjenning",
+    "requestApproval": "Be om godkjenning",
+    "revertDraftChanges": "Tilbakestill endringer",
     "exportDraft": "Eksporter utkast",
+    "singleColumnHint": "Kun oversatt tekst vises som standard",
+    "mode": {
+      "one": "En kolonne",
+      "two": "To kolonner"
+    },
+    "queueTitle": "Taler klar for",
+    "openProofreader": "Åpne korrektur",
+    "published": "Publisert",
+    "unpublished": "Upublisert",
+    "filter": {
+      "state": "Status",
+      "published": "Publisering"
+    },
+    "state": {
+      "queued": "Kø",
+      "inProgress": "Pågår",
+      "done": "Ferdig"
+    },
     "approveSegment": "Godkjenn segment {{key}}",
     "editSegment": "Rediger segment {{key}}",
     "historyForSegment": "Historikk for segment {{key}}",
     "commentOnSegment": "Kommenter på segment {{key}}"
   },
   "footer": {
-    "copyright": "© 2024 branham.no. Med enerett.",
+    "copyright": "© 2026 Budskapet. Alle rettigheter reservert.",
     "privacyPolicy": "Personvern",
     "termsOfService": "Brukervilkår",
     "archiveGuidelines": "Retningslinjer",
-    "digitalArchive": "Det Digitale Arkiv"
+    "digitalArchive": "Det Digitale Arkiv",
+    "brand": {
+      "title": "Budskapet",
+      "tagline": "Det norske arkivet for Budskapet"
+    },
+    "navigation": {
+      "title": "Navigasjon",
+      "home": "Hjem",
+      "sermons": "Taler",
+      "about": "Om oss"
+    },
+    "resources": {
+      "title": "Ressurser",
+      "audio": "Lydopptak",
+      "translations": "Oversettelser",
+      "contact": "Kontakt"
+    },
+    "social": {
+      "youtube": "YouTube",
+      "email": "E-post"
+    }
   },
   "errors": {
     "deploymentRequired": "Backend-utrulling kreves",

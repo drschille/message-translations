@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import {
   Bookmark,
   CalendarDays,
@@ -22,6 +23,7 @@ import homePillarOfFire from "@/src/assets/home_pillar_of_fire.jpg";
 import { formatDate } from "@/src/lib/utils";
 import type { ParagraphId, SermonId } from "@/src/types/editorial";
 import type { Id } from "@/convex/_generated/dataModel";
+import { exportPrivateAnnotations, importPrivateAnnotations } from "@/src/lib/readerPrivateAnnotations";
 
 const fallbackSegments: ParagraphBlockSegment[] = [
   {
@@ -100,6 +102,7 @@ export default function ReaderPage() {
   const [draftText, setDraftText] = useState("");
   const [saving, setSaving] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const sermon = useQuery(
     api.sermons.getById,
@@ -163,6 +166,45 @@ export default function ReaderPage() {
 
   const increaseText = () => setFontScale((prev) => Math.min(1.3, Number((prev + 0.05).toFixed(2))));
   const decreaseText = () => setFontScale((prev) => Math.max(0.85, Number((prev - 0.05).toFixed(2))));
+
+  const handleExportAnnotations = useCallback(async () => {
+    if (!sermonId) return;
+    try {
+      const payload = await exportPrivateAnnotations({ sermonId, languageCode: i18n.language });
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `sermon-${sermonId}-${i18n.language}-annotations.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed exporting annotations", error);
+    }
+  }, [sermonId, i18n.language]);
+
+  const handleImportAnnotations = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      if (!sermonId) return;
+      const file = event.target.files?.[0];
+      event.currentTarget.value = "";
+      if (!file) return;
+      try {
+        const text = await file.text();
+        await importPrivateAnnotations({
+          sermonId,
+          languageCode: i18n.language,
+          jsonText: text,
+          strategy: "merge",
+        });
+      } catch (error) {
+        console.error("Failed importing annotations", error);
+      }
+    },
+    [sermonId, i18n.language],
+  );
 
   const startEditing = useCallback(async (segment: ParagraphBlockSegment) => {
     if (segment.status === "approved") return;
@@ -389,6 +431,25 @@ export default function ReaderPage() {
                   <Download size={16} />
                   {t("reader.downloadPdf")}
                 </a>
+                <button
+                  onClick={handleExportAnnotations}
+                  className="inline-flex items-center gap-2 rounded-md bg-surface-container px-3 py-2 text-sm font-medium transition hover:bg-surface-container-high"
+                >
+                  {t("reader.exportAnnotations", "Eksporter notater")}
+                </button>
+                <button
+                  onClick={() => importInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 rounded-md bg-surface-container px-3 py-2 text-sm font-medium transition hover:bg-surface-container-high"
+                >
+                  {t("reader.importAnnotations", "Importer notater")}
+                </button>
+                <input
+                  ref={importInputRef}
+                  type="file"
+                  accept="application/json"
+                  onChange={handleImportAnnotations}
+                  className="hidden"
+                />
                 <button
                   onClick={() => setBookmarked((prev) => !prev)}
                   className="rounded-md p-2 text-on-surface-variant transition hover:text-primary"
@@ -625,7 +686,9 @@ export default function ReaderPage() {
 
       <ParagraphCommentsModal
         paragraphId={commentsParagraphId}
+        sermonId={sermonId}
         languageCode={i18n.language}
+        storageMode="localPrivate"
         open={Boolean(commentsParagraphId)}
         onClose={() => setCommentsParagraphId(null)}
       />
