@@ -11909,7 +11909,8 @@
                               "fill": "#c3c6cf",
                               "content": "Godkjent",
                               "fontFamily": "Inter",
-                              "fontSize": 12
+                              "fontSize": 12,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -11955,7 +11956,8 @@
                               "fill": "#c3c6cf",
                               "content": "Venter",
                               "fontFamily": "Inter",
-                              "fontSize": 12
+                              "fontSize": 12,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -12001,7 +12003,8 @@
                               "fill": "#c3c6cf",
                               "content": "Utkast",
                               "fontFamily": "Inter",
-                              "fontSize": 12
+                              "fontSize": 12,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -12138,15 +12141,99 @@
                   ],
                   "children": [
                     {
-                      "type": "text",
-                      "id": "a3uZc",
-                      "name": "r1num",
-                      "opacity": 0.5,
-                      "fill": "#8E9099",
-                      "content": "1",
-                      "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "frame",
+                      "id": "dI58z",
+                      "name": "metaR1",
+                      "width": 96,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "alignItems": "end",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "mf6kS",
+                          "width": "fill_container",
+                          "gap": 6,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "KCp92",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "sN47f",
+                                  "fill": "#facc15",
+                                  "width": 7,
+                                  "height": 7
+                                },
+                                {
+                                  "type": "ellipse",
+                                  "id": "l2lkb",
+                                  "fill": "#60a5fa",
+                                  "width": 7,
+                                  "height": 7
+                                },
+                                {
+                                  "type": "ellipse",
+                                  "id": "zBS2C",
+                                  "fill": "#4ade80",
+                                  "width": 7,
+                                  "height": 7
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "c5cLH",
+                              "fill": "#8E9099",
+                              "content": "1",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "p30QR",
+                          "fill": "#1c1b1b",
+                          "cornerRadius": 9999,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#2a2a2a"
+                          },
+                          "gap": 6,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "x4qOs",
+                              "width": 11,
+                              "height": 11,
+                              "iconFontName": "check",
+                              "iconFontFamily": "lucide",
+                              "fill": "#8fb6e4"
+                            },
+                            {
+                              "type": "text",
+                              "id": "u0d8C",
+                              "fill": "#8fb6e4",
+                              "content": "Godkjent",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
                     },
                     {
                       "type": "frame",
@@ -12247,44 +12334,6 @@
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "tXv9m",
-                                  "name": "Status Approved",
-                                  "fill": "#1c1b1b",
-                                  "cornerRadius": 9999,
-                                  "stroke": {
-                                    "align": "inside",
-                                    "thickness": 1,
-                                    "fill": "#2a2a2a"
-                                  },
-                                  "gap": 6,
-                                  "padding": [
-                                    4,
-                                    8
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "icon_font",
-                                      "id": "XBYjr",
-                                      "width": 11,
-                                      "height": 11,
-                                      "iconFontName": "check",
-                                      "iconFontFamily": "lucide",
-                                      "fill": "#8fb6e4"
-                                    },
-                                    {
-                                      "type": "text",
-                                      "id": "yArLH",
-                                      "fill": "#8fb6e4",
-                                      "content": "Godkjent",
-                                      "fontFamily": "Inter",
-                                      "fontSize": 10,
-                                      "fontWeight": "500"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
                                   "id": "s8eHx",
                                   "name": "Back To Draft",
                                   "cornerRadius": 6,
@@ -12349,15 +12398,71 @@
                   ],
                   "children": [
                     {
-                      "type": "text",
-                      "id": "gEAy1",
-                      "name": "r2num",
-                      "opacity": 0.5,
-                      "fill": "#8E9099",
-                      "content": "2",
-                      "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "frame",
+                      "id": "R6mAV",
+                      "name": "metaR2",
+                      "width": 96,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "alignItems": "end",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Ubf9G",
+                          "width": "fill_container",
+                          "gap": 6,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "l1ciR",
+                              "fill": "#8E9099",
+                              "content": "2",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "uwmUo",
+                          "fill": "#1c1b1b",
+                          "cornerRadius": 9999,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#2a2a2a"
+                          },
+                          "gap": 6,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "NU5gu",
+                              "width": 11,
+                              "height": 11,
+                              "iconFontName": "pencil",
+                              "iconFontFamily": "lucide",
+                              "fill": "#8E9099"
+                            },
+                            {
+                              "type": "text",
+                              "id": "hpkzw",
+                              "fill": "#8E9099",
+                              "content": "Utkast",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
                     },
                     {
                       "type": "frame",
@@ -12458,44 +12563,6 @@
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "avfhF",
-                                  "name": "Status Draft",
-                                  "fill": "#1c1b1b",
-                                  "cornerRadius": 9999,
-                                  "stroke": {
-                                    "align": "inside",
-                                    "thickness": 1,
-                                    "fill": "#2a2a2a"
-                                  },
-                                  "gap": 6,
-                                  "padding": [
-                                    4,
-                                    8
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "icon_font",
-                                      "id": "iKNIq",
-                                      "width": 11,
-                                      "height": 11,
-                                      "iconFontName": "pencil",
-                                      "iconFontFamily": "lucide",
-                                      "fill": "#8E9099"
-                                    },
-                                    {
-                                      "type": "text",
-                                      "id": "Wacpz",
-                                      "fill": "#8E9099",
-                                      "content": "Utkast",
-                                      "fontFamily": "Inter",
-                                      "fontSize": 10,
-                                      "fontWeight": "500"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
                                   "id": "xEH73",
                                   "name": "Request Approval",
                                   "cornerRadius": 6,
@@ -12576,15 +12643,85 @@
                   ],
                   "children": [
                     {
-                      "type": "text",
-                      "id": "FpPwu",
-                      "name": "r3num",
-                      "opacity": 0.5,
-                      "fill": "#8E9099",
-                      "content": "3",
-                      "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "frame",
+                      "id": "dkmkc",
+                      "name": "metaR3",
+                      "width": 96,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "alignItems": "end",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "F0efu",
+                          "width": "fill_container",
+                          "gap": 6,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "NHrw8",
+                              "gap": 4,
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "WiTbi",
+                                  "fill": "#60a5fa",
+                                  "width": 7,
+                                  "height": 7
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "2RD8Z",
+                              "fill": "#8E9099",
+                              "content": "3",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "4IrUm",
+                          "fill": "#1c1b1b",
+                          "cornerRadius": 9999,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#2a2a2a"
+                          },
+                          "gap": 6,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "rhMBH",
+                              "width": 11,
+                              "height": 11,
+                              "iconFontName": "clock3",
+                              "iconFontFamily": "lucide",
+                              "fill": "#bda58d"
+                            },
+                            {
+                              "type": "text",
+                              "id": "6mhe1",
+                              "fill": "#bda58d",
+                              "content": "Venter",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
                     },
                     {
                       "type": "frame",
@@ -12685,44 +12822,6 @@
                               "children": [
                                 {
                                   "type": "frame",
-                                  "id": "7O3oW",
-                                  "name": "Status Pending",
-                                  "fill": "#1c1b1b",
-                                  "cornerRadius": 9999,
-                                  "stroke": {
-                                    "align": "inside",
-                                    "thickness": 1,
-                                    "fill": "#2a2a2a"
-                                  },
-                                  "gap": 6,
-                                  "padding": [
-                                    4,
-                                    8
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "icon_font",
-                                      "id": "B8fZ1",
-                                      "width": 11,
-                                      "height": 11,
-                                      "iconFontName": "clock3",
-                                      "iconFontFamily": "lucide",
-                                      "fill": "#bda58d"
-                                    },
-                                    {
-                                      "type": "text",
-                                      "id": "OaBre",
-                                      "fill": "#bda58d",
-                                      "content": "Venter",
-                                      "fontFamily": "Inter",
-                                      "fontSize": 10,
-                                      "fontWeight": "500"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "type": "frame",
                                   "id": "n1ZBv",
                                   "name": "Approve",
                                   "fill": "#a8c9f4",
@@ -12772,15 +12871,71 @@
                   ],
                   "children": [
                     {
-                      "type": "text",
-                      "id": "iv97c",
-                      "name": "r4num",
-                      "opacity": 0.5,
-                      "fill": "#8E9099",
-                      "content": "4",
-                      "fontFamily": "Inter",
-                      "fontSize": 12,
-                      "fontWeight": "normal"
+                      "type": "frame",
+                      "id": "gg6eN",
+                      "name": "metaR4",
+                      "width": 96,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "alignItems": "end",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "eWV8Z",
+                          "width": "fill_container",
+                          "gap": 6,
+                          "justifyContent": "end",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "QRoeB",
+                              "fill": "#8E9099",
+                              "content": "4",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "sQaGW",
+                          "fill": "#1c1b1b",
+                          "cornerRadius": 9999,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#2a2a2a"
+                          },
+                          "gap": 6,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon_font",
+                              "id": "sJgPR",
+                              "width": 11,
+                              "height": 11,
+                              "iconFontName": "pencil",
+                              "iconFontFamily": "lucide",
+                              "fill": "#8E9099"
+                            },
+                            {
+                              "type": "text",
+                              "id": "jFUNc",
+                              "fill": "#8E9099",
+                              "content": "Utkast",
+                              "fontFamily": "Inter",
+                              "fontSize": 10,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
                     },
                     {
                       "type": "frame",
@@ -12879,44 +13034,6 @@
                               "gap": 8,
                               "alignItems": "center",
                               "children": [
-                                {
-                                  "type": "frame",
-                                  "id": "2S61r",
-                                  "name": "Status Draft",
-                                  "fill": "#1c1b1b",
-                                  "cornerRadius": 9999,
-                                  "stroke": {
-                                    "align": "inside",
-                                    "thickness": 1,
-                                    "fill": "#2a2a2a"
-                                  },
-                                  "gap": 6,
-                                  "padding": [
-                                    4,
-                                    8
-                                  ],
-                                  "alignItems": "center",
-                                  "children": [
-                                    {
-                                      "type": "icon_font",
-                                      "id": "4IkGI",
-                                      "width": 11,
-                                      "height": 11,
-                                      "iconFontName": "pencil",
-                                      "iconFontFamily": "lucide",
-                                      "fill": "#8E9099"
-                                    },
-                                    {
-                                      "type": "text",
-                                      "id": "oZrZa",
-                                      "fill": "#8E9099",
-                                      "content": "Utkast",
-                                      "fontFamily": "Inter",
-                                      "fontSize": 10,
-                                      "fontWeight": "500"
-                                    }
-                                  ]
-                                },
                                 {
                                   "type": "frame",
                                   "id": "spzF1",
@@ -13442,7 +13559,7 @@
       "type": "frame",
       "id": "GKEEN",
       "x": 14939,
-      "y": 0,
+      "y": 3,
       "name": "Sermon Reader — Proofreading (Single Column)",
       "clip": true,
       "width": 1440,
@@ -13998,7 +14115,8 @@
                               "fill": "#c3c6cf",
                               "content": "Godkjent",
                               "fontFamily": "Inter",
-                              "fontSize": 12
+                              "fontSize": 12,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -14044,7 +14162,8 @@
                               "fill": "#c3c6cf",
                               "content": "Venter",
                               "fontFamily": "Inter",
-                              "fontSize": 12
+                              "fontSize": 12,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -14090,7 +14209,8 @@
                               "fill": "#c3c6cf",
                               "content": "Utkast",
                               "fontFamily": "Inter",
-                              "fontSize": 12
+                              "fontSize": 12,
+                              "fontWeight": "normal"
                             }
                           ]
                         },
@@ -14161,7 +14281,8 @@
                           "fill": "#8E9099",
                           "content": "Bruk Sammenlign for å vise original",
                           "fontFamily": "Inter",
-                          "fontSize": 11
+                          "fontSize": 11,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -14182,22 +14303,59 @@
                   "children": [
                     {
                       "type": "frame",
-                      "id": "lyiK4",
-                      "name": "Row Top",
+                      "id": "S3fuE",
+                      "name": "top1",
                       "width": "fill_container",
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
                         {
                           "type": "frame",
-                          "id": "zaUpD",
+                          "id": "HSROn",
                           "gap": 8,
                           "alignItems": "center",
                           "children": [
                             {
                               "type": "frame",
-                              "id": "YjPRk",
-                              "name": "Status Approved",
+                              "id": "KrKWa",
+                              "gap": 4,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "o5K99",
+                                  "fill": "#facc15",
+                                  "width": 7,
+                                  "height": 7
+                                },
+                                {
+                                  "type": "ellipse",
+                                  "id": "1531g",
+                                  "fill": "#60a5fa",
+                                  "width": 7,
+                                  "height": 7
+                                },
+                                {
+                                  "type": "ellipse",
+                                  "id": "1PnM4",
+                                  "fill": "#4ade80",
+                                  "width": 7,
+                                  "height": 7
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "hxUAg",
+                              "fill": "#8E9099",
+                              "content": "1",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Ey3Rf",
                               "fill": "#1c1b1b",
                               "cornerRadius": 9999,
                               "stroke": {
@@ -14214,7 +14372,7 @@
                               "children": [
                                 {
                                   "type": "icon_font",
-                                  "id": "H82Ry",
+                                  "id": "HeCyL",
                                   "width": 11,
                                   "height": 11,
                                   "iconFontName": "check",
@@ -14223,7 +14381,7 @@
                                 },
                                 {
                                   "type": "text",
-                                  "id": "2Oz6n",
+                                  "id": "lLBrn",
                                   "fill": "#8fb6e4",
                                   "content": "Godkjent",
                                   "fontFamily": "Inter",
@@ -14236,14 +14394,13 @@
                         },
                         {
                           "type": "frame",
-                          "id": "SXdrk",
-                          "name": "Compare Toggle",
+                          "id": "AwSNp",
                           "gap": 8,
                           "alignItems": "center",
                           "children": [
                             {
                               "type": "frame",
-                              "id": "W8Zjx",
+                              "id": "jzdFb",
                               "cornerRadius": 6,
                               "stroke": {
                                 "align": "inside",
@@ -14257,7 +14414,7 @@
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "P9ObU",
+                                  "id": "VEfde",
                                   "fill": "#c3c6cf",
                                   "content": "Skjul original",
                                   "fontFamily": "Inter",
@@ -14268,7 +14425,7 @@
                             },
                             {
                               "type": "icon_font",
-                              "id": "IowAz",
+                              "id": "LSS7v",
                               "width": 14,
                               "height": 14,
                               "iconFontName": "chevron-up",
@@ -14313,6 +14470,7 @@
                           "lineHeight": 1.8,
                           "fontFamily": "Noto Serif",
                           "fontSize": 14,
+                          "fontWeight": "normal",
                           "fontStyle": "italic"
                         }
                       ]
@@ -14343,7 +14501,8 @@
                           "content": "God kveld, venner. Det er et stort privilegium å være tilbake her i Herrens hus i kveld under møtet...",
                           "lineHeight": 1.8,
                           "fontFamily": "Noto Serif",
-                          "fontSize": 15
+                          "fontSize": 15,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -14417,58 +14576,75 @@
                   "children": [
                     {
                       "type": "frame",
-                      "id": "WVBRK",
+                      "id": "uK2h6",
+                      "name": "top2",
                       "width": "fill_container",
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
                         {
                           "type": "frame",
-                          "id": "Hbkt6",
-                          "name": "Status Draft",
-                          "fill": "#1c1b1b",
-                          "cornerRadius": 9999,
-                          "stroke": {
-                            "align": "inside",
-                            "thickness": 1,
-                            "fill": "#2a2a2a"
-                          },
-                          "gap": 6,
-                          "padding": [
-                            4,
-                            8
-                          ],
+                          "id": "dt9sG",
+                          "gap": 8,
                           "alignItems": "center",
                           "children": [
                             {
-                              "type": "icon_font",
-                              "id": "whr5l",
-                              "width": 11,
-                              "height": 11,
-                              "iconFontName": "pencil",
-                              "iconFontFamily": "lucide",
-                              "fill": "#8E9099"
+                              "type": "text",
+                              "id": "jxFNc",
+                              "fill": "#8E9099",
+                              "content": "2",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
                             },
                             {
-                              "type": "text",
-                              "id": "H7KRv",
-                              "fill": "#8E9099",
-                              "content": "Utkast",
-                              "fontFamily": "Inter",
-                              "fontSize": 10,
-                              "fontWeight": "500"
+                              "type": "frame",
+                              "id": "U1Jib",
+                              "fill": "#1c1b1b",
+                              "cornerRadius": 9999,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "#2a2a2a"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                4,
+                                8
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "qdyD8",
+                                  "width": 11,
+                                  "height": 11,
+                                  "iconFontName": "pencil",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "#8E9099"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "ttCHp",
+                                  "fill": "#8E9099",
+                                  "content": "Utkast",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10,
+                                  "fontWeight": "500"
+                                }
+                              ]
                             }
                           ]
                         },
                         {
                           "type": "frame",
-                          "id": "2vIYe",
+                          "id": "QsXtx",
                           "gap": 8,
                           "alignItems": "center",
                           "children": [
                             {
                               "type": "frame",
-                              "id": "W18IK",
+                              "id": "ThgTi",
                               "cornerRadius": 6,
                               "stroke": {
                                 "align": "inside",
@@ -14482,7 +14658,7 @@
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "cIN8k",
+                                  "id": "Ur78L",
                                   "fill": "#c3c6cf",
                                   "content": "Sammenlign",
                                   "fontFamily": "Inter",
@@ -14493,7 +14669,7 @@
                             },
                             {
                               "type": "icon_font",
-                              "id": "UfIhP",
+                              "id": "rFOit",
                               "width": 14,
                               "height": 14,
                               "iconFontName": "chevron-down",
@@ -14520,7 +14696,8 @@
                           "content": "Så i kveld, mens vi roer oss ned... Jeg kan bli litt langdryg i kveld. All forkynnelsen jeg gjorde i Phoenix...",
                           "lineHeight": 1.8,
                           "fontFamily": "Noto Serif",
-                          "fontSize": 15
+                          "fontSize": 15,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -14607,58 +14784,90 @@
                   "children": [
                     {
                       "type": "frame",
-                      "id": "C18QI",
+                      "id": "u9Gvo",
+                      "name": "top3",
                       "width": "fill_container",
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
                         {
                           "type": "frame",
-                          "id": "Usuh0",
-                          "name": "Status Pending",
-                          "fill": "#1c1b1b",
-                          "cornerRadius": 9999,
-                          "stroke": {
-                            "align": "inside",
-                            "thickness": 1,
-                            "fill": "#2a2a2a"
-                          },
-                          "gap": 6,
-                          "padding": [
-                            4,
-                            8
-                          ],
-                          "alignItems": "center",
-                          "children": [
-                            {
-                              "type": "icon_font",
-                              "id": "GtXyL",
-                              "width": 11,
-                              "height": 11,
-                              "iconFontName": "clock3",
-                              "iconFontFamily": "lucide",
-                              "fill": "#bda58d"
-                            },
-                            {
-                              "type": "text",
-                              "id": "H98YU",
-                              "fill": "#bda58d",
-                              "content": "Venter",
-                              "fontFamily": "Inter",
-                              "fontSize": 10,
-                              "fontWeight": "500"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "frame",
-                          "id": "mYomP",
+                          "id": "l2ENm",
                           "gap": 8,
                           "alignItems": "center",
                           "children": [
                             {
                               "type": "frame",
-                              "id": "FXzQD",
+                              "id": "vJsqL",
+                              "gap": 4,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "ellipse",
+                                  "id": "y0Zjn",
+                                  "fill": "#60a5fa",
+                                  "width": 7,
+                                  "height": 7
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "F3ywY",
+                              "fill": "#8E9099",
+                              "content": "3",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "fCvhR",
+                              "fill": "#1c1b1b",
+                              "cornerRadius": 9999,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "#2a2a2a"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                4,
+                                8
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "87Kne",
+                                  "width": 11,
+                                  "height": 11,
+                                  "iconFontName": "clock3",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "#bda58d"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "QckHi",
+                                  "fill": "#bda58d",
+                                  "content": "Venter",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "8QwZE",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "sQzWP",
                               "cornerRadius": 6,
                               "stroke": {
                                 "align": "inside",
@@ -14672,7 +14881,7 @@
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "H4Vd4",
+                                  "id": "GhHO5",
                                   "fill": "#c3c6cf",
                                   "content": "Sammenlign",
                                   "fontFamily": "Inter",
@@ -14683,7 +14892,7 @@
                             },
                             {
                               "type": "icon_font",
-                              "id": "Wlw1S",
+                              "id": "gl2QL",
                               "width": 14,
                               "height": 14,
                               "iconFontName": "chevron-down",
@@ -14710,7 +14919,8 @@
                           "content": "Hvor mange her har lest Hva er Klokken, Herrer? ... Fra huset tar det bare omtrent tretti minutter...",
                           "lineHeight": 1.8,
                           "fontFamily": "Noto Serif",
-                          "fontSize": 15
+                          "fontSize": 15,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -14768,58 +14978,75 @@
                   "children": [
                     {
                       "type": "frame",
-                      "id": "OQNFg",
+                      "id": "60pNs",
+                      "name": "top4",
                       "width": "fill_container",
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
                         {
                           "type": "frame",
-                          "id": "0us4y",
-                          "name": "Status Draft",
-                          "fill": "#1c1b1b",
-                          "cornerRadius": 9999,
-                          "stroke": {
-                            "align": "inside",
-                            "thickness": 1,
-                            "fill": "#2a2a2a"
-                          },
-                          "gap": 6,
-                          "padding": [
-                            4,
-                            8
-                          ],
+                          "id": "MavHW",
+                          "gap": 8,
                           "alignItems": "center",
                           "children": [
                             {
-                              "type": "icon_font",
-                              "id": "kMirg",
-                              "width": 11,
-                              "height": 11,
-                              "iconFontName": "pencil",
-                              "iconFontFamily": "lucide",
-                              "fill": "#8E9099"
+                              "type": "text",
+                              "id": "Absh9",
+                              "fill": "#8E9099",
+                              "content": "4",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "500"
                             },
                             {
-                              "type": "text",
-                              "id": "aPuLC",
-                              "fill": "#8E9099",
-                              "content": "Utkast",
-                              "fontFamily": "Inter",
-                              "fontSize": 10,
-                              "fontWeight": "500"
+                              "type": "frame",
+                              "id": "mCdW3",
+                              "fill": "#1c1b1b",
+                              "cornerRadius": 9999,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "#2a2a2a"
+                              },
+                              "gap": 6,
+                              "padding": [
+                                4,
+                                8
+                              ],
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon_font",
+                                  "id": "YcGpp",
+                                  "width": 11,
+                                  "height": 11,
+                                  "iconFontName": "pencil",
+                                  "iconFontFamily": "lucide",
+                                  "fill": "#8E9099"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "5KJzU",
+                                  "fill": "#8E9099",
+                                  "content": "Utkast",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 10,
+                                  "fontWeight": "500"
+                                }
+                              ]
                             }
                           ]
                         },
                         {
                           "type": "frame",
-                          "id": "Y6a1I",
+                          "id": "Elj7q",
                           "gap": 8,
                           "alignItems": "center",
                           "children": [
                             {
                               "type": "frame",
-                              "id": "1mkg5",
+                              "id": "jCgrG",
                               "cornerRadius": 6,
                               "stroke": {
                                 "align": "inside",
@@ -14833,7 +15060,7 @@
                               "children": [
                                 {
                                   "type": "text",
-                                  "id": "ryFBd",
+                                  "id": "SuMoQ",
                                   "fill": "#c3c6cf",
                                   "content": "Sammenlign",
                                   "fontFamily": "Inter",
@@ -14844,7 +15071,7 @@
                             },
                             {
                               "type": "icon_font",
-                              "id": "QZnuJ",
+                              "id": "cKc2h",
                               "width": 14,
                               "height": 14,
                               "iconFontName": "chevron-down",
@@ -14871,7 +15098,8 @@
                           "content": "Vi var nylig i Phoenix, hvor det var rundt 28 grader... Dette skyldes forskjellen mellom oppstrømningene og ørkenen.",
                           "lineHeight": 1.8,
                           "fontFamily": "Noto Serif",
-                          "fontSize": 15
+                          "fontSize": 15,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
