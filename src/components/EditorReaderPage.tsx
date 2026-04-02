@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Bookmark,
   Check,
@@ -939,17 +940,28 @@ export default function EditorReaderPage() {
                     </div>
 
                     <div className="min-w-0 space-y-3">
-                      {compareIsOpen && (
-                        <div className="space-y-2">
-                          <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                            {t("reader.original", "Original")}
-                          </div>
-                          <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
-                            {segment.sourceText}
-                          </p>
-                          <div className="h-px bg-outline/35" />
-                        </div>
-                      )}
+                      <AnimatePresence initial={false}>
+                        {compareIsOpen && (
+                          <motion.div
+                            key={`compare-${segment.key}`}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.22, ease: "easeOut" }}
+                            className="overflow-hidden"
+                          >
+                            <div className="space-y-2 pb-1">
+                              <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
+                                {t("reader.original", "Original")}
+                              </div>
+                              <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
+                                {segment.sourceText}
+                              </p>
+                              <div className="h-px bg-outline/35" />
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
                       <div className="relative">
                         <div
