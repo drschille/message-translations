@@ -131,7 +131,9 @@ export default defineSchema({
     sourceText: v.string(),
     translatedText: v.string(),
     status: paragraphStatus,
-  }).index("by_publishedVersionId_and_order", ["publishedVersionId", "order"]),
+  })
+    .index("by_publishedVersionId_and_order", ["publishedVersionId", "order"])
+    .index("by_paragraphId", ["paragraphId"]),
   editorToolbarPrefs: defineTable({
     sermonId: v.id("sermons"),
     languageCode: v.string(),
@@ -160,6 +162,7 @@ export default defineSchema({
       "languageCode",
       "userTokenIdentifier",
     ])
+    .index("by_paragraphId", ["paragraphId"])
     .index("by_paragraphId_and_languageCode_and_userTokenIdentifier", [
       "paragraphId",
       "languageCode",

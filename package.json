@@ -11,6 +11,7 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "import:sermons": "node scripts/import-sermons.mjs",
+    "import:paragraphs": "node scripts/import-sermon-paragraphs.mjs",
     "convex:dev": "convex dev",
     "convex:deploy": "convex deploy"
   },

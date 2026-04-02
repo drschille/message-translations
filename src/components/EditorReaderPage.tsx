@@ -156,8 +156,36 @@ function useAutoGrowTranslatedTextareas(deps: ReadonlyArray<unknown>) {
   }, []);
 
   useLayoutEffect(() => {
-    const textareas = document.querySelectorAll<HTMLTextAreaElement>("[data-editor-autogrow='translated']");
-    textareas.forEach((textarea) => autoResizeTranslatedTextarea(textarea));
+    const textareas = Array.from(
+      document.querySelectorAll<HTMLTextAreaElement>("[data-editor-autogrow='translated']"),
+    );
+
+    const resizeAll = () => {
+      textareas.forEach((textarea) => autoResizeTranslatedTextarea(textarea));
+    };
+
+    resizeAll();
+    const frame = window.requestAnimationFrame(resizeAll);
+
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            resizeAll();
+          })
+        : null;
+
+    textareas.forEach((textarea) => observer?.observe(textarea));
+
+    const onWindowResize = () => {
+      resizeAll();
+    };
+    window.addEventListener("resize", onWindowResize);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", onWindowResize);
+      observer?.disconnect();
+    };
   }, [autoResizeTranslatedTextarea, ...deps]);
 
   return autoResizeTranslatedTextarea;
@@ -168,7 +196,8 @@ export default function EditorReaderPage() {
   const { sermonId: sermonIdParam } = useParams();
   const navigate = useNavigate();
   const sermonId = sermonIdParam as SermonId | undefined;
-  const languageCode = normalizeLanguageCode(i18n.language);
+  const uiLanguageCode = normalizeLanguageCode(i18n.language);
+  const proofreaderLanguageCode = "nb";
 
   const [columnMode, setColumnMode] = useState<ColumnMode>("one");
   const [compareOpen, setCompareOpen] = useState<Record<string, boolean>>({});
@@ -186,11 +215,13 @@ export default function EditorReaderPage() {
 
   const sermon = useQuery(
     api.sermons.getById,
-    sermonId ? { id: sermonId as Id<"sermons">, languageCode } : "skip",
+    sermonId ? { id: sermonId as Id<"sermons">, languageCode: uiLanguageCode } : "skip",
   );
   const paragraphsResult = useQuery(
     api.editorial.listParagraphs,
-    sermonId ? { sermonId, languageCode, paginationOpts: { cursor: null, numItems: 500 } } : "skip",
+    sermonId
+      ? { sermonId, languageCode: proofreaderLanguageCode, paginationOpts: { cursor: null, numItems: 500 } }
+      : "skip",
   );
   const versionsResult = useQuery(
     api.editorial.listPublishedVersions as any,
@@ -198,7 +229,7 @@ export default function EditorReaderPage() {
   );
   const revertBaselinesResult = useQuery(
     api.editorial.listRevertBaselines as any,
-    sermonId ? { sermonId, languageCode } : "skip",
+    sermonId ? { sermonId, languageCode: proofreaderLanguageCode } : "skip",
   );
   const ensureParagraphs = useMutation(api.editorial.ensureParagraphsForSermon);
   const updateParagraphDraft = useMutation(api.editorial.updateParagraphDraft);
@@ -207,10 +238,10 @@ export default function EditorReaderPage() {
 
   useEffect(() => {
     if (!sermonId) return;
-    ensureParagraphs({ sermonId, languageCode }).catch((error) => {
+    ensureParagraphs({ sermonId, languageCode: proofreaderLanguageCode }).catch((error) => {
       console.error("Failed ensuring paragraphs", error);
     });
-  }, [sermonId, ensureParagraphs, languageCode]);
+  }, [sermonId, ensureParagraphs, proofreaderLanguageCode]);
 
   const segments = useMemo<Segment[]>(() => {
     if (!paragraphsResult?.page || paragraphsResult.page.length === 0) return fallbackSegments;
@@ -240,8 +271,8 @@ export default function EditorReaderPage() {
     if (!sermonId) return;
     let cancelled = false;
     Promise.all([
-      getPrivateToolbarPrefs({ sermonId, languageCode }),
-      listPrivateHighlights({ sermonId, languageCode }),
+      getPrivateToolbarPrefs({ sermonId, languageCode: proofreaderLanguageCode }),
+      listPrivateHighlights({ sermonId, languageCode: proofreaderLanguageCode }),
     ])
       .then(([prefs, highlights]) => {
         if (cancelled) return;
@@ -266,7 +297,7 @@ export default function EditorReaderPage() {
     return () => {
       cancelled = true;
     };
-  }, [sermonId, languageCode]);
+  }, [sermonId, proofreaderLanguageCode]);
 
   const highlights: HighlightEntry[] = useMemo(() => localHighlights, [localHighlights]);
 
@@ -322,7 +353,7 @@ export default function EditorReaderPage() {
       try {
         await setPrivateToolbarPrefs({
           sermonId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           fontSizePx: next.fontSizePx ?? fontSizePx,
           bookmarked: next.bookmarked ?? bookmarked,
         });
@@ -330,7 +361,7 @@ export default function EditorReaderPage() {
         console.error("Failed persisting local toolbar prefs", error);
       }
     },
-    [sermonId, languageCode, fontSizePx, bookmarked],
+    [sermonId, proofreaderLanguageCode, fontSizePx, bookmarked],
   );
 
   const ensureDrafting = useCallback(
@@ -340,7 +371,7 @@ export default function EditorReaderPage() {
       try {
         await updateParagraphStatus({
           paragraphId: segment.paragraphId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           status: "drafting",
           reason: "Edit requested in editor proofreader",
         });
@@ -348,7 +379,7 @@ export default function EditorReaderPage() {
         setBusy(segment.key, false);
       }
     },
-    [updateParagraphStatus, languageCode],
+    [updateParagraphStatus, proofreaderLanguageCode],
   );
 
   const saveDraft = useCallback(
@@ -360,7 +391,7 @@ export default function EditorReaderPage() {
       try {
         await updateParagraphDraft({
           paragraphId: segment.paragraphId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           translatedText: drafts[segment.key] ?? segment.translatedText,
           reason: submitForReview
             ? "Submitted for review from editor proofreader"
@@ -372,7 +403,7 @@ export default function EditorReaderPage() {
         savingDraftKeysRef.current.delete(segment.key);
       }
     },
-    [updateParagraphDraft, languageCode, drafts],
+    [updateParagraphDraft, proofreaderLanguageCode, drafts],
   );
 
   const approve = useCallback(
@@ -382,7 +413,7 @@ export default function EditorReaderPage() {
       try {
         await updateParagraphStatus({
           paragraphId: segment.paragraphId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           status: "approved",
           reason: "Approved in editor proofreader",
         });
@@ -390,7 +421,7 @@ export default function EditorReaderPage() {
         setBusy(segment.key, false);
       }
     },
-    [updateParagraphStatus, languageCode],
+    [updateParagraphStatus, proofreaderLanguageCode],
   );
 
   const approveIfClean = useCallback(
@@ -417,7 +448,7 @@ export default function EditorReaderPage() {
       try {
         const result = await revertParagraphToLastApproved({
           paragraphId: segment.paragraphId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           reason: "Reverted to last approved translation from editor proofreader",
         });
         if (result?.translatedText) {
@@ -427,7 +458,7 @@ export default function EditorReaderPage() {
         setBusy(segment.key, false);
       }
     },
-    [revertParagraphToLastApproved, languageCode],
+    [revertParagraphToLastApproved, proofreaderLanguageCode],
   );
 
   const captureSelection = (segment: Segment, element: HTMLTextAreaElement) => {
@@ -460,6 +491,7 @@ export default function EditorReaderPage() {
     fontSizePx,
     columnMode,
     segments.length,
+    i18n.language,
   ]);
 
   const applyHighlight = async (color: HighlightColor) => {
@@ -497,7 +529,7 @@ export default function EditorReaderPage() {
       const saved = await upsertPrivateHighlight({
         sermonId,
         paragraphId: activeSelection.paragraphId,
-        languageCode,
+        languageCode: proofreaderLanguageCode,
         color,
         startOffset: activeSelection.startOffset,
         endOffset: activeSelection.endOffset,
@@ -545,12 +577,15 @@ export default function EditorReaderPage() {
   const handleExportAnnotations = useCallback(async () => {
     if (!sermonId) return;
     try {
-      const payload = await exportPrivateAnnotations({ sermonId, languageCode });
+      const payload = await exportPrivateAnnotations({
+        sermonId,
+        languageCode: proofreaderLanguageCode,
+      });
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `sermon-${sermonId}-${languageCode}-annotations.json`;
+      link.download = `sermon-${sermonId}-${proofreaderLanguageCode}-annotations.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -558,7 +593,7 @@ export default function EditorReaderPage() {
     } catch (error) {
       console.error("Failed exporting annotations", error);
     }
-  }, [sermonId, languageCode]);
+  }, [sermonId, proofreaderLanguageCode]);
 
   const handleImportFile = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -570,13 +605,13 @@ export default function EditorReaderPage() {
         const text = await file.text();
         await importPrivateAnnotations({
           sermonId,
-          languageCode,
+          languageCode: proofreaderLanguageCode,
           jsonText: text,
           strategy: "merge",
         });
         const [prefs, highlights] = await Promise.all([
-          getPrivateToolbarPrefs({ sermonId, languageCode }),
-          listPrivateHighlights({ sermonId, languageCode }),
+          getPrivateToolbarPrefs({ sermonId, languageCode: proofreaderLanguageCode }),
+          listPrivateHighlights({ sermonId, languageCode: proofreaderLanguageCode }),
         ]);
         if (prefs) {
           setFontSizePx(prefs.fontSizePx);
@@ -596,7 +631,7 @@ export default function EditorReaderPage() {
         console.error("Failed importing annotations", error);
       }
     },
-    [sermonId, languageCode],
+    [sermonId, proofreaderLanguageCode],
   );
 
   if (sermon === undefined) {
@@ -622,7 +657,7 @@ export default function EditorReaderPage() {
       <section className="px-6 md:px-20 pt-10 pb-8 border-b border-outline/20">
         <h1 className="font-headline text-4xl md:text-5xl tracking-tight">{sermon.title}</h1>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.12em] text-on-surface-variant">
-          <span>{formatDate(sermon.date, languageCode)}</span>
+          <span>{formatDate(sermon.date, uiLanguageCode)}</span>
           <span className="h-1 w-1 rounded-full bg-outline" />
           <span>{sermon.series ?? t("common.series")}</span>
           <span className="h-1 w-1 rounded-full bg-outline" />
@@ -837,7 +872,10 @@ export default function EditorReaderPage() {
                       </div>
                     </div>
                     <div className="pr-4 border-r border-outline/25">
-                      <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
+                      <p
+                        className="italic whitespace-pre-wrap break-words text-on-surface-variant leading-relaxed"
+                        style={{ fontSize: `${fontSizePx}px` }}
+                      >
                         {segment.sourceText}
                       </p>
                     </div>
@@ -962,7 +1000,10 @@ export default function EditorReaderPage() {
                               <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
                                 {t("reader.original")}
                               </div>
-                              <p className="italic text-on-surface-variant leading-relaxed" style={{ fontSize: `${fontSizePx}px` }}>
+                              <p
+                                className="italic whitespace-pre-wrap break-words text-on-surface-variant leading-relaxed"
+                                style={{ fontSize: `${fontSizePx}px` }}
+                              >
                                 {segment.sourceText}
                               </p>
                               <div className="h-px bg-outline/35" />
