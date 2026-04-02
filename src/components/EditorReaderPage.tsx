@@ -181,6 +181,7 @@ export default function EditorReaderPage() {
   const [activeSelection, setActiveSelection] = useState<SelectionInfo | null>(null);
   const [selectedHighlightColor, setSelectedHighlightColor] = useState<HighlightColor | null>(null);
   const [localHighlights, setLocalHighlights] = useState<HighlightEntry[]>([]);
+  const savingDraftKeysRef = useRef<Set<string>>(new Set());
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const sermon = useQuery(
@@ -353,6 +354,8 @@ export default function EditorReaderPage() {
   const saveDraft = useCallback(
     async (segment: Segment, submitForReview = false) => {
       if (!segment.paragraphId) return;
+      if (savingDraftKeysRef.current.has(segment.key)) return;
+      savingDraftKeysRef.current.add(segment.key);
       setBusy(segment.key, true);
       try {
         await updateParagraphDraft({
@@ -366,6 +369,7 @@ export default function EditorReaderPage() {
         });
       } finally {
         setBusy(segment.key, false);
+        savingDraftKeysRef.current.delete(segment.key);
       }
     },
     [updateParagraphDraft, languageCode, drafts],
@@ -886,6 +890,7 @@ export default function EditorReaderPage() {
                         {(segment.status === "draft" || segment.status === "drafting") && (
                           <>
                             <button
+                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
                               onClick={() => saveDraft(segment, true)}
                               disabled={saving}
                               className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
@@ -1025,6 +1030,7 @@ export default function EditorReaderPage() {
                         {(segment.status === "draft" || segment.status === "drafting") && (
                           <div className="flex flex-col items-end gap-2">
                             <button
+                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
                               onClick={() => saveDraft(segment, true)}
                               disabled={saving}
                               className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
