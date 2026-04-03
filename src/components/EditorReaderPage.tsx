@@ -1266,17 +1266,7 @@ export default function EditorReaderPage() {
                           <span>{state.label}</span>
                         </div>
                         <div className="flex items-center justify-end gap-1">
-                          {isTwoColumn ? (
-                            <span className="inline-flex h-6 w-6" aria-hidden />
-                          ) : (
-                            <button
-                              onClick={() => setCompareOpen((prev) => ({ ...prev, [segment.key]: !compareIsOpen }))}
-                              className={iconButtonNeutral}
-                              aria-label={compareIsOpen ? t("editorial.hideCompare") : t("editorial.compare")}
-                            >
-                              {compareIsOpen ? <ChevronUp size={12} /> : <Columns2 size={12} />}
-                            </button>
-                          )}
+                          <span className="inline-flex h-6 w-6" aria-hidden />
                           {showEdit && (
                             <button
                               onClick={() => ensureDrafting(segment)}
@@ -1348,81 +1338,95 @@ export default function EditorReaderPage() {
                           </div>
                         </div>
 
-                        <div className={`min-w-0 space-y-3 ${isTwoColumn ? "pl-2" : ""}`}>
-                        {!isTwoColumn && (
-                          <AnimatePresence initial={false}>
-                            {compareIsOpen && (
-                              <motion.div
-                                key={`compare-${segment.key}`}
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={modeFadeTransition}
-                                className="overflow-hidden"
-                              >
-                                <div className="space-y-2 pb-1">
-                                  <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                                    {t("reader.original")}
-                                  </div>
-                                  <p
-                                    className="italic text-on-surface-variant leading-relaxed"
-                                    style={{ fontSize: `${fontSizePx}px` }}
-                                  >
-                                    {renderTextWithLineBreakSpacing(segment.sourceText)}
-                                  </p>
-                                  <div className="h-px bg-outline/35" />
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        )}
+                        <div className={`min-w-0 ${isTwoColumn ? "pl-2" : ""}`}>
+                          <div className={`min-w-0 ${isTwoColumn ? "space-y-3" : "flex items-start gap-2"}`}>
+                            <div className="min-w-0 flex-1 space-y-3">
+                              {!isTwoColumn && (
+                                <AnimatePresence initial={false}>
+                                  {compareIsOpen && (
+                                    <motion.div
+                                      key={`compare-${segment.key}`}
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: "auto", opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={modeFadeTransition}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="space-y-2 pb-1">
+                                        <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
+                                          {t("reader.original")}
+                                        </div>
+                                        <p
+                                          className="italic text-on-surface-variant leading-relaxed"
+                                          style={{ fontSize: `${fontSizePx}px` }}
+                                        >
+                                          {renderTextWithLineBreakSpacing(segment.sourceText)}
+                                        </p>
+                                        <div className="h-px bg-outline/35" />
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              )}
 
-                        <div className="relative">
-                          <div
-                            className="pointer-events-none absolute inset-0 text-on-surface leading-relaxed"
-                            style={{ fontSize: `${fontSizePx}px` }}
-                          >
-                            {renderHighlightedTextWithLineBreakSpacing(
-                              currentText,
-                              highlights.filter((h) => h.paragraphId === segment.paragraphId),
+                              <div className="relative">
+                                <div
+                                  className="pointer-events-none absolute inset-0 text-on-surface leading-relaxed"
+                                  style={{ fontSize: `${fontSizePx}px` }}
+                                >
+                                  {renderHighlightedTextWithLineBreakSpacing(
+                                    currentText,
+                                    highlights.filter((h) => h.paragraphId === segment.paragraphId),
+                                  )}
+                                </div>
+                                <div
+                                  ref={(node) => {
+                                    if (node) {
+                                      editableRefs.current.set(segment.key, node);
+                                      if (!node.innerHTML.trim()) {
+                                        node.innerHTML = textToEditorHtml(currentText);
+                                      }
+                                    } else {
+                                      editableRefs.current.delete(segment.key);
+                                    }
+                                  }}
+                                  contentEditable={!lockedApproved && !saving}
+                                  suppressContentEditableWarning
+                                  spellCheck={false}
+                                  onSelect={(e) => captureSelection(segment, e.currentTarget)}
+                                  onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
+                                  onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
+                                  onInput={(e) => {
+                                    const nextValue = readEditorText(e.currentTarget);
+                                    setDrafts((prev) => ({ ...prev, [segment.key]: nextValue }));
+                                  }}
+                                  onBlur={() => {
+                                    if (suppressBlurSaveKey === segment.key) {
+                                      setSuppressBlurSaveKey(null);
+                                      return;
+                                    }
+                                    if (!lockedApproved && dirty) {
+                                      saveDraft(segment, false).catch((e) => console.error(e));
+                                    }
+                                  }}
+                                  className={`relative z-10 block w-full min-h-20 rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
+                                    lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
+                                  }`}
+                                  style={{ fontSize: `${fontSizePx}px` }}
+                                />
+                              </div>
+                            </div>
+
+                            {!isTwoColumn && (
+                              <button
+                                onClick={() => setCompareOpen((prev) => ({ ...prev, [segment.key]: !compareIsOpen }))}
+                                className={`${iconButtonNeutral} shrink-0`}
+                                aria-label={compareIsOpen ? t("editorial.hideCompare") : t("editorial.compare")}
+                              >
+                                {compareIsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                              </button>
                             )}
                           </div>
-                          <div
-                            ref={(node) => {
-                              if (node) {
-                                editableRefs.current.set(segment.key, node);
-                                if (!node.innerHTML.trim()) {
-                                  node.innerHTML = textToEditorHtml(currentText);
-                                }
-                              } else {
-                                editableRefs.current.delete(segment.key);
-                              }
-                            }}
-                            contentEditable={!lockedApproved && !saving}
-                            suppressContentEditableWarning
-                            spellCheck={false}
-                            onSelect={(e) => captureSelection(segment, e.currentTarget)}
-                            onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
-                            onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
-                            onInput={(e) => {
-                              const nextValue = readEditorText(e.currentTarget);
-                              setDrafts((prev) => ({ ...prev, [segment.key]: nextValue }));
-                            }}
-                            onBlur={() => {
-                              if (suppressBlurSaveKey === segment.key) {
-                                setSuppressBlurSaveKey(null);
-                                return;
-                              }
-                              if (!lockedApproved && dirty) {
-                                saveDraft(segment, false).catch((e) => console.error(e));
-                              }
-                            }}
-                            className={`relative z-10 block w-full min-h-20 rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
-                              lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
-                            }`}
-                            style={{ fontSize: `${fontSizePx}px` }}
-                          />
-                        </div>
                         </div>
                       </div>
                     </div>
