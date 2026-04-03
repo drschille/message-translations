@@ -167,7 +167,7 @@ function renderTextWithLineBreakSpacing(text: string) {
   return (
     <span className="block space-y-2">
       {lines.map((line, index) => (
-        <span key={index} className="block break-words">
+        <span key={index} className="block break-words whitespace-pre-wrap">
           {line.length > 0 ? line : "\u00A0"}
         </span>
       ))}
@@ -288,7 +288,7 @@ function renderHighlightedTextWithLineBreakSpacing(text: string, highlights: Hig
 
         const node = pieces.length > 0 ? pieces : ["\u00A0"];
         const rendered = (
-          <span key={`line-${lineIndex}`} className="block break-words">
+          <span key={`line-${lineIndex}`} className="block break-words whitespace-pre-wrap">
             {node}
           </span>
         );
@@ -320,10 +320,27 @@ function textToEditorHtml(text: string) {
     .join("");
 }
 
+function readNodeTextPreservingWhitespace(node: Node): string {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return (node.nodeValue ?? "").replaceAll("\u00A0", " ");
+  }
+  if (node.nodeType !== Node.ELEMENT_NODE) return "";
+  const element = node as HTMLElement;
+  if (element.tagName === "BR") return "\n";
+
+  let text = "";
+  element.childNodes.forEach((child) => {
+    text += readNodeTextPreservingWhitespace(child);
+  });
+  return text;
+}
+
 function readEditorText(editor: HTMLElement) {
-  // For editable content, innerText preserves block boundaries as line breaks.
-  const text = editor.innerText.replace(/\r\n/g, "\n");
-  return text.endsWith("\n") ? text.slice(0, -1) : text;
+  const children = Array.from(editor.childNodes);
+  if (children.length === 0) return "";
+
+  const lines = children.map((child) => readNodeTextPreservingWhitespace(child).replace(/\r\n/g, "\n").replace(/\r/g, "\n"));
+  return lines.join("\n");
 }
 
 function normalizeSelectionText(text: string) {
@@ -632,10 +649,11 @@ export default function EditorReaderPage() {
       savingDraftKeysRef.current.add(segment.key);
       setBusy(segment.key, true);
       try {
+        const draftText = drafts[segment.key] ?? segment.translatedText;
         await updateParagraphDraft({
           paragraphId: segment.paragraphId,
           languageCode: proofreaderLanguageCode,
-          translatedText: drafts[segment.key] ?? segment.translatedText,
+          translatedText: submitForReview ? draftText.trim() : draftText,
           reason: submitForReview
             ? "Submitted for review from editor proofreader"
             : "Saved draft from editor proofreader",
@@ -669,8 +687,8 @@ export default function EditorReaderPage() {
 
   const approveIfClean = useCallback(
     async (segment: Segment) => {
-      const currentText = (drafts[segment.key] ?? segment.translatedText).trim();
-      const baselineText = segment.translatedText.trim();
+      const currentText = drafts[segment.key] ?? segment.translatedText;
+      const baselineText = segment.translatedText;
       const hasLocalEdits = currentText !== baselineText;
 
       // Edits after requesting approval must be re-submitted for approval.
@@ -1212,7 +1230,7 @@ export default function EditorReaderPage() {
                 const compareIsOpen = compareOpen[segment.key] ?? false;
                 const isTwoColumn = columnMode === "two";
                 const currentText = drafts[segment.key] ?? segment.translatedText;
-                const dirty = currentText.trim() !== segment.translatedText.trim();
+                const dirty = currentText !== segment.translatedText;
                 const lockedApproved = segment.status === "approved";
                 const saving = !!busyKeys[segment.key];
                 const revertTargetText =
