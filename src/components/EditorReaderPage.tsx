@@ -451,7 +451,6 @@ export default function EditorReaderPage() {
       approvedPct: Math.round((approved / total) * 100),
       pendingPct: Math.round((pending / total) * 100),
       draftPct: Math.round((draft / total) * 100),
-      progressPct: Math.round((approved / total) * 100),
     };
   }, [segments]);
 
@@ -1065,7 +1064,16 @@ export default function EditorReaderPage() {
               {t("reader.readProgress")}
             </div>
             <div className="h-1 overflow-hidden rounded-full bg-surface-container-high">
-              <div className="h-full bg-primary" style={{ width: `${counts.progressPct}%` }} />
+              <div className="flex h-full w-full">
+                <div
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${counts.approvedPct}%` }}
+                />
+                <div
+                  className="h-full bg-secondary transition-all duration-300"
+                  style={{ width: `${counts.pendingPct}%` }}
+                />
+              </div>
             </div>
           </div>
           <div className="mt-6 border-t border-outline/20 pt-4 space-y-3">
