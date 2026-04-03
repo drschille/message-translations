@@ -355,10 +355,12 @@ export default function EditorReaderPage() {
   const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const pendingScrollAnchorRef = useRef<{ key: string; viewportY: number; offset: number } | null>(null);
   const prefersReducedMotion = useReducedMotion();
+  const modeTransitionMs = prefersReducedMotion ? 0 : 260;
+  const modeStaggerMs = prefersReducedMotion ? 0 : 20;
 
   const modeFadeTransition = useMemo(
-    () => (prefersReducedMotion ? { duration: 0.01 } : { duration: 0.2, ease: "easeOut" as const }),
-    [prefersReducedMotion],
+    () => (prefersReducedMotion ? { duration: 0.01 } : { duration: modeTransitionMs / 1000, ease: "easeOut" as const }),
+    [prefersReducedMotion, modeTransitionMs],
   );
 
   const sermon = useQuery(
@@ -1323,21 +1325,24 @@ export default function EditorReaderPage() {
                       </div>
 
                       <div
-                        className={`grid min-w-0 transition-[grid-template-columns,gap] ease-out ${prefersReducedMotion ? "duration-0" : "duration-200"} ${
+                        className={`grid min-w-0 transition-[grid-template-columns,gap] ease-out ${
                           isTwoColumn ? "grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6" : "grid-cols-[0px_minmax(0,1fr)] gap-0"
                         }`}
+                        style={{ transitionDuration: `${modeTransitionMs}ms` }}
                       >
                         <div
-                          className={`min-w-0 min-h-0 overflow-hidden transition-opacity ease-out ${
-                            prefersReducedMotion ? "duration-0" : "duration-200"
-                          } ${isTwoColumn ? "opacity-100" : "opacity-0 h-0"}`}
+                          className={`min-w-0 min-h-0 overflow-hidden transition-opacity ease-out ${isTwoColumn ? "opacity-100" : "opacity-0 h-0"}`}
+                          style={{
+                            transitionDuration: `${modeTransitionMs}ms`,
+                            transitionDelay: isTwoColumn ? `${modeStaggerMs}ms` : "0ms",
+                          }}
                           aria-hidden={!isTwoColumn}
                         >
                           <div
-                            className={`min-w-0 overflow-hidden italic text-on-surface-variant leading-relaxed transition-[padding-right,border-right-width] ease-out ${prefersReducedMotion ? "duration-0" : "duration-200"} ${
+                            className={`min-w-0 overflow-hidden italic text-on-surface-variant leading-relaxed transition-[padding-right,border-right-width] ease-out ${
                               isTwoColumn ? "whitespace-normal pr-4 border-r border-outline/25" : "whitespace-nowrap pr-0 border-r-0"
                             }`}
-                            style={{ fontSize: `${fontSizePx}px` }}
+                            style={{ fontSize: `${fontSizePx}px`, transitionDuration: `${modeTransitionMs}ms` }}
                           >
                             {renderTextWithLineBreakSpacing(segment.sourceText)}
                           </div>
