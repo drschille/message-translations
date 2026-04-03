@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   Bookmark,
   Check,
@@ -352,6 +352,14 @@ export default function EditorReaderPage() {
   const savingDraftKeysRef = useRef<Set<string>>(new Set());
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const editableRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const pendingScrollAnchorRef = useRef<{ key: string; viewportY: number; offset: number } | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+
+  const modeFadeTransition = useMemo(
+    () => (prefersReducedMotion ? { duration: 0.01 } : { duration: 0.2, ease: "easeOut" as const }),
+    [prefersReducedMotion],
+  );
 
   const sermon = useQuery(
     api.sermons.getById,
@@ -395,6 +403,76 @@ export default function EditorReaderPage() {
       status: p.status,
     }));
   }, [paragraphs]);
+
+  const switchColumnMode = useCallback(
+    (nextMode: ColumnMode) => {
+      if (nextMode === columnMode) return;
+
+      const anchorY = Math.round(window.innerHeight * 0.45);
+      const orderedKeys = segments.map((segment) => segment.key);
+      let anchor: { key: string; offset: number } | null = null;
+      for (const key of orderedKeys) {
+        const row = rowRefs.current.get(key);
+        if (!row) continue;
+        const rect = row.getBoundingClientRect();
+        if (rect.bottom > anchorY) {
+          anchor = { key, offset: rect.top - anchorY };
+          break;
+        }
+      }
+      if (!anchor && orderedKeys.length > 0) {
+        const firstKey = orderedKeys[0];
+        const firstRow = rowRefs.current.get(firstKey);
+        if (firstRow) {
+          anchor = { key: firstKey, offset: firstRow.getBoundingClientRect().top - anchorY };
+        }
+      }
+
+      pendingScrollAnchorRef.current = anchor
+        ? { key: anchor.key, viewportY: anchorY, offset: anchor.offset }
+        : null;
+      setColumnMode(nextMode);
+    },
+    [columnMode, segments],
+  );
+
+  useLayoutEffect(() => {
+    const anchor = pendingScrollAnchorRef.current;
+    if (!anchor) return;
+
+    let frames = 0;
+    const maxFrames = prefersReducedMotion ? 1 : 14;
+    let rafId = 0;
+
+    const restore = () => {
+      const row = rowRefs.current.get(anchor.key);
+      if (!row) return;
+      const currentOffset = row.getBoundingClientRect().top - anchor.viewportY;
+      const delta = currentOffset - anchor.offset;
+      if (Math.abs(delta) < 0.5) return;
+      window.scrollTo({ top: window.scrollY + delta, behavior: "auto" });
+    };
+
+    const tick = () => {
+      restore();
+      frames += 1;
+      if (frames < maxFrames) {
+        rafId = requestAnimationFrame(tick);
+      }
+    };
+
+    rafId = requestAnimationFrame(tick);
+    const settleMs = prefersReducedMotion ? 0 : 260;
+    const timeoutId = window.setTimeout(() => {
+      restore();
+      pendingScrollAnchorRef.current = null;
+    }, settleMs);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [columnMode, prefersReducedMotion]);
 
   useEffect(() => {
     setDrafts((prev) => {
@@ -945,7 +1023,7 @@ export default function EditorReaderPage() {
 
           <div className="rounded-lg bg-surface-container p-1 inline-flex gap-1">
             <button
-              onClick={() => setColumnMode("one")}
+              onClick={() => switchColumnMode("one")}
               className={`inline-flex items-center gap-1.5 rounded-md px-5 py-2 text-[13px] font-medium ${
                 columnMode === "one"
                   ? "bg-primary text-[#093255]"
@@ -956,7 +1034,7 @@ export default function EditorReaderPage() {
               {t("proofreading.mode.one")}
             </button>
             <button
-              onClick={() => setColumnMode("two")}
+              onClick={() => switchColumnMode("two")}
               className={`inline-flex items-center gap-1.5 rounded-md px-5 py-2 text-[13px] font-medium ${
                 columnMode === "two"
                   ? "bg-primary text-[#093255]"
@@ -1124,320 +1202,230 @@ export default function EditorReaderPage() {
               </div>
             </div>
           ) : (
-            segments.map((segment, index) => {
-            const state = statusMeta(segment.status, t);
-            const compareIsOpen = compareOpen[segment.key] ?? false;
-            const currentText = drafts[segment.key] ?? segment.translatedText;
-            const dirty = currentText.trim() !== segment.translatedText.trim();
-            const lockedApproved = segment.status === "approved";
-            const saving = !!busyKeys[segment.key];
-            const revertTargetText =
-              segment.paragraphId
-                ? (revertBaselineByParagraphId.get(String(segment.paragraphId)) ?? segment.translatedText)
-                : segment.translatedText;
-            const canRevert = !!segment.paragraphId && currentText !== revertTargetText;
-            const colors = segment.paragraphId ? (paragraphHighlightColors.get(String(segment.paragraphId)) ?? []) : [];
-            const showEdit = segment.status === "approved";
-            const showReviewActions = segment.status === "draft" || segment.status === "drafting";
-            const showApprove = segment.status === "needs_review";
-            const iconButtonBase =
-              "inline-flex h-6 w-6 items-center justify-center rounded border text-on-surface-variant transition-colors disabled:opacity-45";
-            const iconButtonNeutral = `${iconButtonBase} border-outline/30 hover:text-on-surface`;
-            const iconButtonDestructive = `${iconButtonBase} border-[#5b3a3d] text-red-400`;
-            const iconButtonPrimary = `${iconButtonBase} border-primary/40 bg-primary text-[#093255]`;
+            <>
+              {segments.map((segment, index) => {
+                const state = statusMeta(segment.status, t);
+                const compareIsOpen = compareOpen[segment.key] ?? false;
+                const isTwoColumn = columnMode === "two";
+                const currentText = drafts[segment.key] ?? segment.translatedText;
+                const dirty = currentText.trim() !== segment.translatedText.trim();
+                const lockedApproved = segment.status === "approved";
+                const saving = !!busyKeys[segment.key];
+                const revertTargetText =
+                  segment.paragraphId
+                    ? (revertBaselineByParagraphId.get(String(segment.paragraphId)) ?? segment.translatedText)
+                    : segment.translatedText;
+                const canRevert = !!segment.paragraphId && currentText !== revertTargetText;
+                const colors = segment.paragraphId
+                  ? (paragraphHighlightColors.get(String(segment.paragraphId)) ?? [])
+                  : [];
+                const showEdit = segment.status === "approved";
+                const showReviewActions = segment.status === "draft" || segment.status === "drafting";
+                const showApprove = segment.status === "needs_review";
+                const iconButtonBase =
+                  "inline-flex h-6 w-6 items-center justify-center rounded border text-on-surface-variant transition-colors disabled:opacity-45";
+                const iconButtonNeutral = `${iconButtonBase} border-outline/30 hover:text-on-surface`;
+                const iconButtonDestructive = `${iconButtonBase} border-[#5b3a3d] text-red-400`;
+                const iconButtonPrimary = `${iconButtonBase} border-primary/40 bg-primary text-[#093255]`;
 
-            return (
-              <div
-                key={segment.key}
-                className={`border-b border-outline/20 ${rowTone(index)} px-8 py-5`}
-              >
-                {columnMode === "two" ? (
-                  <div className="grid grid-cols-[96px_minmax(0,1fr)_minmax(0,1fr)] gap-6">
-                    <div className="flex flex-col items-end gap-1 pt-1 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {colors.length > 0 && (
-                          <div className="flex items-center justify-end gap-1">
-                            {colors.map((c) => (
-                              <span
-                                key={c}
-                                className="h-2 w-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    c === "yellow" ? "#facc15" : c === "blue" ? "#60a5fa" : c === "green" ? "#4ade80" : "#f87171",
-                                }}
-                              />
-                            ))}
-                          </div>
-                        )}
-                        <div className="text-[11px] text-outline/70">{segment.order}</div>
-                      </div>
-                      <div className="flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
-                        {state.icon}
-                        <span>{state.label}</span>
-                      </div>
-                      <div className="flex items-center justify-end gap-1">
-                        <span className="inline-flex h-6 w-6" aria-hidden />
-                        {showEdit && (
-                          <button
-                            onClick={() => ensureDrafting(segment)}
-                            disabled={saving}
-                            className={iconButtonNeutral}
-                            aria-label={t("proofreading.editSegment", { key: segment.key })}
-                          >
-                            <Pencil size={12} />
-                          </button>
-                        )}
-                        {showReviewActions && (
-                          <>
-                            <button
-                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                              onClick={() => saveDraft(segment, true)}
-                              disabled={saving}
-                              className={iconButtonNeutral}
-                              aria-label={t("proofreading.requestApproval")}
-                            >
-                              <Send size={12} />
-                            </button>
-                            {canRevert && (
-                              <button
-                                onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                                onClick={() => revertToLastApproved(segment)}
-                                disabled={saving}
-                                className={iconButtonDestructive}
-                                aria-label={t("proofreading.revertDraftChanges")}
-                              >
-                                <RotateCcw size={12} />
-                              </button>
-                            )}
-                          </>
-                        )}
-                        {showApprove && (
-                          <button
-                            onClick={() => approveIfClean(segment)}
-                            disabled={saving}
-                            className={iconButtonPrimary}
-                            aria-label={t("proofreading.approveSegment")}
-                          >
-                            <Check size={12} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="pr-4 border-r border-outline/25">
-                      <p
-                        className="italic text-on-surface-variant leading-relaxed"
-                        style={{ fontSize: `${fontSizePx}px` }}
-                      >
-                        {renderTextWithLineBreakSpacing(segment.sourceText)}
-                      </p>
-                    </div>
-                    <div className="space-y-3 pl-2">
-                      <div className="relative">
-                        <div
-                          className="pointer-events-none absolute inset-0 text-on-surface leading-relaxed"
-                          style={{ fontSize: `${fontSizePx}px` }}
-                        >
-                          {renderHighlightedTextWithLineBreakSpacing(
-                            currentText,
-                            highlights.filter((h) => h.paragraphId === segment.paragraphId),
-                          )}
-                        </div>
-                        <div
-                          ref={(node) => {
-                            if (node) {
-                              editableRefs.current.set(segment.key, node);
-                              if (!node.innerHTML.trim()) {
-                                node.innerHTML = textToEditorHtml(currentText);
-                              }
-                            } else {
-                              editableRefs.current.delete(segment.key);
-                            }
-                          }}
-                          contentEditable={!lockedApproved && !saving}
-                          suppressContentEditableWarning
-                          spellCheck={false}
-                          onSelect={(e) => captureSelection(segment, e.currentTarget)}
-                          onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
-                          onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
-                          onInput={(e) => {
-                            const nextValue = readEditorText(e.currentTarget);
-                            setDrafts((prev) => ({ ...prev, [segment.key]: nextValue }));
-                          }}
-                          onBlur={() => {
-                            if (suppressBlurSaveKey === segment.key) {
-                              setSuppressBlurSaveKey(null);
-                              return;
-                            }
-                            if (!lockedApproved && dirty) {
-                              saveDraft(segment, false).catch((e) => console.error(e));
-                            }
-                          }}
-                          className={`relative z-10 block w-full min-h-20 rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
-                            lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
-                          }`}
-                          style={{ fontSize: `${fontSizePx}px` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-4">
-                    <div className="flex flex-col items-end gap-1 pt-1 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {colors.length > 0 && (
-                          <div className="flex items-center justify-end gap-1">
-                            {colors.map((c) => (
-                              <span
-                                key={c}
-                                className="h-2 w-2 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    c === "yellow" ? "#facc15" : c === "blue" ? "#60a5fa" : c === "green" ? "#4ade80" : "#f87171",
-                                }}
-                              />
-                            ))}
-                          </div>
-                        )}
-                        <div className="text-[11px] text-outline/70">{segment.order}</div>
-                      </div>
-                      <div className="flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
-                        {state.icon}
-                        <span>{state.label}</span>
-                      </div>
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => setCompareOpen((prev) => ({ ...prev, [segment.key]: !compareIsOpen }))}
-                          className={iconButtonNeutral}
-                          aria-label={compareIsOpen ? t("editorial.hideCompare") : t("editorial.compare")}
-                        >
-                          {compareIsOpen ? <ChevronUp size={12} /> : <Columns2 size={12} />}
-                        </button>
-                        {showEdit && (
-                          <button
-                            onClick={() => ensureDrafting(segment)}
-                            disabled={saving}
-                            className={iconButtonNeutral}
-                            aria-label={t("proofreading.editSegment", { key: segment.key })}
-                          >
-                            <Pencil size={12} />
-                          </button>
-                        )}
-                        {showReviewActions && (
-                          <>
-                            <button
-                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                              onClick={() => saveDraft(segment, true)}
-                              disabled={saving}
-                              className={iconButtonNeutral}
-                              aria-label={t("proofreading.requestApproval")}
-                            >
-                              <Send size={12} />
-                            </button>
-                            {canRevert && (
-                              <button
-                                onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                                onClick={() => revertToLastApproved(segment)}
-                                disabled={saving}
-                                className={iconButtonDestructive}
-                                aria-label={t("proofreading.revertDraftChanges")}
-                              >
-                                <RotateCcw size={12} />
-                              </button>
-                            )}
-                          </>
-                        )}
-                        {showApprove && (
-                          <button
-                            onClick={() => approveIfClean(segment)}
-                            disabled={saving}
-                            className={iconButtonPrimary}
-                            aria-label={t("proofreading.approveSegment")}
-                          >
-                            <Check size={12} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="min-w-0 space-y-3">
-                      <AnimatePresence initial={false}>
-                        {compareIsOpen && (
-                          <motion.div
-                            key={`compare-${segment.key}`}
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.22, ease: "easeOut" }}
-                            className="overflow-hidden"
-                          >
-                            <div className="space-y-2 pb-1">
-                              <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
-                                {t("reader.original")}
-                              </div>
-                              <p
-                                className="italic text-on-surface-variant leading-relaxed"
-                                style={{ fontSize: `${fontSizePx}px` }}
-                              >
-                                {renderTextWithLineBreakSpacing(segment.sourceText)}
-                              </p>
-                              <div className="h-px bg-outline/35" />
+                return (
+                  <motion.div
+                    key={segment.key}
+                    ref={(node) => {
+                      if (node) {
+                        rowRefs.current.set(segment.key, node);
+                      } else {
+                        rowRefs.current.delete(segment.key);
+                      }
+                    }}
+                    className={`border-b border-outline/20 ${rowTone(index)} px-8 py-5`}
+                  >
+                    <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-4">
+                      <div className="flex flex-col items-end gap-1 pt-1 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {colors.length > 0 && (
+                            <div className="flex items-center justify-end gap-1">
+                              {colors.map((c) => (
+                                <span
+                                  key={c}
+                                  className="h-2 w-2 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      c === "yellow" ? "#facc15" : c === "blue" ? "#60a5fa" : c === "green" ? "#4ade80" : "#f87171",
+                                  }}
+                                />
+                              ))}
                             </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      <div className="relative">
-                        <div
-                          className="pointer-events-none absolute inset-0 text-on-surface leading-relaxed"
-                          style={{ fontSize: `${fontSizePx}px` }}
-                        >
-                          {renderHighlightedTextWithLineBreakSpacing(
-                            currentText,
-                            highlights.filter((h) => h.paragraphId === segment.paragraphId),
+                          )}
+                          <div className="text-[11px] text-outline/70">{segment.order}</div>
+                        </div>
+                        <div className="flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
+                          {state.icon}
+                          <span>{state.label}</span>
+                        </div>
+                        <div className="flex items-center justify-end gap-1">
+                          {isTwoColumn ? (
+                            <span className="inline-flex h-6 w-6" aria-hidden />
+                          ) : (
+                            <button
+                              onClick={() => setCompareOpen((prev) => ({ ...prev, [segment.key]: !compareIsOpen }))}
+                              className={iconButtonNeutral}
+                              aria-label={compareIsOpen ? t("editorial.hideCompare") : t("editorial.compare")}
+                            >
+                              {compareIsOpen ? <ChevronUp size={12} /> : <Columns2 size={12} />}
+                            </button>
+                          )}
+                          {showEdit && (
+                            <button
+                              onClick={() => ensureDrafting(segment)}
+                              disabled={saving}
+                              className={iconButtonNeutral}
+                              aria-label={t("proofreading.editSegment", { key: segment.key })}
+                            >
+                              <Pencil size={12} />
+                            </button>
+                          )}
+                          {showReviewActions && (
+                            <>
+                              <button
+                                onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                                onClick={() => saveDraft(segment, true)}
+                                disabled={saving}
+                                className={iconButtonNeutral}
+                                aria-label={t("proofreading.requestApproval")}
+                              >
+                                <Send size={12} />
+                              </button>
+                              {canRevert && (
+                                <button
+                                  onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                                  onClick={() => revertToLastApproved(segment)}
+                                  disabled={saving}
+                                  className={iconButtonDestructive}
+                                  aria-label={t("proofreading.revertDraftChanges")}
+                                >
+                                  <RotateCcw size={12} />
+                                </button>
+                              )}
+                            </>
+                          )}
+                          {showApprove && (
+                            <button
+                              onClick={() => approveIfClean(segment)}
+                              disabled={saving}
+                              className={iconButtonPrimary}
+                              aria-label={t("proofreading.approveSegment")}
+                            >
+                              <Check size={12} />
+                            </button>
                           )}
                         </div>
+                      </div>
+
+                      <div
+                        className={`grid min-w-0 transition-[grid-template-columns,gap] ease-out ${prefersReducedMotion ? "duration-0" : "duration-200"} ${
+                          isTwoColumn ? "grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6" : "grid-cols-[0px_minmax(0,1fr)] gap-0"
+                        }`}
+                      >
                         <div
-                          ref={(node) => {
-                            if (node) {
-                              editableRefs.current.set(segment.key, node);
-                              if (!node.innerHTML.trim()) {
-                                node.innerHTML = textToEditorHtml(currentText);
+                          className={`min-w-0 min-h-0 overflow-hidden transition-opacity ease-out ${
+                            prefersReducedMotion ? "duration-0" : "duration-200"
+                          } ${isTwoColumn ? "opacity-100" : "opacity-0 h-0"}`}
+                          aria-hidden={!isTwoColumn}
+                        >
+                          <div
+                            className={`min-w-0 overflow-hidden italic text-on-surface-variant leading-relaxed transition-[padding-right,border-right-width] ease-out ${prefersReducedMotion ? "duration-0" : "duration-200"} ${
+                              isTwoColumn ? "whitespace-normal pr-4 border-r border-outline/25" : "whitespace-nowrap pr-0 border-r-0"
+                            }`}
+                            style={{ fontSize: `${fontSizePx}px` }}
+                          >
+                            {renderTextWithLineBreakSpacing(segment.sourceText)}
+                          </div>
+                        </div>
+
+                        <div className={`min-w-0 space-y-3 ${isTwoColumn ? "pl-2" : ""}`}>
+                        {!isTwoColumn && (
+                          <AnimatePresence initial={false}>
+                            {compareIsOpen && (
+                              <motion.div
+                                key={`compare-${segment.key}`}
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={modeFadeTransition}
+                                className="overflow-hidden"
+                              >
+                                <div className="space-y-2 pb-1">
+                                  <div className="text-[10px] uppercase tracking-[0.14em] text-outline">
+                                    {t("reader.original")}
+                                  </div>
+                                  <p
+                                    className="italic text-on-surface-variant leading-relaxed"
+                                    style={{ fontSize: `${fontSizePx}px` }}
+                                  >
+                                    {renderTextWithLineBreakSpacing(segment.sourceText)}
+                                  </p>
+                                  <div className="h-px bg-outline/35" />
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        )}
+
+                        <div className="relative">
+                          <div
+                            className="pointer-events-none absolute inset-0 text-on-surface leading-relaxed"
+                            style={{ fontSize: `${fontSizePx}px` }}
+                          >
+                            {renderHighlightedTextWithLineBreakSpacing(
+                              currentText,
+                              highlights.filter((h) => h.paragraphId === segment.paragraphId),
+                            )}
+                          </div>
+                          <div
+                            ref={(node) => {
+                              if (node) {
+                                editableRefs.current.set(segment.key, node);
+                                if (!node.innerHTML.trim()) {
+                                  node.innerHTML = textToEditorHtml(currentText);
+                                }
+                              } else {
+                                editableRefs.current.delete(segment.key);
                               }
-                            } else {
-                              editableRefs.current.delete(segment.key);
-                            }
-                          }}
-                          contentEditable={!lockedApproved && !saving}
-                          suppressContentEditableWarning
-                          spellCheck={false}
-                          onSelect={(e) => captureSelection(segment, e.currentTarget)}
-                          onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
-                          onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
-                          onInput={(e) => {
-                            const nextValue = readEditorText(e.currentTarget);
-                            setDrafts((prev) => ({ ...prev, [segment.key]: nextValue }));
-                          }}
-                          onBlur={() => {
-                            if (suppressBlurSaveKey === segment.key) {
-                              setSuppressBlurSaveKey(null);
-                              return;
-                            }
-                            if (!lockedApproved && dirty) {
-                              saveDraft(segment, false).catch((e) => console.error(e));
-                            }
-                          }}
-                          className={`relative z-10 block w-full min-h-20 rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
-                            lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
-                          }`}
-                          style={{ fontSize: `${fontSizePx}px` }}
-                        />
+                            }}
+                            contentEditable={!lockedApproved && !saving}
+                            suppressContentEditableWarning
+                            spellCheck={false}
+                            onSelect={(e) => captureSelection(segment, e.currentTarget)}
+                            onKeyUp={(e) => captureSelection(segment, e.currentTarget)}
+                            onMouseUp={(e) => captureSelection(segment, e.currentTarget)}
+                            onInput={(e) => {
+                              const nextValue = readEditorText(e.currentTarget);
+                              setDrafts((prev) => ({ ...prev, [segment.key]: nextValue }));
+                            }}
+                            onBlur={() => {
+                              if (suppressBlurSaveKey === segment.key) {
+                                setSuppressBlurSaveKey(null);
+                                return;
+                              }
+                              if (!lockedApproved && dirty) {
+                                saveDraft(segment, false).catch((e) => console.error(e));
+                              }
+                            }}
+                            className={`relative z-10 block w-full min-h-20 rounded px-0 py-0 text-transparent caret-on-surface leading-relaxed whitespace-pre-wrap break-words focus:outline-none [&>div+div]:mt-2 [&>p+p]:mt-2 ${
+                              lockedApproved ? "opacity-95" : "focus:outline-none focus:ring-0"
+                            }`}
+                            style={{ fontSize: `${fontSizePx}px` }}
+                          />
+                        </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          }))}
+                  </motion.div>
+                );
+              })}
+            </>
+          )}
         </article>
 
         <AnimatePresence mode="wait" initial={false}>
