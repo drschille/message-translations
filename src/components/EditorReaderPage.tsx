@@ -1228,7 +1228,7 @@ export default function EditorReaderPage() {
                   "inline-flex h-6 w-6 items-center justify-center rounded border text-on-surface-variant transition-colors disabled:opacity-45";
                 const iconButtonNeutral = `${iconButtonBase} border-outline/30 hover:text-on-surface`;
                 const iconButtonDestructive = `${iconButtonBase} border-[#5b3a3d] text-red-400`;
-                const iconButtonPrimary = `${iconButtonBase} border-primary/40 bg-primary text-[#093255]`;
+                const iconButtonPrimary = `${iconButtonBase} border-primary bg-primary text-black`;
 
                 return (
                   <motion.div
@@ -1318,7 +1318,7 @@ export default function EditorReaderPage() {
                               className={iconButtonPrimary}
                               aria-label={t("proofreading.approveSegment")}
                             >
-                              <Check size={12} />
+                              <Check size={12} strokeWidth={2.6} className="text-black" />
                             </button>
                           )}
                         </div>
