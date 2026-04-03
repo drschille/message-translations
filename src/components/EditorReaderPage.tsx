@@ -413,21 +413,23 @@ export default function EditorReaderPage() {
       const anchorY = Math.round(window.innerHeight * 0.45);
       const orderedKeys = segments.map((segment) => segment.key);
       let anchor: { key: string; offset: number } | null = null;
+      let nearest: { key: string; offset: number; distance: number } | null = null;
       for (const key of orderedKeys) {
         const row = rowRefs.current.get(key);
         if (!row) continue;
         const rect = row.getBoundingClientRect();
+        const offset = rect.top - anchorY;
+        const distance = Math.abs(offset);
+        if (!nearest || distance < nearest.distance) {
+          nearest = { key, offset, distance };
+        }
         if (rect.bottom > anchorY) {
-          anchor = { key, offset: rect.top - anchorY };
+          anchor = { key, offset };
           break;
         }
       }
-      if (!anchor && orderedKeys.length > 0) {
-        const firstKey = orderedKeys[0];
-        const firstRow = rowRefs.current.get(firstKey);
-        if (firstRow) {
-          anchor = { key: firstKey, offset: firstRow.getBoundingClientRect().top - anchorY };
-        }
+      if (!anchor && nearest) {
+        anchor = { key: nearest.key, offset: nearest.offset };
       }
 
       pendingScrollAnchorRef.current = anchor
