@@ -12,11 +12,14 @@ import {
   Clock3,
   Columns2,
   Eraser,
-  FileEdit,
   MessageSquareText,
   NotebookPen,
   PanelRightClose,
   PanelRightOpen,
+  Pencil,
+  RotateCcw,
+  Send,
+  Square,
 } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -949,6 +952,7 @@ export default function EditorReaderPage() {
                   : "bg-surface-container text-on-surface-variant"
               }`}
             >
+              <Square size={14} />
               {t("proofreading.mode.one")}
             </button>
             <button
@@ -959,6 +963,7 @@ export default function EditorReaderPage() {
                   : "bg-surface-container text-on-surface-variant"
               }`}
             >
+              <Columns2 size={14} />
               {t("proofreading.mode.two")}
             </button>
           </div>
@@ -1132,6 +1137,14 @@ export default function EditorReaderPage() {
                 : segment.translatedText;
             const canRevert = !!segment.paragraphId && currentText !== revertTargetText;
             const colors = segment.paragraphId ? (paragraphHighlightColors.get(String(segment.paragraphId)) ?? []) : [];
+            const showEdit = segment.status === "approved";
+            const showReviewActions = segment.status === "draft" || segment.status === "drafting";
+            const showApprove = segment.status === "needs_review";
+            const iconButtonBase =
+              "inline-flex h-6 w-6 items-center justify-center rounded border text-on-surface-variant transition-colors disabled:opacity-45";
+            const iconButtonNeutral = `${iconButtonBase} border-outline/30 hover:text-on-surface`;
+            const iconButtonDestructive = `${iconButtonBase} border-[#5b3a3d] text-red-400`;
+            const iconButtonPrimary = `${iconButtonBase} border-primary/40 bg-primary text-[#093255]`;
 
             return (
               <div
@@ -1139,8 +1152,8 @@ export default function EditorReaderPage() {
                 className={`border-b border-outline/20 ${rowTone(index)} px-8 py-5`}
               >
                 {columnMode === "two" ? (
-                  <div className="grid grid-cols-[auto_1fr_1fr] gap-6">
-                    <div className="pt-1 text-right">
+                  <div className="grid grid-cols-[96px_minmax(0,1fr)_minmax(0,1fr)] gap-6">
+                    <div className="flex flex-col items-end gap-1 pt-1 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {colors.length > 0 && (
                           <div className="flex items-center justify-end gap-1">
@@ -1158,9 +1171,56 @@ export default function EditorReaderPage() {
                         )}
                         <div className="text-[11px] text-outline/70">{segment.order}</div>
                       </div>
-                      <div className="mt-1 inline-flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
+                      <div className="flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
                         {state.icon}
                         <span>{state.label}</span>
+                      </div>
+                      <div className="flex items-center justify-end gap-1">
+                        <span className="inline-flex h-6 w-6" aria-hidden />
+                        {showEdit && (
+                          <button
+                            onClick={() => ensureDrafting(segment)}
+                            disabled={saving}
+                            className={iconButtonNeutral}
+                            aria-label={t("proofreading.editSegment", { key: segment.key })}
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        )}
+                        {showReviewActions && (
+                          <>
+                            <button
+                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                              onClick={() => saveDraft(segment, true)}
+                              disabled={saving}
+                              className={iconButtonNeutral}
+                              aria-label={t("proofreading.requestApproval")}
+                            >
+                              <Send size={12} />
+                            </button>
+                            {canRevert && (
+                              <button
+                                onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                                onClick={() => revertToLastApproved(segment)}
+                                disabled={saving}
+                                className={iconButtonDestructive}
+                                aria-label={t("proofreading.revertDraftChanges")}
+                              >
+                                <RotateCcw size={12} />
+                              </button>
+                            )}
+                          </>
+                        )}
+                        {showApprove && (
+                          <button
+                            onClick={() => approveIfClean(segment)}
+                            disabled={saving}
+                            className={iconButtonPrimary}
+                            aria-label={t("proofreading.approveSegment")}
+                          >
+                            <Check size={12} />
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="pr-4 border-r border-outline/25">
@@ -1218,52 +1278,10 @@ export default function EditorReaderPage() {
                           style={{ fontSize: `${fontSizePx}px` }}
                         />
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        {segment.status === "approved" && (
-                          <button
-                            onClick={() => ensureDrafting(segment)}
-                            disabled={saving}
-                            className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
-                          >
-                            {t("editorial.edit")}
-                          </button>
-                        )}
-                        {(segment.status === "draft" || segment.status === "drafting") && (
-                          <>
-                            <button
-                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                              onClick={() => saveDraft(segment, true)}
-                              disabled={saving}
-                              className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
-                            >
-                              {t("proofreading.requestApproval")}
-                            </button>
-                            {canRevert && (
-                              <button
-                                onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                                onClick={() => revertToLastApproved(segment)}
-                                disabled={saving}
-                                className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
-                              >
-                                {t("proofreading.revertDraftChanges")}
-                              </button>
-                            )}
-                          </>
-                        )}
-                        {segment.status === "needs_review" && (
-                          <button
-                            onClick={() => approveIfClean(segment)}
-                            disabled={saving}
-                            className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
-                          >
-                            {t("proofreading.approveSegment")}
-                          </button>
-                        )}
-                      </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-4 md:grid-cols-[96px_minmax(0,1fr)_auto]">
+                  <div className="grid grid-cols-[96px_minmax(0,1fr)] gap-4">
                     <div className="flex flex-col items-end gap-1 pt-1 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {colors.length > 0 && (
@@ -1285,6 +1303,59 @@ export default function EditorReaderPage() {
                       <div className="flex items-center justify-end gap-1.5 text-[10px] uppercase tracking-[0.12em] text-on-surface-variant">
                         {state.icon}
                         <span>{state.label}</span>
+                      </div>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => setCompareOpen((prev) => ({ ...prev, [segment.key]: !compareIsOpen }))}
+                          className={iconButtonNeutral}
+                          aria-label={compareIsOpen ? t("editorial.hideCompare") : t("editorial.compare")}
+                        >
+                          {compareIsOpen ? <ChevronUp size={12} /> : <Columns2 size={12} />}
+                        </button>
+                        {showEdit && (
+                          <button
+                            onClick={() => ensureDrafting(segment)}
+                            disabled={saving}
+                            className={iconButtonNeutral}
+                            aria-label={t("proofreading.editSegment", { key: segment.key })}
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        )}
+                        {showReviewActions && (
+                          <>
+                            <button
+                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                              onClick={() => saveDraft(segment, true)}
+                              disabled={saving}
+                              className={iconButtonNeutral}
+                              aria-label={t("proofreading.requestApproval")}
+                            >
+                              <Send size={12} />
+                            </button>
+                            {canRevert && (
+                              <button
+                                onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
+                                onClick={() => revertToLastApproved(segment)}
+                                disabled={saving}
+                                className={iconButtonDestructive}
+                                aria-label={t("proofreading.revertDraftChanges")}
+                              >
+                                <RotateCcw size={12} />
+                              </button>
+                            )}
+                          </>
+                        )}
+                        {showApprove && (
+                          <button
+                            onClick={() => approveIfClean(segment)}
+                            disabled={saving}
+                            className={iconButtonPrimary}
+                            aria-label={t("proofreading.approveSegment")}
+                          >
+                            <Check size={12} />
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -1360,60 +1431,6 @@ export default function EditorReaderPage() {
                           }`}
                           style={{ fontSize: `${fontSizePx}px` }}
                         />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-2 md:min-w-56">
-                      <button
-                        onClick={() => setCompareOpen((prev) => ({ ...prev, [segment.key]: !compareIsOpen }))}
-                        className="inline-flex items-center gap-1 rounded border border-outline/30 px-2 py-1 text-[11px] text-on-surface-variant"
-                      >
-                        {compareIsOpen ? t("editorial.hideCompare") : t("editorial.compare")}
-                        {compareIsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                      </button>
-
-                      <div className="flex flex-wrap justify-end gap-2 text-xs">
-                        {segment.status === "approved" && (
-                          <button
-                            onClick={() => ensureDrafting(segment)}
-                            disabled={saving}
-                            className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
-                          >
-                            {t("editorial.edit")}
-                          </button>
-                        )}
-                        {(segment.status === "draft" || segment.status === "drafting") && (
-                          <div className="flex flex-col items-end gap-2">
-                            <button
-                              onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                              onClick={() => saveDraft(segment, true)}
-                              disabled={saving}
-                              className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
-                            >
-                              {t("proofreading.requestApproval")}
-                            </button>
-                            {canRevert && (
-                              <button
-                                onMouseDown={() => setSuppressBlurSaveKey(segment.key)}
-                                onClick={() => revertToLastApproved(segment)}
-                                disabled={saving}
-                                className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant disabled:opacity-45"
-                              >
-                                {t("proofreading.revertDraftChanges")}
-                              </button>
-                            )}
-                          </div>
-                        )}
-                        {segment.status === "needs_review" && (
-                          <button
-                            onClick={() => approveIfClean(segment)}
-                            disabled={saving}
-                            className="rounded border border-outline/30 px-2.5 py-1 text-on-surface-variant hover:text-on-surface"
-                          >
-                            <Check size={12} className="mr-1 inline" />
-                            {t("proofreading.approveSegment")}
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
