@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import {
+  BookOpen,
   Bookmark,
   CalendarDays,
   ChevronLeft,
+  Columns2,
   Download,
   LocateFixed,
   Minus,
@@ -350,22 +352,24 @@ export default function ReaderPage() {
                 <div className="flex items-center rounded-lg bg-surface-container p-1">
                   <button
                     onClick={() => setMode("read")}
-                    className={`rounded-md px-3 py-1.5 text-xs font-bold tracking-widest ${
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold tracking-widest ${
                       mode === "read"
                         ? "bg-surface-container-high text-on-surface shadow-sm"
                         : "text-on-surface-variant hover:text-on-surface"
                     }`}
                   >
+                    <BookOpen size={12} />
                     {t("reader.readMode")}
                   </button>
                   <button
                     onClick={() => setMode("proofread")}
-                    className={`rounded-md px-3 py-1.5 text-xs font-bold tracking-widest ${
+                    className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold tracking-widest ${
                       mode === "proofread"
                         ? "bg-surface-container-high text-on-surface shadow-sm"
                         : "text-on-surface-variant hover:text-on-surface"
                     }`}
                   >
+                    <Columns2 size={12} />
                     {t("reader.comparison")}
                   </button>
                 </div>
