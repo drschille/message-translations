@@ -1,387 +1,387 @@
-# GAP-analyse: Message Translations Platform
+# GAP Analysis: Message Translations Platform
 
 ## Context
 
-Prosjektet har et komplett sett med modulspesifikasjoner (6 moduler + kjerne) og sterk implementasjon for Translation/Editorial og delvis Reader. Det mangler implementasjon for tre store moduler (Administration, Publishing/Export, Search) og delvise gap i Reader/Playback og Notes & Highlights.
+The project has a complete set of module specifications (6 modules + core) and strong implementation for Translation/Editorial plus partial Reader support. It is missing implementation for three major modules (Administration, Publishing/Export, Search) and has partial gaps in Reader/Playback and Notes & Highlights.
 
-Målet er en komplett, spec-drevet plattform for å bevare, oversette, publisere og konsumere preken-innhold.
-
----
-
-## GAP-liste med oppgaver
-
-### GAP 1 — Publishing / Export (10% implementert)
-
-Schema finnes (`sermonPublishedVersions`, `sermonPublishedParagraphSnapshots`), men ingen logikk.
-
-**Oppgave 1.1 — Backend: Valider publiseringsberedskap**
-- Implementer `validatePublishReadiness(sermonId, language)` i `convex/publishing.ts`
-- Sjekk at alle paragraf-oversettelser for (sermonId, language) er i `approved`-status
-- Returner liste over ikke-godkjente paragrafer ved feil
-
-**Oppgave 1.2 — Backend: Publish-aksjon**
-- Implementer `publishSermonVersion(sermonId, language, requestedBy)` i `convex/publishing.ts`
-- Kall `validatePublishReadiness` først (kast feil hvis ikke klar)
-- Lag ny versjon (increment) i `sermonPublishedVersions`
-- Materialiser snapshot-rader i `sermonPublishedParagraphSnapshots`
-- Logg publish-hendelse med aktør + tidsstempel
-- Eksisterende versjoner er uforanderlige (append-only)
-
-**Oppgave 1.3 — Backend: Lese publiserte versjoner**
-- `listPublishedVersions(sermonId, language)` → alle versjoner for et sermon+språk
-- `getPublishedSermon(sermonId, language, version?)` → snapshot (siste versjon hvis utelatt)
-
-**Oppgave 1.4 — Backend: Export**
-- `exportPublishedSermon(sermonId, language, version, format: 'json'|'csv')` i `convex/publishing.ts`
-- Les utelukkende fra snapshot-tabeller
-- Generer JSON eller CSV-artefakt med metadata
-- Logg eksport-hendelse
-
-**Oppgave 1.5 — Frontend: Publish-kontroller i EditorSermonsPage**
-- Knapp «Publiser oversettelse» for godkjente sermoner
-- Valideringsmelding ved manglende godkjente paragrafer
-- Vis publiseringshistorikk (versjonsliste)
-
-**Oppgave 1.6 — Frontend: Export-nedlasting**
-- Last ned-knapp for publiserte versjoner (JSON/CSV)
-- Vist på både `EditorSermonsPage` og `ReaderPage`
-
-**Oppgave 1.7 — Tester: Publishing-modul**
-- Unit-tester for publish-validering (manglende godkjenninger → feil)
-- Unit-tester for snapshot-materialisering
-- Unit-tester for immutabilitet (ny versjon ved republisering)
+The goal is a complete, spec-driven platform for preserving, translating, publishing, and consuming sermon content.
 
 ---
 
-### GAP 2 — Administration (5% implementert)
+## GAP List with Tasks
 
-Ingen bruker-/rolle-/oppdragssystem eksisterer.
+### GAP 1 — Publishing / Export (10% implemented)
 
-**Oppgave 2.1 — Backend: Bruker- og rollehåndtering**
-- Ny fil `convex/administration.ts`
+Schema exists (`sermonPublishedVersions`, `sermonPublishedParagraphSnapshots`), but no logic.
+
+**Task 1.1 — Backend: Validate Publishing Readiness**
+- Implement `validatePublishReadiness(sermonId, language)` in `convex/publishing.ts`
+- Check that all paragraph translations for (sermonId, language) are in `approved` status
+- Return a list of non-approved paragraphs on failure
+
+**Task 1.2 — Backend: Publish Action**
+- Implement `publishSermonVersion(sermonId, language, requestedBy)` in `convex/publishing.ts`
+- Call `validatePublishReadiness` first (throw error if not ready)
+- Create a new version (increment) in `sermonPublishedVersions`
+- Materialize snapshot rows in `sermonPublishedParagraphSnapshots`
+- Log publish event with actor + timestamp
+- Existing versions are immutable (append-only)
+
+**Task 1.3 — Backend: Read Published Versions**
+- `listPublishedVersions(sermonId, language)` → all versions for a sermon+language
+- `getPublishedSermon(sermonId, language, version?)` → snapshot (latest version if omitted)
+
+**Task 1.4 — Backend: Export**
+- `exportPublishedSermon(sermonId, language, version, format: 'json'|'csv')` in `convex/publishing.ts`
+- Read exclusively from snapshot tables
+- Generate JSON or CSV artifact with metadata
+- Log export event
+
+**Task 1.5 — Frontend: Publish Controls in EditorSermonsPage**
+- Button “Publish Translation” for approved sermons
+- Validation message when approved paragraphs are missing
+- Show publishing history (version list)
+
+**Task 1.6 — Frontend: Export Download**
+- Download button for published versions (JSON/CSV)
+- Shown on both `EditorSermonsPage` and `ReaderPage`
+
+**Task 1.7 — Tests: Publishing Module**
+- Unit tests for publish validation (missing approvals → error)
+- Unit tests for snapshot materialization
+- Unit tests for immutability (new version on republish)
+
+---
+
+### GAP 2 — Administration (5% implemented)
+
+No user/role/task system exists.
+
+**Task 2.1 — Backend: User and Role Management**
+- New file `convex/administration.ts`
 - `createUser(profile)`, `deleteUser(userId)`, `assignRoles(userId, roles[])`
-- Bruk `tokenIdentifier` som bruker-ID (konsistent med eksisterende mønstre)
-- Kapabilitetsmatrise: roller → tillatte handlinger
+- Use `tokenIdentifier` as user ID (consistent with existing patterns)
+- Capability matrix: roles → allowed actions
 
-**Oppgave 2.2 — Backend: Sermon workflow-orchestrering**
+**Task 2.2 — Backend: Sermon Workflow Orchestration**
 - `markSermonWorkflowState(sermonId, state: 'ready'|'in_progress'|'completed')`
-- Legg til `workflowState`-felt i `sermons`-tabellen (schema-migrasjon)
-- Valider overganger (kun autoriserte overganger tillatt)
+- Add `workflowState` field to `sermons` table (schema migration)
+- Validate transitions (only authorized transitions allowed)
 
-**Oppgave 2.3 — Backend: Oppgavetildeling**
+**Task 2.3 — Backend: Task Assignment**
 - `assignTask(taskType, target, assignee)`, `reassignTask(taskId, assignee)`
-- `getWorkQueue(userId)` → liste over oppgaver for bruker
-- Lag `tasks`-tabell i schema (type, target, assignee, status, createdAt)
+- `getWorkQueue(userId)` → list of tasks for user
+- Create `tasks` table in schema (type, target, assignee, status, createdAt)
 
-**Oppgave 2.4 — Frontend: Admin-panel**
-- Ny rute `/admin` med `AdminPage.tsx`
-- Brukerlistings + rolletildeling
-- Sermon-workflowoversikt (klar/i gang/fullført)
-- Oppgavefordeling per bruker
+**Task 2.4 — Frontend: Admin Panel**
+- New route `/admin` with `AdminPage.tsx`
+- User listing + role assignment
+- Sermon workflow overview (ready/in progress/completed)
+- Task distribution per user
 
-**Oppgave 2.5 — Frontend: Work Queue UI**
-- Ny rute `/editor/queue` med `WorkQueuePage.tsx`
-- Vis tildelte oppgaver for innlogget bruker
-- Direktelenker til sermoner/paragrafer
+**Task 2.5 — Frontend: Work Queue UI**
+- New route `/editor/queue` with `WorkQueuePage.tsx`
+- Show assigned tasks for logged-in user
+- Direct links to sermons/paragraphs
 
 ---
 
-### GAP 3 — Search (5% implementert)
+### GAP 3 — Search (5% implemented)
 
-Nullimplementasjon. Schema (`searchIndexJobs`, `searchQueryLogs`, `searchEmbeddingVectors`) eksisterer.
+Null implementation. Schema (`searchIndexJobs`, `searchQueryLogs`, `searchEmbeddingVectors`) exists.
 
-**Oppgave 3.1 — Backend: Fulltekstsøk**
-- `searchFullText(query, filters, scope)` i ny `convex/search.ts`
-- Bruk Convex innebygd fulltekstsøk-indeks (`searchIndex` i schema)
-- Støtt frase-søk og boolske operatorer
-- Returner hits med snippet/fragmenter
+**Task 3.1 — Backend: Full-Text Search**
+- `searchFullText(query, filters, scope)` in new `convex/search.ts`
+- Use Convex built-in full-text search index (`searchIndex` in schema)
+- Support phrase search and boolean operators
+- Return hits with snippets/fragments
 
-**Oppgave 3.2 — Backend: AI-semantisk søk**
+**Task 3.2 — Backend: AI Semantic Search**
 - `searchAI(query, filters, scope)`
-- Integrer Google GenAI (allerede installert: `@google/genai`) for embeddings
-- Generer embedding for søkespørring → cosine-likhet mot `searchEmbeddingVectors`
-- Returner topp-k resultater med score
+- Integrate Google GenAI (already installed: `@google/genai`) for embeddings
+- Generate embedding for search query → cosine similarity against `searchEmbeddingVectors`
+- Return top-k results with score
 
-**Oppgave 3.3 — Backend: Bibelvers-søk**
+**Task 3.3 — Backend: Bible Verse Search**
 - `searchByBibleVerse(reference, filters, scope)`
-- Normaliser referanser (f.eks. «Joh 3:16» → standardformat)
-- Matcher eksplisitte og relaterte kontekster
+- Normalize references (e.g. “John 3:16” → standard format)
+- Match explicit and related contexts
 
-**Oppgave 3.4 — Backend: Indekseringspipeline**
-- `reindexSermon(sermonId, language?, scope)` og `reindexAll(scope)`
-- Indeksjobbstyring via `searchIndexJobs` (queued → running → succeeded/failed)
-- Kjør ved innholds-endringer i editorial-arbeidsflyt
+**Task 3.4 — Backend: Indexing Pipeline**
+- `reindexSermon(sermonId, language?, scope)` and `reindexAll(scope)`
+- Index job orchestration via `searchIndexJobs` (queued → running → succeeded/failed)
+- Trigger on content changes in editorial workflow
 
-**Oppgave 3.5 — Frontend: Søkeside**
-- Ny rute `/search` med `SearchPage.tsx`
-- Søkefelt + resultatvisning med snippets
-- Faner: fulltekst / AI / bibelvers
-- Filtreringsmuligheter (language, series, year)
+**Task 3.5 — Frontend: Search Page**
+- New route `/search` with `SearchPage.tsx`
+- Search field + result view with snippets
+- Tabs: full-text / AI / bible verse
+- Filtering options (language, series, year)
 
-**Oppgave 3.6 — Frontend: Søk i eksisterende sider**
-- Integrer søk i `TranslationsPage.tsx` (allerede har en søkestreng-prop)
-- Søkebar i navigasjon (`Navbar.tsx`)
+**Task 3.6 — Frontend: Search in Existing Pages**
+- Integrate search in `TranslationsPage.tsx` (already has a search-string prop)
+- Search bar in navigation (`Navbar.tsx`)
 
 ---
 
-### GAP 4 — Reader / Playback (60% implementert)
+### GAP 4 — Reader / Playback (60% implemented)
 
-UI for lyd eksisterer men er ikke funksjonelt.
+UI for audio exists but is not functional.
 
-**Oppgave 4.1 — Backend: Reader API**
-- `getPublishedReaderView(sermonId, language, version?)` i `convex/reader.ts`
-- Kombiner metadata + paragrafer fra publiserte snapshot-tabeller
-- `listPublishedLanguages(sermonId)` → tilgjengelige språk
+**Task 4.1 — Backend: Reader API**
+- `getPublishedReaderView(sermonId, language, version?)` in `convex/reader.ts`
+- Combine metadata + paragraphs from published snapshot tables
+- `listPublishedLanguages(sermonId)` → available languages
 
-**Oppgave 4.2 — Backend: Lydspor-integrasjon**
+**Task 4.2 — Backend: Audio Track Integration**
 - `getPlaybackTrack(sermonId, language, version?, source)`
-- Returner `audioUrl` fra `sermons`-tabellen
-- Forbered struct for TTS-fallback (ElevenLabs-klar, men ikke tving implementasjon)
+- Return `audioUrl` from `sermons` table
+- Prepare structure for TTS fallback (ElevenLabs-ready, but no forced implementation)
 
-**Oppgave 4.3 — Backend: Skrift-referanse-løsning**
+**Task 4.3 — Backend: Scripture Reference Resolution**
 - `resolveScriptureReferences(sermonId, language, version?)`
-- Ekstraher og normaliser skrift-referanser fra paragraftekst
-- Returner annoterte referanser med lenker
+- Extract and normalize scripture references from paragraph text
+- Return annotated references with links
 
-**Oppgave 4.4 — Frontend: Funksjonell lydavspilling**
-- Koble lydknapper til faktisk HTML5 `<audio>`-element i `ReaderPage.tsx`
-- Implementer play/pause/seek-kontroller
-- Marker aktiv paragraf under avspilling (basert på tidsstempler om tilgjengelig)
+**Task 4.4 — Frontend: Functional Audio Playback**
+- Connect audio buttons to an actual HTML5 `<audio>` element in `ReaderPage.tsx`
+- Implement play/pause/seek controls
+- Highlight active paragraph during playback (based on timestamps if available)
 
-**Oppgave 4.5 — Frontend: ReaderPage fra publiserte snapshots**
-- Oppdater `ReaderPage.tsx` til å lese fra publiserte snapshot-tabeller (ikke rå oversettelser)
-- Versjonsvelger-UI (default = siste versjon)
+**Task 4.5 — Frontend: ReaderPage from Published Snapshots**
+- Update `ReaderPage.tsx` to read from published snapshot tables (not raw translations)
+- Version selector UI (default = latest version)
 
 ---
 
-### GAP 5 — Notes & Highlights (70% implementert)
+### GAP 5 — Notes & Highlights (70% implemented)
 
-IndexedDB fungerer, men mangler server-side persistens og dashboard.
+IndexedDB works, but server-side persistence and dashboard are missing.
 
-**Oppgave 5.1 — Backend: Server-side annotasjonspersistens**
-- Opprettelse av `userHighlights`- og `userNotes`-tabeller i schema (om ikke allerede modellert)
-- `createHighlight(userId, sermonId, language, version, selection, style)` i `convex/annotations.ts`
+**Task 5.1 — Backend: Server-Side Annotation Persistence**
+- Create `userHighlights` and `userNotes` tables in schema (if not already modeled)
+- `createHighlight(userId, sermonId, language, version, selection, style)` in `convex/annotations.ts`
 - `updateHighlight`, `deleteHighlight`, `createNote`, `updateNote`, `deleteNote`
-- Eiersjekk obligatorisk på alle mutasjoner
+- Ownership checks mandatory on all mutations
 
-**Oppgave 5.2 — Backend: Annotasjonslisting og eksport**
-- `listUserAnnotations(userId, filters)` med filtrering på sermon/dato/language
-- `exportUserAnnotations(userId)` → JSON-eksport
-- `importUserAnnotations(userId, payload)` med schema-validering og deduplisering
+**Task 5.2 — Backend: Annotation Listing and Export**
+- `listUserAnnotations(userId, filters)` with filtering by sermon/date/language
+- `exportUserAnnotations(userId)` → JSON export
+- `importUserAnnotations(userId, payload)` with schema validation and deduplication
 
-**Oppgave 5.3 — Frontend: Annotasjonsdashboard**
-- Ny rute `/annotations` med `AnnotationsDashboard.tsx`
-- Gruppert etter sermon/dato/språk
-- Filtrer/søk i egne notater og markeringer
+**Task 5.3 — Frontend: Annotation Dashboard**
+- New route `/annotations` with `AnnotationsDashboard.tsx`
+- Grouped by sermon/date/language
+- Filter/search within user’s own notes and highlights
 
-**Oppgave 5.4 — Migrasjon: IndexedDB → server-side**
-- Migrasjonshjelper som eksporterer IndexedDB-data og importerer til server via `importUserAnnotations`
-- Vis engangs-migreringsmelding til innloggede brukere
+**Task 5.4 — Migration: IndexedDB → Server-Side**
+- Migration helper that exports IndexedDB data and imports to server via `importUserAnnotations`
+- Show one-time migration message to logged-in users
 
 ---
 
-### GAP 6 — Kryssmodul-infrastruktur (mangler)
+### GAP 6 — Cross-Module Infrastructure (missing)
 
-**Oppgave 6.1 — Autentisering og autorisasjon**
-- Integrer Convex Auth (eller eksisterende token-system)
-- Kapabilitetsmatrise håndhevet i backend-funksjoner
-- Skill uautoriserte fra autoriserte brukere konsistent
+**Task 6.1 — Authentication and Authorization**
+- Integrate Convex Auth (or existing token system)
+- Capability matrix enforced in backend functions
+- Distinguish unauthorized and authorized users consistently
 
-**Oppgave 6.2 — Auditlogg**
-- Konsistent aktør+tidsstempel logging på alle mutasjoner (editorial har dette delvis)
-- Sentraliser logiklaget i et Convex-hjelpeobjekt (f.eks. `withAudit(ctx, fn)`)
+**Task 6.2 — Audit Log**
+- Consistent actor+timestamp logging on all mutations (editorial has this partially)
+- Centralize logic layer in a Convex helper (e.g. `withAudit(ctx, fn)`)
 
-**Oppgave 6.3 — Feilhåndtering og standardisering**
-- Standardiser feilmeldingsformat på tvers av Convex-funksjoner
-- Frontend: konsistente toast-meldinger / feilvisning
+**Task 6.3 — Error Handling and Standardization**
+- Standardize error message format across Convex functions
+- Frontend: consistent toast messages / error display
 
 ---
 
 ## GAP 7 — Design / UX (design/mt.pen)
 
-### Hva som ER designet (12 frames i mt.pen)
+### What IS Designed (12 frames in mt.pen)
 
-| Frame | Dekker |
+| Frame | Covers |
 |-------|--------|
-| Landing Page | Hero, sermonslist, om oss, footer |
-| Sermons Page | Søk, filter, paginert liste |
-| Sermon Reader | Lesemodus, fargepunkter, verktøylinje |
-| Sermon Reader — Panel Open | Leser med notater/høydepunkter-panel åpent |
-| Comparison Reader | Splitvisning Engelsk/Norsk side om side |
-| Sermon Reader — Proofreading | Korrekturlesing med avatarindikatorer per paragraf |
-| Version History Overlay | Versjonsliste med sammenlign/gjenopprett |
-| Comments Overlay | Trådet kommentar-modal |
-| Notes Panel (Expanded) | Sidepanel med høydepunkter og notater |
-| Design System (R9tUP + JeK3D) | Typografi, farger, komponenter, layout-mønstre |
+| Landing Page | Hero, sermon list, about us, footer |
+| Sermons Page | Search, filter, paginated list |
+| Sermon Reader | Reading mode, color markers, toolbar |
+| Sermon Reader — Panel Open | Reader with notes/highlights panel open |
+| Comparison Reader | Split view English/Norwegian side by side |
+| Sermon Reader — Proofreading | Proofreading with avatar indicators per paragraph |
+| Version History Overlay | Version list with compare/restore |
+| Comments Overlay | Threaded comment modal |
+| Notes Panel (Expanded) | Side panel with highlights and notes |
+| Design System (R9tUP + JeK3D) | Typography, colors, components, layout patterns |
 
 ---
 
-### Design-GAP 7.1 — Søkeside (ikke designet)
+### Design GAP 7.1 — Search Page (not designed)
 
-Ingen design for søk eksisterer. Spec krever fulltekst, AI, og bibelvers-søk.
+No design for search exists. Spec requires full-text, AI, and bible verse search.
 
-**Oppgave 7.1.1 — Design: Søkeside**
-- Side med søkefelt, fane-navigasjon (Fulltekst / AI / Bibelvers)
-- Resultatkorter med snippet, sermontittel, språk, versjon-badge
-- Filter-panel (år, serie, språk)
-- Tilstandsdesign: tomt søk, ingen resultater, laster
+**Task 7.1.1 — Design: Search Page**
+- Page with search field, tab navigation (Full-text / AI / Bible verse)
+- Result cards with snippet, sermon title, language, version badge
+- Filter panel (year, series, language)
+- State design: empty search, no results, loading
 
-**Oppgave 7.1.2 — Design: Søk i Navbar**
-- Utvidbar søkebar i navigasjonen (ikon → input)
-- Hurtigresultater / typeahead-dropdown
-
----
-
-### Design-GAP 7.2 — Administrasjonspanel (ikke designet)
-
-Ingen design for bruker-/rolle-/oppgavehåndtering.
-
-**Oppgave 7.2.1 — Design: Admin-oversikt**
-- Brukerliste med rolle-badges (Oversetter / Korrekturleser / Redaktør / Utgiver)
-- Rolletildeling-modal (inline eller slide-over)
-- Sermonarbeidsflytstatus-tabell (klar / i gang / fullført)
-
-**Oppgave 7.2.2 — Design: Arbeidskø**
-- Oppgaveliste per bruker (tildelte paragrafer/sermoner)
-- Direktelenke til editorial-visning
-- Prioritet og frister
+**Task 7.1.2 — Design: Search in Navbar**
+- Expandable search bar in navigation (icon → input)
+- Quick results / typeahead dropdown
 
 ---
 
-### Design-GAP 7.3 — Publisering og eksport (ikke designet)
+### Design GAP 7.2 — Administration Panel (not designed)
 
-Publiserings- og eksportflyten mangler helt.
+No design for user/role/task management.
 
-**Oppgave 7.3.1 — Design: Publiseringsknapp og bekreftelsessteg**
-- Publiser-knapp på `EditorSermonsPage` (inaktiv hvis ikke klar)
-- Validerings-modal: viser antall ikke-godkjente paragrafer
-- Bekreftelsesdialog med versjonsnummer og forfatter
+**Task 7.2.1 — Design: Admin Overview**
+- User list with role badges (Translator / Proofreader / Editor / Publisher)
+- Role assignment modal (inline or slide-over)
+- Sermon workflow status table (ready / in progress / completed)
 
-**Oppgave 7.3.2 — Design: Versjonsoversikt**
-- Liste over publiserte versjoner per sermon+språk
-- Tidslinje med versjonsnummer, dato, utgiver
-
-**Oppgave 7.3.3 — Design: Eksport-dialog**
-- Formatvelger (JSON / CSV)
-- Versjonvelger
-- Last ned-knapp
+**Task 7.2.2 — Design: Work Queue**
+- Task list per user (assigned paragraphs/sermons)
+- Direct link to editorial view
+- Priority and due dates
 
 ---
 
-### Design-GAP 7.4 — Autentisering (ikke designet)
+### Design GAP 7.3 — Publishing and Export (not designed)
 
-Ingen login/signup-sider er designet.
+Publishing and export flow is entirely missing.
 
-**Oppgave 7.4.1 — Design: Login-side**
-- Minimalistisk innloggingsform (e-post + passord eller SSO)
-- Konsistent med design system (mørkt tema, typografi)
+**Task 7.3.1 — Design: Publish Button and Confirmation Steps**
+- Publish button on `EditorSermonsPage` (inactive if not ready)
+- Validation modal: shows number of non-approved paragraphs
+- Confirmation dialog with version number and author
 
----
+**Task 7.3.2 — Design: Version Overview**
+- List of published versions per sermon+language
+- Timeline with version number, date, publisher
 
-### Design-GAP 7.5 — Annotasjonsdashboard (ikke designet)
-
-Notes Panel er designet som sidepanel i leseren, men ingen frittstående dashboardside.
-
-**Oppgave 7.5.1 — Design: Annotasjonsdashboard**
-- Fullside-visning av alle egne notater og høydepunkter
-- Gruppert etter sermon / dato / språk
-- Søk/filter i egne annotasjoner
-- Eksport/import-knapper
+**Task 7.3.3 — Design: Export Dialog**
+- Format selector (JSON / CSV)
+- Version selector
+- Download button
 
 ---
 
-### Design-GAP 7.6 — Lydavspilling (ikke designet funksjonelt)
+### Design GAP 7.4 — Authentication (not designed)
 
-Leseren viser fargepunkter og knapper, men ingen dedikert lydspiller-UI.
+No login/signup pages are designed.
 
-**Oppgave 7.6.1 — Design: Audio Player-komponent**
-- Persistent player-bar (bunn eller topp av skjermen)
-- Play/pause, spol frem/tilbake, tidslinje med progresjon
-- Aktiv paragraf-markering synkronisert med avspilling
-
----
-
-### Design-GAP 7.7 — Mobildesign (ikke designet)
-
-Alle 12 frames er 1440px desktop. Ingen mobil-breakpoints finnes.
-
-**Oppgave 7.7.1 — Design: Mobilversjon av leser (390px)**
-- Enkeltkolonne-layout for reader
-- Sammenkollapsbar verktøylinje
-- Notater-panel som bunnark (bottom sheet)
-
-**Oppgave 7.7.2 — Design: Mobilversjon av sermonsside**
-- Stablede sermoner-kort
-- Filter som bunnark
+**Task 7.4.1 — Design: Login Page**
+- Minimal login form (email + password or SSO)
+- Consistent with design system (dark theme, typography)
 
 ---
 
-### Design-GAP 7.8 — Systemtilstander (ikke designet)
+### Design GAP 7.5 — Annotation Dashboard (not designed)
 
-Ingen tomme tilstander, feilsider eller lasteindikatorer er formelt designet.
+Notes Panel is designed as a reader side panel, but no standalone dashboard page.
 
-**Oppgave 7.8.1 — Design: Tomme tilstander**
-- Ingen sermoner funnet (søk uten treff)
-- Ingen notater ennå
-- Ingen publiserte versjoner
-
-**Oppgave 7.8.2 — Design: Feil og loading**
-- 404-side
-- Generell feilside
-- Skeleton-loaders (allerede brukt i kode, bør standardiseres)
+**Task 7.5.1 — Design: Annotation Dashboard**
+- Full-page view of all user notes and highlights
+- Grouped by sermon / date / language
+- Search/filter in user annotations
+- Export/import buttons
 
 ---
 
-### Design-GAP 7.9 — Skrift-referanse-visning (ikke designet)
+### Design GAP 7.6 — Audio Playback (not functionally designed)
 
-Spec nevner skriftreferanser i leseren, men ingen design for dette.
+The reader shows color markers and buttons, but no dedicated audio player UI.
 
-**Oppgave 7.9.1 — Design: Skriftreferanse-tooltip/panel**
-- Inline tooltip ved hover på bibelreferanser
-- Eller utvidbart panel i sidemargen
+**Task 7.6.1 — Design: Audio Player Component**
+- Persistent player bar (bottom or top of screen)
+- Play/pause, skip forward/backward, timeline with progress
+- Active paragraph highlight synchronized with playback
 
 ---
 
-### Sammendrag: Design-dekning per modul
+### Design GAP 7.7 — Mobile Design (not designed)
 
-| Modul | Design-status |
+All 12 frames are 1440px desktop. No mobile breakpoints exist.
+
+**Task 7.7.1 — Design: Mobile Reader Version (390px)**
+- Single-column layout for reader
+- Collapsible toolbar
+- Notes panel as bottom sheet
+
+**Task 7.7.2 — Design: Mobile Sermons Page Version**
+- Stacked sermon cards
+- Filters as bottom sheet
+
+---
+
+### Design GAP 7.8 — System States (not designed)
+
+No empty states, error pages, or loading indicators are formally designed.
+
+**Task 7.8.1 — Design: Empty States**
+- No sermons found (search with no hits)
+- No notes yet
+- No published versions
+
+**Task 7.8.2 — Design: Error and Loading**
+- 404 page
+- General error page
+- Skeleton loaders (already used in code, should be standardized)
+
+---
+
+### Design GAP 7.9 — Scripture Reference View (not designed)
+
+Spec mentions scripture references in the reader, but no design exists for this.
+
+**Task 7.9.1 — Design: Scripture Reference Tooltip/Panel**
+- Inline tooltip on hover over bible references
+- Or expandable panel in the side margin
+
+---
+
+### Summary: Design Coverage per Module
+
+| Module | Design status |
 |-------|--------------|
-| Reader / Playback | 70% — mangler lydspiller, mobil, skriftreferanse |
-| Translation / Editorial | 85% — proofreading, kommentarer, versjon designet |
-| Notes & Highlights | 60% — panel designet, dashboard mangler |
-| Publishing / Export | 0% — ingenting designet |
-| Administration | 0% — ingenting designet |
-| Search | 0% — ingenting designet |
-| Autentisering | 0% — ingen login-sider |
-| Systemtilstander | 10% — kun implisitt via shimmer-komponenter |
+| Reader / Playback | 70% — missing audio player, mobile, scripture reference |
+| Translation / Editorial | 85% — proofreading, comments, versioning designed |
+| Notes & Highlights | 60% — panel designed, dashboard missing |
+| Publishing / Export | 0% — nothing designed |
+| Administration | 0% — nothing designed |
+| Search | 0% — nothing designed |
+| Authentication | 0% — no login pages |
+| System states | 10% — only implicit via shimmer components |
 
 ---
 
-## Implementasjonsrekkefølge (anbefalt)
+## Implementation Order (recommended)
 
 ```
 1. GAP 7 (Design) — Publishing, Admin, Search, Auth  [design-first]
-2. GAP 1 — Publishing/Export backend               (blokkerer Reader fra publisert innhold)
-3. GAP 4 — Reader fullføring                       (avhenger av publiserte snapshots + lyddesign)
-4. GAP 5 — Notes & Highlights server-side          (avhenger av publiserte versjoner som ankere)
-5. GAP 2 — Administration                          (uavhengig, men viktig for flyt-styring)
-6. GAP 3 — Search                                  (avhenger av indeksert publisert innhold)
-7. GAP 6 — Infrastruktur                           (kan paralleliseres, men best tidlig)
-8. GAP 7 (Design) — Mobil, systemtilstander        [etter kjernefunksjonalitet]
+2. GAP 1 — Publishing/Export backend               (blocks Reader from published content)
+3. GAP 4 — Reader completion                       (depends on published snapshots + audio design)
+4. GAP 5 — Notes & Highlights server-side          (depends on published versions as anchors)
+5. GAP 2 — Administration                          (independent, but important for workflow control)
+6. GAP 3 — Search                                  (depends on indexed published content)
+7. GAP 6 — Infrastructure                          (can be parallelized, but best early)
+8. GAP 7 (Design) — Mobile, system states          [after core functionality]
 ```
 
-## Kritiske filer for modifikasjon
+## Critical Files for Modification
 
-- [convex/schema.ts](../convex/schema.ts) — Legg til `tasks`, evt. `workflowState` på sermons
-- [convex/editorial.ts](../convex/editorial.ts) — Hook inn indeksering ved statusendringer
-- [src/App.tsx](../src/App.tsx) — Nye ruter: `/admin`, `/editor/queue`, `/search`, `/annotations`
-- [src/components/ReaderPage.tsx](../src/components/ReaderPage.tsx) — Publiserte snapshots + lyd
-- Nye filer: `convex/publishing.ts`, `convex/administration.ts`, `convex/search.ts`, `convex/reader.ts`, `convex/annotations.ts`
+- [convex/schema.ts](../convex/schema.ts) — Add `tasks`, possibly `workflowState` on sermons
+- [convex/editorial.ts](../convex/editorial.ts) — Hook indexing on status changes
+- [src/App.tsx](../src/App.tsx) — New routes: `/admin`, `/editor/queue`, `/search`, `/annotations`
+- [src/components/ReaderPage.tsx](../src/components/ReaderPage.tsx) — Published snapshots + audio
+- New files: `convex/publishing.ts`, `convex/administration.ts`, `convex/search.ts`, `convex/reader.ts`, `convex/annotations.ts`
 
-## Verifisering
+## Verification
 
-- Publisering: Opprett sermon med alle approved paragrafer → kall publish → verifiser snapshot-rader
-- Export: Last ned JSON/CSV → verifiser struktur matcher spec
-- Search: Indekser en sermon → søk etter frase → verifiser hit med snippet
-- Reader: Naviger til publisert sermon → verifiser kun snapshot-data vises (ikke rå)
-- Admin: Tildel rolle → verifiser kapabilitetsmatrise håndheves i backend
+- Publishing: Create sermon with all approved paragraphs → call publish → verify snapshot rows
+- Export: Download JSON/CSV → verify structure matches spec
+- Search: Index a sermon → search for phrase → verify hit with snippet
+- Reader: Navigate to published sermon → verify only snapshot data is shown (not raw)
+- Admin: Assign role → verify capability matrix is enforced in backend
