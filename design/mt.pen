@@ -4527,6 +4527,48 @@
                               "letterSpacing": 0.4
                             }
                           ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "UKYQ0",
+                          "name": "RoleChip/Removable",
+                          "reusable": true,
+                          "fill": "#2d2f33",
+                          "cornerRadius": 7,
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#50545b"
+                          },
+                          "gap": 6,
+                          "padding": [
+                            6,
+                            10
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "zY0hm",
+                              "name": "chipRoleText",
+                              "fill": "#c5c9d2",
+                              "content": "Role",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "600",
+                              "letterSpacing": 0.4
+                            },
+                            {
+                              "type": "text",
+                              "id": "pIhRI",
+                              "name": "chipRemoveX",
+                              "fill": "#8d9199",
+                              "content": "x",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "600"
+                            }
+                          ]
                         }
                       ]
                     },
@@ -17287,6 +17329,166 @@
         },
         {
           "type": "frame",
+          "id": "hF0WQ",
+          "name": "Role Chips",
+          "width": "fill_container",
+          "fill": "#1c1b1b",
+          "cornerRadius": 12,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#2a2a2a"
+          },
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 24,
+          "children": [
+            {
+              "type": "text",
+              "id": "H8Dip",
+              "name": "roleTitle",
+              "fill": "#e5e2e1",
+              "content": "Role Chips",
+              "fontFamily": "Noto Serif",
+              "fontSize": 30,
+              "fontWeight": "500"
+            },
+            {
+              "type": "text",
+              "id": "JFg8d",
+              "name": "roleSub",
+              "fill": "#8d9199",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Single-color removable role chips used in role-assignment contexts.",
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "fLuuj",
+              "name": "roleLabA",
+              "fill": "#8d9199",
+              "content": "COMPONENT",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "frame",
+              "id": "NY71A",
+              "name": "roleCompWrap",
+              "width": "fill_container",
+              "fill": "#171717",
+              "cornerRadius": 10,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#2a2a2a"
+              },
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 16,
+              "children": [
+                {
+                  "id": "jBfHR",
+                  "type": "ref",
+                  "ref": "UKYQ0",
+                  "name": "roleCompChip",
+                  "width": "fit_content",
+                  "height": "fit_content",
+                  "descendants": {
+                    "zY0hm": {
+                      "content": "Reviewer"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "Dcz2j",
+              "name": "roleLabB",
+              "fill": "#8d9199",
+              "content": "USAGE — USERS TABLE ROLES CELL",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "600",
+              "letterSpacing": 2
+            },
+            {
+              "type": "frame",
+              "id": "FFIpN",
+              "name": "roleUsageWrap",
+              "width": "fill_container",
+              "fill": "#171717",
+              "cornerRadius": 10,
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#2a2a2a"
+              },
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "sGbGZ",
+                  "name": "roleUsageRow",
+                  "width": "fill_container",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "id": "eIpKU",
+                      "type": "ref",
+                      "ref": "UKYQ0",
+                      "name": "roleUsage1",
+                      "width": "fit_content",
+                      "height": "fit_content",
+                      "descendants": {
+                        "zY0hm": {
+                          "content": "Reviewer"
+                        }
+                      }
+                    },
+                    {
+                      "id": "sIbhA",
+                      "type": "ref",
+                      "ref": "UKYQ0",
+                      "name": "roleUsage2",
+                      "width": "fit_content",
+                      "height": "fit_content",
+                      "descendants": {
+                        "zY0hm": {
+                          "content": "Publisher"
+                        }
+                      }
+                    },
+                    {
+                      "id": "UQc6i",
+                      "type": "ref",
+                      "ref": "UKYQ0",
+                      "name": "roleUsage3",
+                      "width": "fit_content",
+                      "height": "fit_content",
+                      "descendants": {
+                        "zY0hm": {
+                          "content": "Translator"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
           "id": "atb6q",
           "name": "Effects & Surfaces",
           "width": "fill_container",
@@ -23061,34 +23263,28 @@
                           "gap": 6,
                           "children": [
                             {
-                              "id": "AqsQs",
+                              "id": "XUOkq",
                               "type": "ref",
-                              "ref": "NULOM",
+                              "ref": "UKYQ0",
                               "name": "u1r1",
                               "width": "fit_content",
-                              "x": 0,
                               "height": "fit_content",
                               "descendants": {
-                                "vQ9VU": {
-                                  "content": "Reviewer",
-                                  "x": 10,
-                                  "y": 6
+                                "zY0hm": {
+                                  "content": "Reviewer"
                                 }
                               }
                             },
                             {
-                              "id": "uGAWp",
+                              "id": "qJ812",
                               "type": "ref",
-                              "ref": "rnYsn",
+                              "ref": "UKYQ0",
                               "name": "u1r2",
                               "width": "fit_content",
-                              "x": 79,
                               "height": "fit_content",
                               "descendants": {
-                                "xsjZd": {
-                                  "content": "Publisher",
-                                  "x": 10,
-                                  "y": 6
+                                "zY0hm": {
+                                  "content": "Publisher"
                                 }
                               }
                             }
@@ -23187,34 +23383,28 @@
                           "gap": 6,
                           "children": [
                             {
-                              "id": "TytA6",
+                              "id": "NQDW2",
                               "type": "ref",
-                              "ref": "pTGh5",
+                              "ref": "UKYQ0",
                               "name": "u2r1",
                               "width": "fit_content",
-                              "x": 0,
                               "height": "fit_content",
                               "descendants": {
-                                "usFOv": {
-                                  "content": "Translator",
-                                  "x": 10,
-                                  "y": 6
+                                "zY0hm": {
+                                  "content": "Translator"
                                 }
                               }
                             },
                             {
-                              "id": "kqBr2",
+                              "id": "4I29w",
                               "type": "ref",
-                              "ref": "NULOM",
+                              "ref": "UKYQ0",
                               "name": "u2r2",
                               "width": "fit_content",
-                              "x": 85,
                               "height": "fit_content",
                               "descendants": {
-                                "vQ9VU": {
-                                  "content": "Proofreader",
-                                  "x": 10,
-                                  "y": 6
+                                "zY0hm": {
+                                  "content": "Proofreader"
                                 }
                               }
                             }
@@ -23319,14 +23509,14 @@
                           "alignItems": "center",
                           "children": [
                             {
-                              "id": "hYmtw",
+                              "id": "uiSlf",
                               "type": "ref",
-                              "ref": "NULOM",
+                              "ref": "UKYQ0",
+                              "name": "u3chip",
                               "width": "fit_content",
                               "height": 24,
-                              "name": "u3chip",
                               "descendants": {
-                                "vQ9VU": {
+                                "zY0hm": {
                                   "content": "Reviewer"
                                 }
                               }
